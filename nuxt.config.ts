@@ -9,6 +9,10 @@ export default defineNuxtConfig({
     prerender: {
       autoSubfolderIndex: false,
     },
+    cloudflare: {
+      deployConfig: true,
+      nodeCompat: true,
+    },
   },
   eslint: {
     config: {
