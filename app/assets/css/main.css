@@ -1,0 +1,28 @@
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+@theme static {
+  --color-stormwork-blue-50: #f1f9fa;
+  --color-stormwork-blue-100: #dbecf2;
+  --color-stormwork-blue-200: #bbdbe6;
+  --color-stormwork-blue-300: #8bc0d5;
+  --color-stormwork-blue-400: #559ebb;
+  --color-stormwork-blue-500: #4091b4;
+  --color-stormwork-blue-600: #326a88;
+  --color-stormwork-blue-700: #2e5870;
+  --color-stormwork-blue-800: #2d4b5d;
+  --color-stormwork-blue-900: #293f50;
+  --color-stormwork-blue-950: #172835;
+
+  --color-stormworks-orange-50: #faf5f2;
+  --color-stormworks-orange-100: #f4e9e0;
+  --color-stormworks-orange-200: #e8d1c0;
+  --color-stormworks-orange-300: #d9b398;
+  --color-stormworks-orange-400: #c98f6e;
+  --color-stormworks-orange-500: #c07856;
+  --color-stormworks-orange-600: #b06146;
+  --color-stormworks-orange-700: #934d3b;
+  --color-stormworks-orange-800: #774035;
+  --color-stormworks-orange-900: #60362e;
+  --color-stormworks-orange-950: #331b17;
+}
