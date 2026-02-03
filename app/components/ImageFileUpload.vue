@@ -1,4 +1,8 @@
 <script setup lang="ts">
+const { t } = useI18n({
+  useScope: 'local',
+});
+
 const props = defineProps<{
   label?: string;
   removable?: boolean;
@@ -66,7 +70,7 @@ watch(file, loadFile);
 
         <UButton
           icon="i-lucide-upload"
-          label="選択"
+          :label="t('pick')"
           color="neutral"
           variant="outline"
           @click="open()"
@@ -75,3 +79,14 @@ watch(file, loadFile);
     </UFileUpload>
   </UFormField>
 </template>
+
+<i18n lang="json">
+{
+  "en": {
+    "pick": "Pick"
+  },
+  "ja": {
+    "pick": "選択"
+  }
+}
+</i18n>

@@ -1,7 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@nuxt/ui', '@nuxt/eslint'],
-  ssr: true,
+  modules: ['@nuxt/ui', '@nuxt/eslint', '@nuxtjs/i18n'],
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   compatibilityDate: '2025-07-15',
@@ -22,5 +21,13 @@ export default defineNuxtConfig({
         semi: true,
       },
     },
+  },
+  i18n: {
+    locales: [
+      { code: 'en', file: 'en.json' },
+      { code: 'ja', file: 'ja.json' },
+    ],
+    defaultLocale: 'en',
+    strategy: 'no_prefix',
   },
 });

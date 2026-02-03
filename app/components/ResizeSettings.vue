@@ -10,6 +10,10 @@ export type ResizeSettings = {
   resizeAlgo: 'pixelated' | 'smooth';
 };
 
+const { t } = useI18n({
+  useScope: 'local',
+});
+
 const props = defineProps({
   label: {
     type: String,
@@ -29,12 +33,7 @@ const props = defineProps({
 });
 const modelValue = defineModel<ResizeSettings>({ required: true });
 
-const sizeUnitLabel = computed(() => {
-  const { sizeType } = modelValue.value;
-  if (sizeType === 'block') return 'ブロック';
-  else if (sizeType === 'pixel') return 'px';
-  else return '%';
-});
+const sizeUnitLabel = computed(() => t(`size_type_unit_${modelValue.value.sizeType}`));
 
 const widthBlocks = computed(() => Math.ceil(modelValue.value.widthPixels / 9));
 const heightBlocks = computed(() => Math.ceil(modelValue.value.heightPixels / 9));
@@ -121,13 +120,13 @@ watch(modelValue, (newValue, oldValue) => {
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
       <div class="space-y-4">
-        <UFormField label="指定方法">
+        <UFormField :label="t('size_type')">
           <USelect
             v-model="modelValue.sizeType"
             :items="[
-              { value: 'block', label: 'ブロック数' },
-              { value: 'pixel', label: 'ピクセル数' },
-              { value: 'percent', label: '拡大率' },
+              { value: 'block', label: t('size_type_block') },
+              { value: 'pixel', label: t('size_type_pixel') },
+              { value: 'percent', label: t('size_type_percent') },
             ]"
             class="w-full"
           />
@@ -135,12 +134,12 @@ watch(modelValue, (newValue, oldValue) => {
 
         <USwitch
           v-model="modelValue.keepAspect"
-          label="縦横比を維持"
+          :label="t('keep_aspect')"
         />
       </div>
 
       <div class="row-span-2 h-full flex flex-col gap-4 justify-between">
-        <UFormField :label="`幅 (${sizeUnitLabel})`">
+        <UFormField :label="`${t('width')} (${sizeUnitLabel})`">
           <UInputNumber
             v-if="modelValue.sizeType === 'block'"
             :model-value="widthBlocks"
@@ -163,7 +162,7 @@ watch(modelValue, (newValue, oldValue) => {
           />
         </UFormField>
 
-        <UFormField :label="`高さ (${sizeUnitLabel})`">
+        <UFormField :label="`${t('height')} (${sizeUnitLabel})`">
           <UInputNumber
             v-if="modelValue.sizeType === 'block'"
             :model-value="heightBlocks"
@@ -195,14 +194,14 @@ watch(modelValue, (newValue, oldValue) => {
             class="px-2 py-1 rounded transition"
             @click="modelValue.sizePriority = 'width'"
           >
-            幅優先
+            {{ t('prioritize_width') }}
           </button>
           <button
             :class="{ 'bg-white dark:bg-gray-600 shadow': modelValue.sizePriority === 'height' }"
             class="px-2 py-1 rounded transition"
             @click="modelValue.sizePriority = 'height'"
           >
-            高さ優先
+            {{ t('prioritize_height') }}
           </button>
         </div>
       </div>
@@ -212,16 +211,19 @@ watch(modelValue, (newValue, oldValue) => {
           v-if="props.imageSize"
           :disabled="isOriginalSize"
           :color="isOriginalSize ? 'neutral' : 'primary'"
-          label="元画像に合わせる"
+          :label="t('reset_to_original_size')"
           variant="subtle"
           class="w-full justify-center"
           @click="setSizeOriginal"
         />
 
-        <UFormField label="リサイズ処理">
+        <UFormField :label="t('resize_algo')">
           <USelect
             v-model="modelValue.resizeAlgo"
-            :items="[{ label: '滑らか', value: 'smooth' }, { label: 'ドット優先', value: 'pixelated' }]"
+            :items="[
+              { label: t('resize_smooth'), value: 'smooth' },
+              { label: t('resize_pixelated'), value: 'pixelated' },
+            ]"
             class="w-full"
           />
         </UFormField>
@@ -229,3 +231,44 @@ watch(modelValue, (newValue, oldValue) => {
     </div>
   </div>
 </template>
+
+<i18n lang="json">
+{
+  "en": {
+    "size_type": "Method",
+    "size_type_block": "Blocks",
+    "size_type_pixel": "Pixels",
+    "size_type_percent": "Scale",
+    "size_type_unit_block": "Blocks",
+    "size_type_unit_pixel": "px",
+    "size_type_unit_percent": "%",
+    "keep_aspect": "Keep aspect ratio",
+    "width": "Width",
+    "height": "Height",
+    "prioritize_width": "Prioritize Width",
+    "prioritize_height": "Prioritize Height",
+    "reset_to_original_size": "Reset to Original Size",
+    "resize_algo": "Resize Algorithm",
+    "resize_smooth": "Smooth",
+    "resize_pixelated": "Pixelated"
+  },
+  "ja": {
+    "size_type": "指定方法",
+    "size_type_block": "ブロック数",
+    "size_type_pixel": "ピクセル数",
+    "size_type_percent": "拡大率",
+    "size_type_unit_block": "ブロック",
+    "size_type_unit_pixel": "px",
+    "size_type_unit_percent": "%",
+    "keep_aspect": "縦横比を維持",
+    "width": "幅",
+    "height": "高さ",
+    "prioritize_width": "幅優先",
+    "prioritize_height": "高さ優先",
+    "reset_to_original_size": "元画像に合わせる",
+    "resize_algo": "リサイズ処理",
+    "resize_smooth": "滑らか",
+    "resize_pixelated": "ドット優先"
+  }
+}
+</i18n>

@@ -4,17 +4,14 @@
       <p class="text-muted text-sm">
         © 2025 Teinishi
       </p>
-    </template>
-
-    <template #right>
       <UButton
         color="neutral"
         variant="ghost"
         to="https://stormskey.works/@teinishi"
         target="_blank"
-        aria-label="Discord"
+        aria-label="Stormskey"
       >
-        すとーむすきー
+        {{ $t('stormskey') }}
       </UButton>
       <UButton
         icon="i-simple-icons-x"
@@ -23,6 +20,17 @@
         to="https://x.com/Te___24"
         target="_blank"
         aria-label="X"
+      />
+    </template>
+
+    <template #right>
+      <UButton
+        color="neutral"
+        variant="ghost"
+        to="https://github.com/Teinishi/storm-kogubako"
+        target="_blank"
+        icon="i-simple-icons-github"
+        aria-label="GitHub"
       />
     </template>
   </UFooter>

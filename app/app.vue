@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { ja } from '@nuxt/ui/locale';
+import * as locales from '@nuxt/ui/locale';
+
+const { locale } = useI18n();
 
 useHead({
   titleTemplate: titleChunk => titleChunk ? `${titleChunk} - Storm Kogubako` : 'Storm Kogubako',
@@ -7,7 +9,7 @@ useHead({
 </script>
 
 <template>
-  <UApp :locale="ja">
+  <UApp :locale="locales[locale]">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

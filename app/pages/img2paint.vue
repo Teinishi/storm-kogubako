@@ -4,7 +4,11 @@ import type { AnchorPosition } from '~/components/AnchorPositionSelect.vue';
 import type { AnchorSettings } from '~/components/AnchorSettings.vue';
 import type { ResizeSettings } from '~/components/ResizeSettings.vue';
 
-useHead({ title: 'ペインタブルブロック変換' });
+const { t } = useI18n({
+  useScope: 'local',
+});
+
+useHead({ title: t('title') });
 definePageMeta({ layout: 'app' });
 
 const GRID_LINE_WIDTH = 2;
@@ -390,19 +394,19 @@ const saveVehicleXml = () => {
 </script>
 
 <template>
-  <UContainer class="grow overflow-hidden py-4 grid grid-cols-1 grid-rows-1 lg:grid-cols-12 gap-4">
+  <UContainer class="grow overflow-hidden py-4 grid grid-cols-1 grid-rows-2 lg:grid-cols-12 lg:grid-rows-1 gap-4">
     <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-auto">
       <h1 class="text-2xl font-bold">
-        ペインタブルブロック変換
+        {{ t('title') }}
       </h1>
 
       <div
         v-if="!baseImage"
         class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4"
       >
-        <p>画像から Stormworks のペインタブルブロックへ変換するツールです。変換後のビークルXMLファイルを保存して、Stormworks 上で既存ビークルに追加読み込みすることができます。</p>
-        <p>処理はすべてブラウザ上で完結し、画像を外部へ送信することはありません。</p>
-        <p>まずは画像を選択してみてください。</p>
+        <p>{{ t('guide1') }}</p>
+        <p>{{ t('guide2') }}</p>
+        <p>{{ t('guide3') }}</p>
       </div>
 
       <div
@@ -411,19 +415,19 @@ const saveVehicleXml = () => {
       >
         <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
           <h2 class="font-bold text-lg">
-            画像ファイル
+            {{ t('image_file') }}
           </h2>
 
           <div class="space-y-4">
             <ImageFileUpload
               v-model="baseImageFile"
-              label="基本画像"
+              :label="t('base_image')"
               @update:image="updateBaseImage"
               @update:model-value="updateSaveFileName"
             />
             <ImageFileUpload
               v-model="glowImageFile"
-              label="発光画像"
+              :label="t('glow_image')"
               removable
               @update:image="updateGlowImage"
             />
@@ -431,7 +435,7 @@ const saveVehicleXml = () => {
             <USwitch
               v-if="glowImage"
               v-model="adjustGlow"
-              label="発光の明るさを補正"
+              :label="t('adjust_glow')"
             />
           </div>
 
@@ -439,29 +443,29 @@ const saveVehicleXml = () => {
             v-if="separateSettings"
             color="primary"
             variant="soft"
-            title="画像サイズが異なります"
-            description="サイズ・位置は別々に指定してください"
+            :title="t('image_size_mismatch1')"
+            :description="t('image_size_mismatch2')"
             icon="i-lucide-info"
           />
         </div>
 
         <UAccordion
           v-model="detailCollapsing"
-          :items="[{ label: '詳細設定' }]"
+          :items="[{ label: t('advanced_settings') }]"
         >
           <template #body>
             <div class="flex flex-col gap-4">
               <ResizeSettings
                 v-if="baseImageSize"
                 v-model="baseResizeSettings"
-                :label="`サイズ設定` + (separateSettings ? ' (基本)' : '')"
+                :label="separateSettings ? t('dimensions_base') : t('dimensions')"
                 :image-size="baseImageSize"
                 :size-blocks="{ width: baseDrawData.widthBlocks, height: baseDrawData.heightBlocks }"
               />
 
               <AnchorSettings
                 v-model="baseAnchorSettings"
-                :label="'位置調整' + (separateSettings ? ' (基本)' : '')"
+                :label="separateSettings ? t('position_base') : t('position')"
                 :anchor-disabled="baseDrawData.isMultiplesOf9"
               />
 
@@ -469,13 +473,13 @@ const saveVehicleXml = () => {
                 <ResizeSettings
                   v-if="glowImageSize"
                   v-model="glowResizeSettings"
-                  label="サイズ設定 (発光)"
+                  :label="t('dimensions_glow')"
                   :image-size="glowImageSize"
                 />
 
                 <AnchorSettings
                   v-model="glowAnchorSettings"
-                  label="位置調整 (発光)"
+                  :label="t('position_glow')"
                 />
               </template>
 
@@ -484,12 +488,12 @@ const saveVehicleXml = () => {
                 class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4"
               >
                 <h2 class="font-bold text-lg">
-                  背景
+                  {{ t('background') }}
                 </h2>
 
                 <UPopover class="grow">
                   <UButton
-                    label="色を選択"
+                    :label="t('pick_color')"
                     color="neutral"
                     variant="outline"
                   >
@@ -567,21 +571,21 @@ const saveVehicleXml = () => {
                 </UPopover>
 
                 <div class="text-xs text-gray-500">
-                  ※余白が生じたときの背景色を変更できます
+                  {{ t('background_description') }}
                 </div>
               </div>
             </div>
           </template>
         </UAccordion>
 
-        <UModal title="ビークルXMLを保存">
+        <UModal :title="t('save_vehicle_xml')">
           <UButton
             block
             size="xl"
             color="primary"
             class="mt-auto"
           >
-            ビークルXMLを保存
+            {{ t('save_vehicle_xml') }}
           </UButton>
 
           <template
@@ -590,27 +594,27 @@ const saveVehicleXml = () => {
             <div class="space-y-4">
               <USwitch
                 v-model="minimizeSigns"
-                label="単色の部分は通常ブロックにする"
+                :label="t('minimize_signs')"
               />
               <template v-if="glowImage">
                 <USwitch
                   v-model="minimizeIndicators"
-                  label="発光しない部分は Paintable Sign にする"
+                  :label="t('minimize_indicators')"
                 />
                 <USwitch
                   v-model="logicLinksEnabled"
-                  label="On/Off ロジック配線"
+                  :label="t('logic_links_enabled')"
                 />
                 <USwitch
                   v-model="electricLinksEnabled"
-                  label="電気配線"
+                  :label="t('electric_links_enabled')"
                 />
               </template>
 
               <div class="flex gap-4">
                 <UFormField
                   class="grow"
-                  label="ファイル名"
+                  :label="t('file_name')"
                 >
                   <UInput
                     v-model="saveFileName"
@@ -623,7 +627,7 @@ const saveVehicleXml = () => {
                   icon="i-lucide-download"
                   @click="saveVehicleXml(); close()"
                 >
-                  ファイルを保存
+                  {{ t('save_file') }}
                 </UButton>
               </div>
             </div>
@@ -637,8 +641,8 @@ const saveVehicleXml = () => {
       class="lg:col-span-8 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
     >
       <UFileUpload
-        label="画像を選択"
-        description="ドラッグ＆ドロップまたはクリック"
+        :label="t('pick_image_file')"
+        :description="t('pick_image_file_description')"
         accept="image/*"
         :preview="false"
         class="w-full h-full"
@@ -656,17 +660,17 @@ const saveVehicleXml = () => {
         <div class="flex items-center gap-4">
           <USwitch
             v-model="showGrid"
-            label="グリッド"
+            :label="t('grid')"
           />
           <USwitch
             v-if="glowImage"
             v-model="showGlow"
-            label="発光"
+            :label="t('glow')"
           />
         </div>
         <div class="flex items-center gap-4">
           <div class="flex items-center gap-2">
-            <span class="text-sm">拡大率: x{{ previewZoom }}</span>
+            <span class="text-sm">{{ t('zoom') }}: x{{ previewZoom }}</span>
             <USlider
               v-model="previewZoom"
               :min="1"
@@ -678,7 +682,7 @@ const saveVehicleXml = () => {
             v-if="glowImage"
             v-model="previewBloom"
             :disabled="!showGlow"
-            label="ブルーム"
+            :label="t('bloom')"
           />
         </div>
       </div>
@@ -717,3 +721,78 @@ const saveVehicleXml = () => {
     </div>
   </UContainer>
 </template>
+
+<i18n lang="json">
+{
+  "en": {
+    "title": "Image to Paintable Signs",
+    "guide1": "This tool converts images into paintable blocks for Stormworks. You can save the resulting vehicle XML file and load it into existing vehicles within Stormworks.",
+    "guide2": "All processing occurs within the browser; no images are sent externally.",
+    "guide3": "Start by selecting an image.",
+    "image_file": "Image File",
+    "base_image": "Base Image",
+    "glow_image": "Glow Image",
+    "adjust_glow": "Adjust glow intensity",
+    "image_size_mismatch1": "Dimensions of the images are not identical",
+    "image_size_mismatch2": "Set the size and the position for each images.",
+    "advanced_settings": "Advanced Settings",
+    "dimensions": "Dimensions",
+    "dimensions_base": "Dimensions (Base)",
+    "dimensions_glow": "Dimensions (Glow)",
+    "position": "Position",
+    "position_base": "Position (Base)",
+    "position_glow": "Position (Glow)",
+    "background": "Background",
+    "pick_color": "Pick Color",
+    "background_description": "You can change the background color when white space appears.",
+    "save_vehicle_xml": "Save Vehicle XML",
+    "minimize_signs": "Use normal blocks for single color part",
+    "minimize_indicators": "Use non-indicator for no glowing part",
+    "logic_links_enabled": "On/Off logic links for indicators",
+    "electric_links_enabled": "Electric links for indicators",
+    "file_name": "File Name",
+    "save_file": "Save File",
+    "pick_image_file": "Pick Image File",
+    "pick_image_file_description": "Click, or drop files here",
+    "grid": "Grid",
+    "glow": "Glow",
+    "zoom": "Zoom",
+    "bloom": "Bloom"
+  },
+  "ja": {
+    "title": "ペインタブルブロック変換",
+    "guide1": "画像から Stormworks のペインタブルブロックへ変換するツールです。変換後のビークルXMLファイルを保存して、Stormworks 上で既存ビークルに追加読み込みすることができます。",
+    "guide2": "処理はすべてブラウザ上で完結し、画像を外部へ送信することはありません。",
+    "guide3": "まずは画像を選択してみてください。",
+    "image_file": "画像ファイル",
+    "base_image": "基本画像",
+    "glow_image": "発光画像",
+    "adjust_glow": "発光の明るさを補正",
+    "image_size_mismatch1": "画像サイズが異なります",
+    "image_size_mismatch2": "サイズ・位置は別々に指定してください",
+    "advanced_settings": "詳細設定",
+    "dimensions": "サイズ設定",
+    "dimensions_base": "サイズ設定 (基本)",
+    "dimensions_glow": "サイズ設定 (発光)",
+    "position": "位置設定",
+    "position_base": "位置設定 (基本)",
+    "position_glow": "位置設定 (発光)",
+    "background": "背景",
+    "pick_color": "色を選択",
+    "background_description": "※余白が生じたときの背景色を変更できます",
+    "save_vehicle_xml": "ビークルXMLを保存",
+    "minimize_signs": "単色の部分は通常ブロックにする",
+    "minimize_indicators": "発光しない部分は Paintable Sign にする",
+    "logic_links_enabled": "インジケーターの On/Off ロジック配線",
+    "electric_links_enabled": "インジケーターの電気配線",
+    "file_name": "ファイル名",
+    "save_file": "ファイルを保存",
+    "pick_image_file": "画像を選択",
+    "pick_image_file_description": "ドラッグ＆ドロップまたはクリック",
+    "grid": "グリッド",
+    "glow": "発光",
+    "zoom": "拡大率",
+    "bloom": "ブルーム"
+  }
+}
+</i18n>

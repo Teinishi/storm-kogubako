@@ -13,6 +13,10 @@ const POSITIONS = [
 
 export type AnchorPosition = typeof POSITIONS[number]['value'];
 
+const { t } = useI18n({
+  useScope: 'local',
+});
+
 const props = defineProps({
   disabled: {
     type: Boolean,
@@ -25,7 +29,7 @@ const value = defineModel<AnchorPosition>();
 <template>
   <div class="flex flex-col gap-1">
     <div class="text-sm font-medium text-default">
-      基準位置
+      {{ t('anchor_position') }}
     </div>
 
     <div class="grow p-2 bg-default rounded-lg ring ring-inset ring-accented border-0 border-gray-200 dark:border-gray-700 w-full grid grid-cols-[repeat(3,auto)] justify-between content-between gap-2">
@@ -44,3 +48,14 @@ const value = defineModel<AnchorPosition>();
     </div>
   </div>
 </template>
+
+<i18n lang="json">
+{
+  "en": {
+    "anchor_position": "Anchor Position"
+  },
+  "ja": {
+    "anchor_position": "基準位置"
+  }
+}
+</i18n>

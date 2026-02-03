@@ -1,10 +1,18 @@
 <script setup lang="ts">
-// ツールのデータ定義
-// iconは Heroicons (https://heroicons.com/) のクラス名を指定できます
+const { t, locale } = useI18n({
+  useScope: 'local',
+});
+
 const tools = [
   {
-    title: 'ペインタブルブロック変換',
-    description: '画像ファイルからペインタブルブロックへ変換します。',
+    title: {
+      en: 'Image to Paintable Signs',
+      ja: 'ペインタブルブロック変換',
+    },
+    description: {
+      en: 'Convert an image file to paintable signs for a vehicle.',
+      ja: '画像ファイルからペインタブルブロックへ変換します。',
+    },
     to: '/img2paint',
     icon: 'i-lucide-image',
   },
@@ -15,10 +23,10 @@ const tools = [
   <UContainer class="py-8 space-y-8">
     <div class="text-center">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-        Stormworks 向け Web ツール
+        {{ t('web_tools_for_stormworks') }}
       </h1>
       <p class="text-gray-600 dark:text-gray-400">
-        随時追加予定
+        {{ t('more_to_come') }}
       </p>
     </div>
 
@@ -39,19 +47,19 @@ const tools = [
                 class="size-8"
               />
               <h3 class="font-semibold text-lg">
-                {{ tool.title }}
+                {{ tool.title[locale] }}
               </h3>
             </div>
           </template>
 
           <p class="text-sm text-gray-500 leading-relaxed">
-            {{ tool.description }}
+            {{ tool.description[locale] }}
           </p>
 
           <template #footer>
             <div class="flex justify-end">
               <span class="text-xs font-medium flex items-center gap-1">
-                使ってみる
+                {{ t('try_now') }}
                 <UIcon
                   name="i-heroicons-arrow-right"
                   class="size-3"
@@ -64,3 +72,18 @@ const tools = [
     </div>
   </UContainer>
 </template>
+
+<i18n lang="json">
+{
+  "en": {
+    "web_tools_for_stormworks": "Web tools for Stormworks",
+    "more_to_come": "More to come",
+    "try_now": "Try now"
+  },
+  "ja": {
+    "web_tools_for_stormworks": "Stormworks 向け Web ツール",
+    "more_to_come": "随時追加予定",
+    "try_now": "使ってみる"
+  }
+}
+</i18n>
