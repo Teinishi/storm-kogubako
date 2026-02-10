@@ -1,6 +1,8 @@
 # Storm Kogubako
 
-Nuxt.js 製 Stormworks 向け Web ツール
+Web tools for Stormworks
+
+https://storm-kogubako.teinishi.workers.dev
 
 ## Setup
 
