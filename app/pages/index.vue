@@ -1,9 +1,9 @@
 <script setup lang="ts">
-const { t, locale } = useI18n({
+const { t } = useI18n({
   useScope: 'local',
 });
 
-const tools = [
+const web_tools = [
   {
     title: {
       en: 'Image to Paintable Signs',
@@ -15,6 +15,21 @@ const tools = [
     },
     to: '/img2paint',
     icon: 'i-lucide-image',
+  },
+];
+
+const other_tools = [
+  {
+    title: {
+      en: 'Blender Mesh Import/Export',
+      ja: 'Blender メッシュインポート・エクスポート',
+    },
+    description: {
+      en: 'Add-on for direct import and export .mesh and .phys files on Blender.',
+      ja: '.mesh ファイルと .phys ファイルを Blender 上で直接インポート・エクスポートするアドオン',
+    },
+    to: 'https://github.com/Teinishi/blender_stormworks_mesh?tab=readme-ov-file',
+    icon: 'i-simple-icons-blender',
   },
 ];
 </script>
@@ -31,44 +46,31 @@ const tools = [
     </div>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-      <NuxtLink
-        v-for="(tool, index) in tools"
+      <LinkCard
+        v-for="(tool_data, index) in web_tools"
         :key="index"
-        :to="tool.to"
-        class="group block h-full"
-      >
-        <UCard
-          class="h-full transition-all duration-300 hover:shadow-lg hover:ring-2 hover:ring-primary-500 hover:-translate-y-1"
-        >
-          <template #header>
-            <div class="flex items-center gap-3">
-              <UIcon
-                :name="tool.icon"
-                class="size-8"
-              />
-              <h3 class="font-semibold text-lg">
-                {{ tool.title[locale] }}
-              </h3>
-            </div>
-          </template>
+        :title="tool_data.title"
+        :description="tool_data.description"
+        :to="tool_data.to"
+        :icon="tool_data.icon"
+      />
+    </div>
 
-          <p class="text-sm text-gray-500 leading-relaxed">
-            {{ tool.description[locale] }}
-          </p>
+    <div class="text-center pt-8">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+        {{ t('other_tools') }}
+      </h1>
+    </div>
 
-          <template #footer>
-            <div class="flex justify-end">
-              <span class="text-xs font-medium flex items-center gap-1">
-                {{ t('try_now') }}
-                <UIcon
-                  name="i-heroicons-arrow-right"
-                  class="size-3"
-                />
-              </span>
-            </div>
-          </template>
-        </UCard>
-      </NuxtLink>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <LinkCard
+        v-for="(tool_data, index) in other_tools"
+        :key="index"
+        :title="tool_data.title"
+        :description="tool_data.description"
+        :to="tool_data.to"
+        :icon="tool_data.icon"
+      />
     </div>
   </UContainer>
 </template>
@@ -78,12 +80,12 @@ const tools = [
   "en": {
     "web_tools_for_stormworks": "Web tools for Stormworks",
     "more_to_come": "More to come",
-    "try_now": "Try now"
+    "other_tools": "Other tools"
   },
   "ja": {
     "web_tools_for_stormworks": "Stormworks 向け Web ツール",
     "more_to_come": "随時追加予定",
-    "try_now": "使ってみる"
+    "other_tools": "その他のツール"
   }
 }
 </i18n>
