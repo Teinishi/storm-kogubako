@@ -13,6 +13,14 @@ export default defineNuxtConfig({
       nodeCompat: true,
     },
   },
+  vite: {
+    optimizeDeps: {
+      include: [
+        '@vue/devtools-core',
+        '@vue/devtools-kit',
+      ],
+    },
+  },
   eslint: {
     config: {
       stylistic: {
