@@ -12,16 +12,16 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
-    "@nuxt/eslint": "^1.12.1",
     "@nuxt/ui": "^4.2.1",
     "@nuxtjs/i18n": "^10.2.1",
-    "eslint": "^9.39.1",
     "nuxt": "^4.2.2",
-    "typescript": "^5.9.3",
     "vue": "^3.5.25",
     "vue-router": "^4.6.3"
   },
   "devDependencies": {
-    "@iconify-json/lucide": "^1.2.80"
+    "@iconify-json/lucide": "^1.2.80",
+    "@nuxt/eslint": "^1.12.1",
+    "eslint": "^10.6.0",
+    "typescript": "^5.9.3"
   }
 }
