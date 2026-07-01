@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ViewerObjectState, Viewer } from 'sw-mesh-viewer';
-import { MeshBinaryParser, MeshViewer } from 'sw-mesh-viewer';
+import { MeshBinaryParser } from 'sw-mesh-viewer';
+import { MeshViewer, type Viewer, type ViewerObjectState } from 'sw-mesh-viewer/vue';
 
 const { t } = useI18n({
   useScope: 'local',
@@ -9,17 +9,19 @@ const { t } = useI18n({
 useHead({ title: t('title') });
 definePageMeta({ layout: 'app' });
 
+const toast = useToast();
+
 interface MeshFileItem {
   id: string;
   fileName: string;
   fileSize: number;
   visible: boolean;
   detailsOpen: boolean;
-};
+}
 
 const meshViewer = ref<{ getViewer: () => Viewer | null } | null>(null);
 
-const meshFiles = ref<(MeshFileItem)[]>([]);
+const meshFiles = ref<MeshFileItem[]>([]);
 const fileUploadModel = ref<File[] | null>(null);
 let nextMeshFileId = 1;
 
@@ -28,24 +30,53 @@ const objectProps = computed<ViewerObjectState[]>(() => meshFiles.value.map(item
   visible: item.visible,
 })));
 
+const removeMeshFile = (id: string) => {
+  const i = meshFiles.value.findIndex(v => v.id === id);
+  if (i !== -1) meshFiles.value.splice(i, 1);
+};
+
 const addMeshFiles = async (files: File[] | File | null | undefined) => {
   const fileList = Array.isArray(files) ? files : files ? [files] : [];
   if (!fileList.length) return;
 
   const parser = new MeshBinaryParser();
+  const viewer = meshViewer.value?.getViewer();
 
-  for (const file of fileList) {
-    const id = `object-${nextMeshFileId++}`;
-    const data = parser.parse(await file.arrayBuffer()); // TODO: parse 失敗したらトーストを出す
-    meshViewer.value?.getViewer()?.addObject({ id, data });
+  if (viewer) {
+    for (const file of fileList) {
+      let id: string | null = null;
 
-    meshFiles.value.push({
-      id,
-      fileName: file.name,
-      fileSize: file.size,
-      visible: true,
-      detailsOpen: false,
-    });
+      try {
+        const data = parser.parse(await file.arrayBuffer());
+        id = `object-${nextMeshFileId++}`;
+
+        meshFiles.value.push({
+          id,
+          fileName: file.name,
+          fileSize: file.size,
+          visible: true,
+          detailsOpen: false,
+        });
+
+        await nextTick();
+        viewer.addObject({ id, data });
+      }
+      catch (error) {
+        console.error('Failed to parse mesh file:', file.name, error);
+
+        if (id) removeMeshFile(id);
+
+        toast.add({
+          title: t('parse_error'),
+          description: t('parse_error_description', { fileName: file.name }),
+          icon: 'i-lucide-circle-alert',
+          color: 'error',
+        });
+      }
+    }
+  }
+  else {
+    console.error('Failed to get an instance of Viewer');
   }
 
   fileUploadModel.value = null;
@@ -57,11 +88,6 @@ const toggleMeshVisibility = (item: ViewerObjectState) => {
 
 const toggleMeshDetails = (item: MeshFileItem) => {
   item.detailsOpen = !item.detailsOpen;
-};
-
-const removeMeshFile = (id: string) => {
-  const i = meshFiles.value.findIndex(v => v.id === id);
-  if (i !== -1) meshFiles.value.splice(i, 1);
 };
 
 const formatFileSize = (size: number) => {
@@ -79,10 +105,6 @@ const formatFileSize = (size: number) => {
       </h1>
 
       <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
-        <h2 class="font-bold text-lg">
-          {{ t('mesh_files') }}
-        </h2>
-
         <UFileUpload
           v-model="fileUploadModel"
           :label="t('drop_files')"
@@ -180,7 +202,7 @@ const formatFileSize = (size: number) => {
       </div>
 
       <MeshViewer
-        v-else
+        v-show="meshFiles.length > 0"
         ref="meshViewer"
         :objects="objectProps"
         class="w-full h-full"
@@ -193,7 +215,6 @@ const formatFileSize = (size: number) => {
 {
   "en": {
     "title": "Mesh Viewer",
-    "mesh_files": "Mesh Files",
     "drop_files": "Pick Mesh Files",
     "drop_files_description": "Click, or drop files here",
     "no_files": "No files added",
@@ -203,11 +224,12 @@ const formatFileSize = (size: number) => {
     "remove_file": "Remove file",
     "file_settings": "File Settings",
     "file_settings_placeholder": "Detailed settings for this file will be added here.",
-    "viewer_placeholder": "Mesh preview will appear here."
+    "viewer_placeholder": "Mesh preview will appear here.",
+    "parse_error": "Could not load mesh file",
+    "parse_error_description": "{fileName} could not be parsed. Please check the file format."
   },
   "ja": {
     "title": "メッシュビューワー",
-    "mesh_files": "メッシュファイル",
     "drop_files": "メッシュファイルを選択",
     "drop_files_description": "クリック、またはファイルをここにドロップ",
     "no_files": "ファイルが追加されていません",
@@ -217,7 +239,9 @@ const formatFileSize = (size: number) => {
     "remove_file": "ファイルを削除",
     "file_settings": "ファイル設定",
     "file_settings_placeholder": "このファイルの詳細設定はここに追加できます。",
-    "viewer_placeholder": "メッシュのプレビューはここに表示されます。"
+    "viewer_placeholder": "メッシュのプレビューはここに表示されます。",
+    "parse_error": "メッシュファイルを読み込めませんでした",
+    "parse_error_description": "{fileName} をパースできませんでした。ファイル形式を確認してください。"
   }
 }
 </i18n>
