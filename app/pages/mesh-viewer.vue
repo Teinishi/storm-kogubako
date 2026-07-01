@@ -208,14 +208,16 @@ const formatFileSize = (size: number) => {
             class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
           >
             <div class="flex items-center gap-3 p-3">
-              <UButton
-                :icon="item.visible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
-                color="neutral"
-                variant="ghost"
-                size="xs"
-                :aria-label="item.visible ? t('hide_file') : t('show_file')"
-                @click="toggleMeshVisibility(item)"
-              />
+              <UTooltip :text="item.visible ? t('hide_item') : t('show_item')">
+                <UButton
+                  :icon="item.visible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  :aria-label="item.visible ? t('hide_item') : t('show_item')"
+                  @click="toggleMeshVisibility(item)"
+                />
+              </UTooltip>
 
               <div class="min-w-0 grow">
                 <div class="truncate text-sm font-medium">
@@ -226,23 +228,27 @@ const formatFileSize = (size: number) => {
                 </div>
               </div>
 
-              <UButton
-                :icon="item.detailsOpen ? 'i-lucide-chevron-up' : 'i-lucide-sliders-horizontal'"
-                color="neutral"
-                variant="ghost"
-                size="xs"
-                :aria-label="t('file_settings')"
-                @click="toggleMeshDetails(item)"
-              />
+              <UTooltip :text="t('item_settings')">
+                <UButton
+                  :icon="item.detailsOpen ? 'i-lucide-chevron-up' : 'i-lucide-sliders-horizontal'"
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  :aria-label="t('item_settings')"
+                  @click="toggleMeshDetails(item)"
+                />
+              </UTooltip>
 
-              <UButton
-                icon="i-lucide-trash"
-                color="error"
-                variant="ghost"
-                size="xs"
-                :aria-label="t('remove_file')"
-                @click="removeMeshFile(item.id)"
-              />
+              <UTooltip :text="t('remove_item')">
+                <UButton
+                  icon="i-lucide-trash"
+                  color="error"
+                  variant="ghost"
+                  size="sm"
+                  :aria-label="t('remove_item')"
+                  @click="removeMeshFile(item.id)"
+                />
+              </UTooltip>
             </div>
 
             <div
@@ -371,10 +377,10 @@ const formatFileSize = (size: number) => {
     "drop_files_description": "Click, or drop files here",
     "no_files": "No files added",
     "no_files_description": "Drop files to add them to the viewer list.",
-    "show_file": "Show file",
-    "hide_file": "Hide file",
-    "remove_file": "Remove file",
-    "file_settings": "File Settings",
+    "show_item": "Show",
+    "hide_item": "Hide",
+    "remove_item": "Remove",
+    "item_settings": "Settings",
     "wireframe": "Wireframe",
     "offset": "Offset",
     "paint_colors": "Paint Colors",
@@ -391,10 +397,10 @@ const formatFileSize = (size: number) => {
     "drop_files_description": "クリック、またはファイルをここにドロップ",
     "no_files": "ファイルが追加されていません",
     "no_files_description": "ファイルをドロップするとビューアーのリストに追加されます。",
-    "show_file": "ファイルを表示",
-    "hide_file": "ファイルを非表示",
-    "remove_file": "ファイルを削除",
-    "file_settings": "ファイル設定",
+    "show_item": "表示する",
+    "hide_item": "隠す",
+    "remove_item": "削除",
+    "item_settings": "設定",
     "wireframe": "ワイヤーフレーム",
     "offset": "オフセット",
     "paint_colors": "ペイントカラー",
