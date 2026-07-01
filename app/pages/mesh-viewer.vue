@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import type { ViewerObjectState, Viewer } from 'sw-mesh-viewer';
+import { MeshBinaryParser, MeshViewer } from 'sw-mesh-viewer';
+
 const { t } = useI18n({
   useScope: 'local',
 });
@@ -6,32 +9,49 @@ const { t } = useI18n({
 useHead({ title: t('title') });
 definePageMeta({ layout: 'app' });
 
-type MeshFileItem = {
-  id: number;
-  file: File;
+interface MeshFileItem {
+  id: string;
+  fileName: string;
+  fileSize: number;
   visible: boolean;
   detailsOpen: boolean;
 };
 
-const meshFiles = ref<MeshFileItem[]>([]);
+const meshViewer = ref<{ getViewer: () => Viewer | null } | null>(null);
+
+const meshFiles = ref<(MeshFileItem)[]>([]);
 const fileUploadModel = ref<File[] | null>(null);
 let nextMeshFileId = 1;
 
-const addMeshFiles = (files: File[] | File | null | undefined) => {
+const objectProps = computed<ViewerObjectState[]>(() => meshFiles.value.map(item => ({
+  id: item.id,
+  visible: item.visible,
+})));
+
+const addMeshFiles = async (files: File[] | File | null | undefined) => {
   const fileList = Array.isArray(files) ? files : files ? [files] : [];
   if (!fileList.length) return;
 
-  meshFiles.value.push(...fileList.map(file => ({
-    id: nextMeshFileId++,
-    file,
-    visible: true,
-    detailsOpen: false,
-  })));
+  const parser = new MeshBinaryParser();
+
+  for (const file of fileList) {
+    const id = `object-${nextMeshFileId++}`;
+    const data = parser.parse(await file.arrayBuffer()); // TODO: parse 失敗したらトーストを出す
+    meshViewer.value?.getViewer()?.addObject({ id, data });
+
+    meshFiles.value.push({
+      id,
+      fileName: file.name,
+      fileSize: file.size,
+      visible: true,
+      detailsOpen: false,
+    });
+  }
 
   fileUploadModel.value = null;
 };
 
-const toggleMeshVisibility = (item: MeshFileItem) => {
+const toggleMeshVisibility = (item: ViewerObjectState) => {
   item.visible = !item.visible;
 };
 
@@ -39,8 +59,9 @@ const toggleMeshDetails = (item: MeshFileItem) => {
   item.detailsOpen = !item.detailsOpen;
 };
 
-const removeMeshFile = (id: number) => {
-  meshFiles.value = meshFiles.value.filter(item => item.id !== id);
+const removeMeshFile = (id: string) => {
+  const i = meshFiles.value.findIndex(v => v.id === id);
+  if (i !== -1) meshFiles.value.splice(i, 1);
 };
 
 const formatFileSize = (size: number) => {
@@ -93,10 +114,10 @@ const formatFileSize = (size: number) => {
 
               <div class="min-w-0 grow">
                 <div class="truncate text-sm font-medium">
-                  {{ item.file.name }}
+                  {{ item.fileName }}
                 </div>
                 <div class="text-xs text-muted">
-                  {{ formatFileSize(item.file.size) }}
+                  {{ formatFileSize(item.fileSize) }}
                 </div>
               </div>
 
@@ -145,8 +166,10 @@ const formatFileSize = (size: number) => {
     </div>
 
     <div class="lg:col-span-8 flex flex-col bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 relative">
-      <!-- TODO: Canvas -->
-      <div class="m-auto flex flex-col items-center gap-2 p-6 text-center text-muted">
+      <div
+        v-if="meshFiles.length === 0"
+        class="m-auto flex flex-col items-center gap-2 p-6 text-center text-muted"
+      >
         <UIcon
           name="i-lucide-box"
           class="size-10"
@@ -155,6 +178,13 @@ const formatFileSize = (size: number) => {
           {{ t('viewer_placeholder') }}
         </div>
       </div>
+
+      <MeshViewer
+        v-else
+        ref="meshViewer"
+        :objects="objectProps"
+        class="w-full h-full"
+      />
     </div>
   </UContainer>
 </template>
