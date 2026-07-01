@@ -19,7 +19,7 @@ const web_tools = [
   {
     title: {
       en: 'Mesh Viewer',
-      ja: 'メッシュビューワー',
+      ja: 'メッシュビューアー',
     },
     description: {
       en: 'Quick 3D viewer for .mesh and .phys files.',

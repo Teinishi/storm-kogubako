@@ -11,21 +11,30 @@ definePageMeta({ layout: 'app' });
 
 const toast = useToast();
 
+interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+type ItemUniforms = {
+  kind: 'mesh';
+  color1: string;
+  color2: string;
+  color3: string;
+} | {
+  kind: 'phys';
+};
+
 interface MeshFileItem {
   id: string;
   fileName: string;
   fileSize: number;
   visible: boolean;
-  wireframe: boolean;
-  offset: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  color1: string;
-  color2: string;
-  color3: string;
   detailsOpen: boolean;
+  wireframe: boolean;
+  offset: Vec3;
+  uniforms: ItemUniforms;
 }
 
 const meshViewer = ref<{ getViewer: () => Viewer | null } | null>(null);
@@ -39,40 +48,42 @@ const hexToVec4 = (hex: string): [number, number, number, number] => {
   return [r / 255, g / 255, b / 255, 1];
 };
 
-const createOffsetMatrix = ({ x, y, z }: MeshFileItem['offset']) => [
+const createOffsetMatrix = ({ x, y, z }: Vec3) => [
   1, 0, 0, 0,
   0, 1, 0, 0,
   0, 0, 1, 0,
   x, y, z, 1,
 ];
 
-const createColorUniforms = (item: MeshFileItem) => ({
-  opaque: {
-    overrideColor: {
-      type: 'int' as const,
-      value: 1,
-    },
-    overrideColor1: {
-      type: 'vec4' as const,
-      value: hexToVec4(item.color1),
-    },
-    overrideColor2: {
-      type: 'vec4' as const,
-      value: hexToVec4(item.color2),
-    },
-    overrideColor3: {
-      type: 'vec4' as const,
-      value: hexToVec4(item.color3),
-    },
-  },
-});
+const createObjectUniforms = (item: MeshFileItem) => item.uniforms.kind === 'mesh'
+  ? ({
+      opaque: {
+        overrideColor: {
+          type: 'int' as const,
+          value: 1,
+        },
+        overrideColor1: {
+          type: 'vec4' as const,
+          value: hexToVec4(item.uniforms.color1),
+        },
+        overrideColor2: {
+          type: 'vec4' as const,
+          value: hexToVec4(item.uniforms.color2),
+        },
+        overrideColor3: {
+          type: 'vec4' as const,
+          value: hexToVec4(item.uniforms.color3),
+        },
+      },
+    })
+  : {};
 
 const createObjectState = (item: MeshFileItem): ViewerObjectState => ({
   id: item.id,
   visible: item.visible,
   wireframe: item.wireframe,
   matrix: createOffsetMatrix(item.offset),
-  uniforms: createColorUniforms(item),
+  uniforms: createObjectUniforms(item),
 });
 
 const objectProps = computed<ViewerObjectState[]>(() => meshFiles.value.map(createObjectState));
@@ -96,6 +107,7 @@ const addMeshFiles = async (files: File[] | File | null | undefined) => {
 
       try {
         const data = parser.parse(await file.arrayBuffer());
+        const { kind } = data;
         id = `object-${nextMeshFileId++}`;
 
         const item: MeshFileItem = {
@@ -103,28 +115,28 @@ const addMeshFiles = async (files: File[] | File | null | undefined) => {
           fileName: file.name,
           fileSize: file.size,
           visible: true,
+          detailsOpen: false,
           wireframe: false,
           offset: {
             x: 0,
             y: 0,
             z: 0,
           },
-          color1: '#FFFFFF',
-          color2: '#FFFFFF',
-          color3: '#FFFFFF',
-          detailsOpen: false,
+          uniforms: kind === 'mesh'
+            ? { kind, color1: '#FFFFFF',
+                color2: '#FFFFFF',
+                color3: '#FFFFFF' }
+            : { kind },
         };
 
         meshFiles.value.push(item);
 
         await nextTick();
-        viewer.addObject({
-          id,
-          data,
+        viewer.addObject(id, data, {
           visible: item.visible,
           wireframe: item.wireframe,
           matrix: createOffsetMatrix(item.offset),
-          uniforms: createColorUniforms(item),
+          uniforms: createObjectUniforms(item),
         });
       }
       catch (error) {
@@ -148,11 +160,11 @@ const addMeshFiles = async (files: File[] | File | null | undefined) => {
   fileUploadModel.value = null;
 };
 
-const toggleMeshVisibility = (item: ViewerObjectState) => {
+const toggleMeshVisibility = (item: { visible: boolean }) => {
   item.visible = !item.visible;
 };
 
-const toggleMeshDetails = (item: MeshFileItem) => {
+const toggleMeshDetails = (item: { detailsOpen: boolean }) => {
   item.detailsOpen = !item.detailsOpen;
 };
 
@@ -281,21 +293,24 @@ const formatFileSize = (size: number) => {
                 </div>
               </div>
 
-              <div class="space-y-2">
+              <div
+                v-if="item.uniforms.kind === 'mesh'"
+                class="space-y-2"
+              >
                 <div class="text-sm font-medium">
                   {{ t('paint_colors') }}
                 </div>
                 <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   <ColorPicker
-                    v-model="item.color1"
+                    v-model="item.uniforms.color1"
                     :label="t('paint_color_1')"
                   />
                   <ColorPicker
-                    v-model="item.color2"
+                    v-model="item.uniforms.color2"
                     :label="t('paint_color_2')"
                   />
                   <ColorPicker
-                    v-model="item.color3"
+                    v-model="item.uniforms.color3"
                     :label="t('paint_color_3')"
                   />
                 </div>
@@ -362,7 +377,7 @@ const formatFileSize = (size: number) => {
     "parse_error_description": "{fileName} could not be parsed. Please check the file format."
   },
   "ja": {
-    "title": "メッシュビューワー",
+    "title": "メッシュビューアー",
     "drop_files": "メッシュファイルを選択",
     "drop_files_description": "クリック、またはファイルをここにドロップ",
     "no_files": "ファイルが追加されていません",
