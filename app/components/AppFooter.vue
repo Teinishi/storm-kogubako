@@ -2,7 +2,7 @@
   <UFooter>
     <template #left>
       <p class="text-muted text-sm">
-        © 2025 Teinishi
+        © 2026 Teinishi
       </p>
       <UButton
         color="neutral"
