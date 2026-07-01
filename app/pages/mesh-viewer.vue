@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MeshBinaryParser } from 'sw-mesh-viewer';
+import { MeshBinaryParser, type MeshData } from 'sw-mesh-viewer';
 import { MeshViewer, type Viewer, type ViewerObjectState } from 'sw-mesh-viewer/vue';
 
 const { t } = useI18n({
@@ -31,11 +31,31 @@ interface MeshFileItem {
   id: string;
   fileName: string;
   fileSize: number;
+  stats: {
+    vertexCount: number;
+    triangleCount: number;
+  };
   visible: boolean;
   detailsOpen: boolean;
   wireframe: boolean;
   offset: Vec3;
   properties: ItemProperties;
+}
+
+function getMeshStats(data: MeshData) {
+  let vertexCount = 0;
+  let triangleCount = 0;
+  if (data.kind === 'mesh') {
+    vertexCount = data.vertices.length;
+    triangleCount = Math.floor(data.indices.length / 3);
+  }
+  else {
+    for (const subphys of data.subPhysMeshes) {
+      vertexCount += subphys.vertices.length;
+      triangleCount += Math.floor(subphys.indices.length / 3);
+    }
+  }
+  return { vertexCount, triangleCount };
 }
 
 const meshViewer = ref<{ getViewer: () => Viewer | null } | null>(null);
@@ -115,6 +135,7 @@ const addMeshFiles = async (files: File[] | File | null | undefined) => {
           id,
           fileName: file.name,
           fileSize: file.size,
+          stats: getMeshStats(data),
           visible: true,
           detailsOpen: false,
           wireframe: false,
@@ -255,6 +276,10 @@ const formatFileSize = (size: number) => {
               v-if="item.detailsOpen"
               class="space-y-4 border-t border-gray-200 p-3 dark:border-gray-700"
             >
+              <div class="text-sm text-muted">
+                {{ t('mesh_stats', item.stats) }}
+              </div>
+
               <USwitch
                 v-model="item.wireframe"
                 :label="t('wireframe')"
@@ -381,6 +406,7 @@ const formatFileSize = (size: number) => {
     "hide_item": "Hide",
     "remove_item": "Remove",
     "item_settings": "Settings",
+    "mesh_stats": "{vertexCount} Vertices, {triangleCount} Triangles",
     "wireframe": "Wireframe",
     "offset": "Offset",
     "paint_colors": "Paint Colors",
@@ -401,6 +427,7 @@ const formatFileSize = (size: number) => {
     "hide_item": "隠す",
     "remove_item": "削除",
     "item_settings": "設定",
+    "mesh_stats": "頂点数: {vertexCount}, 三角面数: {triangleCount}",
     "wireframe": "ワイヤーフレーム",
     "offset": "オフセット",
     "paint_colors": "ペイントカラー",
