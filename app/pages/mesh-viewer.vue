@@ -16,6 +16,15 @@ interface MeshFileItem {
   fileName: string;
   fileSize: number;
   visible: boolean;
+  wireframe: boolean;
+  offset: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  color1: string;
+  color2: string;
+  color3: string;
   detailsOpen: boolean;
 }
 
@@ -25,14 +34,53 @@ const meshFiles = ref<MeshFileItem[]>([]);
 const fileUploadModel = ref<File[] | null>(null);
 let nextMeshFileId = 1;
 
-const objectProps = computed<ViewerObjectState[]>(() => meshFiles.value.map(item => ({
+const hexToVec4 = (hex: string): [number, number, number, number] => {
+  const { r, g, b } = hexToRgb(hex);
+  return [r / 255, g / 255, b / 255, 1];
+};
+
+const createOffsetMatrix = ({ x, y, z }: MeshFileItem['offset']) => [
+  1, 0, 0, 0,
+  0, 1, 0, 0,
+  0, 0, 1, 0,
+  x, y, z, 1,
+];
+
+const createColorUniforms = (item: MeshFileItem) => ({
+  opaque: {
+    overrideColor: {
+      type: 'int' as const,
+      value: 1,
+    },
+    overrideColor1: {
+      type: 'vec4' as const,
+      value: hexToVec4(item.color1),
+    },
+    overrideColor2: {
+      type: 'vec4' as const,
+      value: hexToVec4(item.color2),
+    },
+    overrideColor3: {
+      type: 'vec4' as const,
+      value: hexToVec4(item.color3),
+    },
+  },
+});
+
+const createObjectState = (item: MeshFileItem): ViewerObjectState => ({
   id: item.id,
   visible: item.visible,
-})));
+  wireframe: item.wireframe,
+  matrix: createOffsetMatrix(item.offset),
+  uniforms: createColorUniforms(item),
+});
+
+const objectProps = computed<ViewerObjectState[]>(() => meshFiles.value.map(createObjectState));
 
 const removeMeshFile = (id: string) => {
   const i = meshFiles.value.findIndex(v => v.id === id);
   if (i !== -1) meshFiles.value.splice(i, 1);
+  meshViewer.value?.getViewer()?.removeObject(id);
 };
 
 const addMeshFiles = async (files: File[] | File | null | undefined) => {
@@ -50,16 +98,34 @@ const addMeshFiles = async (files: File[] | File | null | undefined) => {
         const data = parser.parse(await file.arrayBuffer());
         id = `object-${nextMeshFileId++}`;
 
-        meshFiles.value.push({
+        const item: MeshFileItem = {
           id,
           fileName: file.name,
           fileSize: file.size,
           visible: true,
+          wireframe: false,
+          offset: {
+            x: 0,
+            y: 0,
+            z: 0,
+          },
+          color1: '#FFFFFF',
+          color2: '#FFFFFF',
+          color3: '#FFFFFF',
           detailsOpen: false,
-        });
+        };
+
+        meshFiles.value.push(item);
 
         await nextTick();
-        viewer.addObject({ id, data });
+        viewer.addObject({
+          id,
+          data,
+          visible: item.visible,
+          wireframe: item.wireframe,
+          matrix: createOffsetMatrix(item.offset),
+          uniforms: createColorUniforms(item),
+        });
       }
       catch (error) {
         console.error('Failed to parse mesh file:', file.name, error);
@@ -164,13 +230,75 @@ const formatFileSize = (size: number) => {
 
             <div
               v-if="item.detailsOpen"
-              class="border-t border-gray-200 p-3 dark:border-gray-700"
+              class="space-y-4 border-t border-gray-200 p-3 dark:border-gray-700"
             >
-              <div class="text-sm font-medium">
-                {{ t('file_settings') }}
+              <USwitch
+                v-model="item.wireframe"
+                :label="t('wireframe')"
+              />
+
+              <div class="space-y-2">
+                <div class="text-sm font-medium">
+                  {{ t('offset') }}
+                </div>
+                <div class="grid grid-cols-3 gap-2">
+                  <UFormField
+                    label="X"
+                    size="sm"
+                  >
+                    <UInputNumber
+                      v-model="item.offset.x"
+                      class="w-full"
+                      size="sm"
+                      orientation="vertical"
+                      :step="0.125"
+                    />
+                  </UFormField>
+                  <UFormField
+                    label="Y"
+                    size="sm"
+                  >
+                    <UInputNumber
+                      v-model="item.offset.y"
+                      class="w-full"
+                      size="sm"
+                      orientation="vertical"
+                      :step="0.125"
+                    />
+                  </UFormField>
+                  <UFormField
+                    label="Z"
+                    size="sm"
+                  >
+                    <UInputNumber
+                      v-model="item.offset.z"
+                      class="w-full"
+                      size="sm"
+                      orientation="vertical"
+                      :step="0.125"
+                    />
+                  </UFormField>
+                </div>
               </div>
-              <div class="mt-1 text-xs text-muted">
-                {{ t('file_settings_placeholder') }}
+
+              <div class="space-y-2">
+                <div class="text-sm font-medium">
+                  {{ t('paint_colors') }}
+                </div>
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <ColorPicker
+                    v-model="item.color1"
+                    :label="t('paint_color_1')"
+                  />
+                  <ColorPicker
+                    v-model="item.color2"
+                    :label="t('paint_color_2')"
+                  />
+                  <ColorPicker
+                    v-model="item.color3"
+                    :label="t('paint_color_3')"
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -223,7 +351,12 @@ const formatFileSize = (size: number) => {
     "hide_file": "Hide file",
     "remove_file": "Remove file",
     "file_settings": "File Settings",
-    "file_settings_placeholder": "Detailed settings for this file will be added here.",
+    "wireframe": "Wireframe",
+    "offset": "Offset",
+    "paint_colors": "Paint Colors",
+    "paint_color_1": "Color 1",
+    "paint_color_2": "Color 2",
+    "paint_color_3": "Color 3",
     "viewer_placeholder": "Mesh preview will appear here.",
     "parse_error": "Could not load mesh file",
     "parse_error_description": "{fileName} could not be parsed. Please check the file format."
@@ -238,7 +371,12 @@ const formatFileSize = (size: number) => {
     "hide_file": "ファイルを非表示",
     "remove_file": "ファイルを削除",
     "file_settings": "ファイル設定",
-    "file_settings_placeholder": "このファイルの詳細設定はここに追加できます。",
+    "wireframe": "ワイヤーフレーム",
+    "offset": "オフセット",
+    "paint_colors": "ペイントカラー",
+    "paint_color_1": "カラー1",
+    "paint_color_2": "カラー2",
+    "paint_color_3": "カラー3",
     "viewer_placeholder": "メッシュのプレビューはここに表示されます。",
     "parse_error": "メッシュファイルを読み込めませんでした",
     "parse_error_description": "{fileName} をパースできませんでした。ファイル形式を確認してください。"
