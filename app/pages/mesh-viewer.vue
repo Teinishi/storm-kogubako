@@ -17,11 +17,12 @@ interface Vec3 {
   z: number;
 }
 
-type ItemUniforms = {
+type ItemProperties = {
   kind: 'mesh';
-  color1: string;
-  color2: string;
-  color3: string;
+  enablePaintcolor: boolean;
+  paintColor1: string;
+  paintColor2: string;
+  paintColor3: string;
 } | {
   kind: 'phys';
 };
@@ -34,7 +35,7 @@ interface MeshFileItem {
   detailsOpen: boolean;
   wireframe: boolean;
   offset: Vec3;
-  uniforms: ItemUniforms;
+  properties: ItemProperties;
 }
 
 const meshViewer = ref<{ getViewer: () => Viewer | null } | null>(null);
@@ -55,24 +56,24 @@ const createOffsetMatrix = ({ x, y, z }: Vec3) => [
   x, y, z, 1,
 ];
 
-const createObjectUniforms = (item: MeshFileItem) => item.uniforms.kind === 'mesh'
+const createObjectUniforms = (item: MeshFileItem) => item.properties.kind === 'mesh'
   ? ({
       opaque: {
         overrideColor: {
           type: 'int' as const,
-          value: 1,
+          value: item.properties.enablePaintcolor ? 1 : 0,
         },
         overrideColor1: {
           type: 'vec4' as const,
-          value: hexToVec4(item.uniforms.color1),
+          value: hexToVec4(item.properties.paintColor1),
         },
         overrideColor2: {
           type: 'vec4' as const,
-          value: hexToVec4(item.uniforms.color2),
+          value: hexToVec4(item.properties.paintColor2),
         },
         overrideColor3: {
           type: 'vec4' as const,
-          value: hexToVec4(item.uniforms.color3),
+          value: hexToVec4(item.properties.paintColor3),
         },
       },
     })
@@ -122,10 +123,14 @@ const addMeshFiles = async (files: File[] | File | null | undefined) => {
             y: 0,
             z: 0,
           },
-          uniforms: kind === 'mesh'
-            ? { kind, color1: '#FFFFFF',
-                color2: '#FFFFFF',
-                color3: '#FFFFFF' }
+          properties: kind === 'mesh'
+            ? {
+                kind,
+                enablePaintcolor: false,
+                paintColor1: '#FFFFFF',
+                paintColor2: '#FFFFFF',
+                paintColor3: '#FFFFFF',
+              }
             : { kind },
         };
 
@@ -293,28 +298,32 @@ const formatFileSize = (size: number) => {
                 </div>
               </div>
 
-              <div
-                v-if="item.uniforms.kind === 'mesh'"
-                class="space-y-2"
-              >
-                <div class="text-sm font-medium">
-                  {{ t('paint_colors') }}
+              <template v-if="item.properties.kind === 'mesh'">
+                <USwitch
+                  v-model="item.properties.enablePaintcolor"
+                  :label="t('paint_colors')"
+                />
+
+                <div
+                  v-if="item.properties.enablePaintcolor"
+                  class="space-y-2"
+                >
+                  <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <ColorPicker
+                      v-model="item.properties.paintColor1"
+                      :label="t('paint_color_1')"
+                    />
+                    <ColorPicker
+                      v-model="item.properties.paintColor2"
+                      :label="t('paint_color_2')"
+                    />
+                    <ColorPicker
+                      v-model="item.properties.paintColor3"
+                      :label="t('paint_color_3')"
+                    />
+                  </div>
                 </div>
-                <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                  <ColorPicker
-                    v-model="item.uniforms.color1"
-                    :label="t('paint_color_1')"
-                  />
-                  <ColorPicker
-                    v-model="item.uniforms.color2"
-                    :label="t('paint_color_2')"
-                  />
-                  <ColorPicker
-                    v-model="item.uniforms.color3"
-                    :label="t('paint_color_3')"
-                  />
-                </div>
-              </div>
+              </template>
             </div>
           </div>
         </div>
