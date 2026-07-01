@@ -16,6 +16,18 @@ const web_tools = [
     to: '/img2paint',
     icon: 'i-lucide-image',
   },
+  {
+    title: {
+      en: 'Mesh Viewer',
+      ja: 'メッシュビューワー',
+    },
+    description: {
+      en: 'Quick 3D viewer for .mesh and .phys files.',
+      ja: '.mesh ファイルと .phys ファイルを3Dで確認できます。',
+    },
+    to: '/mesh-viewer',
+    icon: 'i-lucide-box',
+  },
 ];
 
 const other_tools = [
