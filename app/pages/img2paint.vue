@@ -213,27 +213,6 @@ const glowAnchorSettings = ref<AnchorSettings>({
 });
 
 const bgColor = ref('#FFFFFF');
-const bgColorHex = ref('#FFFFFF');
-const bgColorRgb = computed(() => hexToRgb(bgColor.value));
-
-const updateBgColorHex = () => {
-  bgColor.value = rgbToHex(hexToRgb(bgColorHex.value));
-  bgColorHex.value = bgColor.value;
-};
-const updateBgColorRgb = (value: number | null, channel: 'r' | 'g' | 'b') => {
-  if (!value) return;
-  const newColor = { ...bgColorRgb.value };
-  if (channel === 'r') {
-    newColor.r = value;
-  }
-  else if (channel === 'g') {
-    newColor.g = value;
-  }
-  else {
-    newColor.b = value;
-  }
-  bgColor.value = rgbToHex(newColor);
-};
 
 const baseDrawData = computed(() => getDrawData(baseResizeSettings.value.widthPixels, baseResizeSettings.value.heightPixels, baseAnchorSettings.value));
 const glowDrawData = computed(() => {
@@ -491,84 +470,7 @@ const saveVehicleXml = () => {
                   {{ t('background') }}
                 </h2>
 
-                <UPopover class="grow">
-                  <UButton
-                    :label="t('pick_color')"
-                    color="neutral"
-                    variant="outline"
-                  >
-                    <template #leading>
-                      <span
-                        :style="{ backgroundColor: bgColor }"
-                        class="size-3 rounded-full ring ring-accented"
-                      />
-                    </template>
-                  </UButton>
-
-                  <template #content>
-                    <div class="p-4 flex flex-col gap-2">
-                      <UColorPicker v-model="bgColor" />
-
-                      <UFormField
-                        label="HEX"
-                        size="sm"
-                      >
-                        <UInput
-                          v-model="bgColorHex"
-                          class="w-full"
-                          @change="updateBgColorHex"
-                        />
-                      </UFormField>
-
-                      <div class="grid grid-cols-3 gap-1">
-                        <UFormField
-                          label="R"
-                          size="sm"
-                        >
-                          <UInputNumber
-                            :model-value="bgColorRgb.r"
-                            :min="0"
-                            :max="255"
-                            orientation="vertical"
-                            placeholder="R"
-                            class="w-16"
-                            @update:model-value="updateBgColorRgb($event, 'r')"
-                          />
-                        </UFormField>
-                        <UFormField
-                          label="G"
-                          size="sm"
-                        >
-                          <UInputNumber
-                            :model-value="bgColorRgb.g"
-                            :min="0"
-                            :max="255"
-                            orientation="vertical"
-                            placeholder="G"
-                            size="sm"
-                            class="w-16"
-                            @update:model-value="updateBgColorRgb($event, 'g')"
-                          />
-                        </UFormField>
-                        <UFormField
-                          label="B"
-                          size="sm"
-                        >
-                          <UInputNumber
-                            :model-value="bgColorRgb.b"
-                            :min="0"
-                            :max="255"
-                            orientation="vertical"
-                            placeholder="B"
-                            size="sm"
-                            class="w-16"
-                            @update:model-value="updateBgColorRgb($event, 'b')"
-                          />
-                        </UFormField>
-                      </div>
-                    </div>
-                  </template>
-                </UPopover>
+                <ColorPicker v-model="bgColor" />
 
                 <div class="text-xs text-gray-500">
                   {{ t('background_description') }}
