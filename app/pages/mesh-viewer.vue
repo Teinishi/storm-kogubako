@@ -2,11 +2,10 @@
 import { MeshBinaryParser, type MeshData } from 'sw-mesh-viewer';
 import { MeshViewer, type Viewer, type ViewerObjectState } from 'sw-mesh-viewer/vue';
 
-const { t } = useI18n({
-  useScope: 'local',
-});
+const { t: gt } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: 'local' });
 
-useHead({ title: t('title') });
+useHead({ title: gt('mesh_viewer') });
 definePageMeta({ layout: 'app' });
 
 const toast = useToast();
@@ -205,7 +204,7 @@ const formatFileSize = (size: number) => {
   <UContainer class="grow overflow-hidden py-4 grid grid-cols-1 grid-rows-2 lg:grid-cols-12 lg:grid-rows-1 gap-4">
     <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-auto">
       <h1 class="text-2xl font-bold">
-        {{ t('title') }}
+        {{ gt('mesh_viewer') }}
       </h1>
 
       <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
@@ -397,7 +396,6 @@ const formatFileSize = (size: number) => {
 <i18n lang="json">
 {
   "en": {
-    "title": "Mesh Viewer",
     "drop_files": "Pick Mesh Files",
     "drop_files_description": "Click, or drop files here",
     "no_files": "No files added",
@@ -418,7 +416,6 @@ const formatFileSize = (size: number) => {
     "parse_error_description": "{fileName} could not be parsed. Please check the file format."
   },
   "ja": {
-    "title": "メッシュビューアー",
     "drop_files": "メッシュファイルを選択",
     "drop_files_description": "クリック、またはファイルをここにドロップ",
     "no_files": "ファイルが追加されていません",

@@ -4,11 +4,10 @@ import type { AnchorPosition } from '~/components/AnchorPositionSelect.vue';
 import type { AnchorSettings } from '~/components/AnchorSettings.vue';
 import type { ResizeSettings } from '~/components/ResizeSettings.vue';
 
-const { t } = useI18n({
-  useScope: 'local',
-});
+const { t: gt } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: 'local' });
 
-useHead({ title: t('title') });
+useHead({ title: gt('img2paint') });
 definePageMeta({ layout: 'app' });
 
 const GRID_LINE_WIDTH = 2;
@@ -376,7 +375,7 @@ const saveVehicleXml = () => {
   <UContainer class="grow overflow-hidden py-4 grid grid-cols-1 grid-rows-2 lg:grid-cols-12 lg:grid-rows-1 gap-4">
     <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-auto">
       <h1 class="text-2xl font-bold">
-        {{ t('title') }}
+        {{ gt('img2paint') }}
       </h1>
 
       <div
@@ -627,7 +626,6 @@ const saveVehicleXml = () => {
 <i18n lang="json">
 {
   "en": {
-    "title": "Image to Paintable Signs",
     "guide1": "This tool converts images into paintable blocks for Stormworks. You can save the resulting vehicle XML file and load it into existing vehicles within Stormworks.",
     "guide2": "All processing occurs within the browser; no images are sent externally.",
     "guide3": "Start by selecting an image.",
@@ -662,7 +660,6 @@ const saveVehicleXml = () => {
     "bloom": "Bloom"
   },
   "ja": {
-    "title": "ペインタブルブロック変換",
     "guide1": "画像から Stormworks のペインタブルブロックへ変換するツールです。変換後のビークルXMLファイルを保存して、Stormworks 上で既存ビークルに追加読み込みすることができます。",
     "guide2": "処理はすべてブラウザ上で完結し、画像を外部へ送信することはありません。",
     "guide3": "まずは画像を選択してみてください。",
