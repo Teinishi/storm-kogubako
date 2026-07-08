@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { MeshBinaryParser, type MeshData } from 'sw-mesh-viewer';
-import { MeshViewer, type Viewer, type ViewerObjectState } from 'sw-mesh-viewer/vue';
+import { parseMeshData, type MeshData } from 'sw-mesh-viewer';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 const { t } = useI18n({ useScope: 'local' });
@@ -9,12 +8,6 @@ useHead({ title: gt('mesh_viewer') });
 definePageMeta({ layout: 'app' });
 
 const toast = useToast();
-
-interface Vec3 {
-  x: number;
-  y: number;
-  z: number;
-}
 
 type ItemProperties = {
   kind: 'mesh';
@@ -26,10 +19,17 @@ type ItemProperties = {
   kind: 'phys';
 };
 
+interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
 interface MeshFileItem {
   id: string;
   fileName: string;
   fileSize: number;
+  data: MeshData;
   stats: {
     vertexCount: number;
     triangleCount: number;
@@ -57,129 +57,59 @@ function getMeshStats(data: MeshData) {
   return { vertexCount, triangleCount };
 }
 
-const meshViewer = ref<{ getViewer: () => Viewer | null } | null>(null);
-
 const meshFiles = ref<MeshFileItem[]>([]);
 const fileUploadModel = ref<File[] | null>(null);
 let nextMeshFileId = 1;
 
-const hexToVec4 = (hex: string): [number, number, number, number] => {
-  const { r, g, b } = hexToRgb(hex);
-  return [r / 255, g / 255, b / 255, 1];
-};
-
-const createOffsetMatrix = ({ x, y, z }: Vec3) => [
-  1, 0, 0, 0,
-  0, 1, 0, 0,
-  0, 0, 1, 0,
-  x, y, z, 1,
-];
-
-const createObjectUniforms = (item: MeshFileItem) => item.properties.kind === 'mesh'
-  ? ({
-      opaque: {
-        overrideColor: {
-          type: 'int' as const,
-          value: item.properties.enablePaintcolor ? 1 : 0,
-        },
-        overrideColor1: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor1),
-        },
-        overrideColor2: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor2),
-        },
-        overrideColor3: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor3),
-        },
-      },
-    })
-  : {};
-
-const createObjectState = (item: MeshFileItem): ViewerObjectState => ({
-  id: item.id,
-  visible: item.visible,
-  wireframe: item.wireframe,
-  matrix: createOffsetMatrix(item.offset),
-  uniforms: createObjectUniforms(item),
-});
-
-const objectProps = computed<ViewerObjectState[]>(() => meshFiles.value.map(createObjectState));
-
 const removeMeshFile = (id: string) => {
   const i = meshFiles.value.findIndex(v => v.id === id);
   if (i !== -1) meshFiles.value.splice(i, 1);
-  meshViewer.value?.getViewer()?.removeObject(id);
 };
 
 const addMeshFiles = async (files: File[] | File | null | undefined) => {
   const fileList = Array.isArray(files) ? files : files ? [files] : [];
   if (!fileList.length) return;
 
-  const parser = new MeshBinaryParser();
-  const viewer = meshViewer.value?.getViewer();
+  for (const file of fileList) {
+    try {
+      const data = parseMeshData(await file.arrayBuffer());
+      const { kind } = data;
 
-  if (viewer) {
-    for (const file of fileList) {
-      let id: string | null = null;
-
-      try {
-        const data = parser.parse(await file.arrayBuffer());
-        const { kind } = data;
-        id = `object-${nextMeshFileId++}`;
-
-        const item: MeshFileItem = {
-          id,
-          fileName: file.name,
-          fileSize: file.size,
-          stats: getMeshStats(data),
-          visible: true,
-          detailsOpen: false,
-          wireframe: false,
-          offset: {
-            x: 0,
-            y: 0,
-            z: 0,
-          },
-          properties: kind === 'mesh'
-            ? {
-                kind,
-                enablePaintcolor: false,
-                paintColor1: '#FFFFFF',
-                paintColor2: '#FFFFFF',
-                paintColor3: '#FFFFFF',
-              }
-            : { kind },
-        };
-
-        meshFiles.value.push(item);
-
-        await nextTick();
-        viewer.addObject(id, data, {
-          visible: item.visible,
-          wireframe: item.wireframe,
-          matrix: createOffsetMatrix(item.offset),
-          uniforms: createObjectUniforms(item),
-        });
-      }
-      catch (error) {
-        console.error('Failed to parse mesh file:', file.name, error);
-
-        if (id) removeMeshFile(id);
-
-        toast.add({
-          title: t('parse_error'),
-          description: t('parse_error_description', { fileName: file.name }),
-          icon: 'i-lucide-circle-alert',
-          color: 'error',
-        });
-      }
+      meshFiles.value.push({
+        id: `object-${nextMeshFileId++}`,
+        fileName: file.name,
+        fileSize: file.size,
+        data,
+        stats: getMeshStats(data),
+        visible: true,
+        detailsOpen: false,
+        wireframe: false,
+        offset: {
+          x: 0,
+          y: 0,
+          z: 0,
+        },
+        properties: kind === 'mesh'
+          ? {
+              kind,
+              enablePaintcolor: false,
+              paintColor1: '#FFFFFF',
+              paintColor2: '#FFFFFF',
+              paintColor3: '#FFFFFF',
+            }
+          : { kind },
+      });
     }
-  }
-  else {
-    console.error('Failed to get an instance of Viewer');
+    catch (error) {
+      console.error('Failed to parse mesh file:', file.name, error);
+
+      toast.add({
+        title: t('parse_error'),
+        description: t('parse_error_description', { fileName: file.name }),
+        icon: 'i-lucide-circle-alert',
+        color: 'error',
+      });
+    }
   }
 
   fileUploadModel.value = null;
@@ -369,7 +299,7 @@ const formatFileSize = (size: number) => {
       </div>
     </div>
 
-    <div class="lg:col-span-8 flex flex-col bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 relative">
+    <div class="lg:col-span-8 flex flex-col bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative">
       <div
         v-if="meshFiles.length === 0"
         class="m-auto flex flex-col items-center gap-2 p-6 text-center text-muted"
@@ -383,12 +313,12 @@ const formatFileSize = (size: number) => {
         </div>
       </div>
 
-      <MeshViewer
-        v-show="meshFiles.length > 0"
-        ref="meshViewer"
-        :objects="objectProps"
-        class="w-full h-full"
-      />
+      <ClientOnly>
+        <MeshViewerCanvas
+          v-show="meshFiles.length > 0"
+          :items="meshFiles"
+        />
+      </ClientOnly>
     </div>
   </UContainer>
 </template>
