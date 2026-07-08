@@ -132,7 +132,7 @@ const formatFileSize = (size: number) => {
 
 <template>
   <UContainer class="grow overflow-hidden py-4 grid grid-cols-1 grid-rows-2 lg:grid-cols-12 lg:grid-rows-1 gap-4">
-    <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-auto">
+    <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-scroll">
       <h1 class="text-2xl font-bold">
         {{ gt('mesh_viewer') }}
       </h1>
