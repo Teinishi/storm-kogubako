@@ -9,6 +9,7 @@ import { markRaw } from 'vue';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 const { t } = useI18n({ useScope: 'local' });
+const colorMode = useColorMode();
 
 useHead({ title: gt('mesh_viewer') });
 definePageMeta({ layout: 'app' });
@@ -90,8 +91,7 @@ const createObjectUniforms = (item: MeshFileItem): StormworksUniforms => item.pr
   : {};
 
 const lights = markRaw(createStormworksLightGroup());
-const cameraPosition = markRaw(new THREE.Vector3(2, 1.5, 4));
-const cameraLookAt = [0, 0, 0] as const;
+const viewerClearColor = computed(() => colorMode.value === 'dark' ? '#111827' : '#f9fafb');
 const orbitMouseButtons = {
   LEFT: undefined,
   MIDDLE: THREE.MOUSE.PAN,
@@ -348,16 +348,12 @@ const formatFileSize = (size: number) => {
 
       <TresCanvas
         v-show="meshFiles.length > 0"
-        :alpha="true"
-        :clear-alpha="0"
+        :clear-color="viewerClearColor"
         :antialias="true"
         :window-size="false"
         class="w-full h-full"
       >
-        <TresPerspectiveCamera
-          :position="cameraPosition"
-          :look-at="cameraLookAt"
-        />
+        <TresPerspectiveCamera />
         <OrbitControls
           :enable-damping="false"
           :mouse-buttons="orbitMouseButtons"
