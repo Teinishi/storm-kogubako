@@ -1,6 +1,11 @@
 <script setup lang="ts">
-import { MeshBinaryParser, type MeshData } from 'sw-mesh-viewer';
-import { MeshViewer, type Viewer, type ViewerObjectState } from 'sw-mesh-viewer/vue';
+import * as THREE from 'three';
+import { OrbitControls } from '@tresjs/cientos';
+import { TresCanvas } from '@tresjs/core';
+import { parseMeshData, type MeshData } from 'sw-mesh-viewer';
+import { createStormworksLightGroup, type StormworksUniforms } from 'sw-mesh-viewer/viewer';
+import { SwMeshPrimitive } from 'sw-mesh-viewer/vue';
+import { markRaw } from 'vue';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 const { t } = useI18n({ useScope: 'local' });
@@ -9,12 +14,6 @@ useHead({ title: gt('mesh_viewer') });
 definePageMeta({ layout: 'app' });
 
 const toast = useToast();
-
-interface Vec3 {
-  x: number;
-  y: number;
-  z: number;
-}
 
 type ItemProperties = {
   kind: 'mesh';
@@ -30,6 +29,7 @@ interface MeshFileItem {
   id: string;
   fileName: string;
   fileSize: number;
+  data: MeshData;
   stats: {
     vertexCount: number;
     triangleCount: number;
@@ -37,7 +37,7 @@ interface MeshFileItem {
   visible: boolean;
   detailsOpen: boolean;
   wireframe: boolean;
-  offset: Vec3;
+  offset: THREE.Vector3;
   properties: ItemProperties;
 }
 
@@ -57,8 +57,6 @@ function getMeshStats(data: MeshData) {
   return { vertexCount, triangleCount };
 }
 
-const meshViewer = ref<{ getViewer: () => Viewer | null } | null>(null);
-
 const meshFiles = ref<MeshFileItem[]>([]);
 const fileUploadModel = ref<File[] | null>(null);
 let nextMeshFileId = 1;
@@ -68,14 +66,7 @@ const hexToVec4 = (hex: string): [number, number, number, number] => {
   return [r / 255, g / 255, b / 255, 1];
 };
 
-const createOffsetMatrix = ({ x, y, z }: Vec3) => [
-  1, 0, 0, 0,
-  0, 1, 0, 0,
-  0, 0, 1, 0,
-  x, y, z, 1,
-];
-
-const createObjectUniforms = (item: MeshFileItem) => item.properties.kind === 'mesh'
+const createObjectUniforms = (item: MeshFileItem): StormworksUniforms => item.properties.kind === 'mesh'
   ? ({
       opaque: {
         overrideColor: {
@@ -98,88 +89,60 @@ const createObjectUniforms = (item: MeshFileItem) => item.properties.kind === 'm
     })
   : {};
 
-const createObjectState = (item: MeshFileItem): ViewerObjectState => ({
-  id: item.id,
-  visible: item.visible,
-  wireframe: item.wireframe,
-  matrix: createOffsetMatrix(item.offset),
-  uniforms: createObjectUniforms(item),
-});
-
-const objectProps = computed<ViewerObjectState[]>(() => meshFiles.value.map(createObjectState));
+const lights = markRaw(createStormworksLightGroup());
+const cameraPosition = markRaw(new THREE.Vector3(2, 1.5, 4));
+const cameraLookAt = [0, 0, 0] as const;
+const orbitMouseButtons = {
+  LEFT: undefined,
+  MIDDLE: THREE.MOUSE.PAN,
+  RIGHT: THREE.MOUSE.ROTATE,
+};
 
 const removeMeshFile = (id: string) => {
   const i = meshFiles.value.findIndex(v => v.id === id);
   if (i !== -1) meshFiles.value.splice(i, 1);
-  meshViewer.value?.getViewer()?.removeObject(id);
 };
 
 const addMeshFiles = async (files: File[] | File | null | undefined) => {
   const fileList = Array.isArray(files) ? files : files ? [files] : [];
   if (!fileList.length) return;
 
-  const parser = new MeshBinaryParser();
-  const viewer = meshViewer.value?.getViewer();
+  for (const file of fileList) {
+    try {
+      const data = parseMeshData(await file.arrayBuffer());
+      const { kind } = data;
 
-  if (viewer) {
-    for (const file of fileList) {
-      let id: string | null = null;
-
-      try {
-        const data = parser.parse(await file.arrayBuffer());
-        const { kind } = data;
-        id = `object-${nextMeshFileId++}`;
-
-        const item: MeshFileItem = {
-          id,
-          fileName: file.name,
-          fileSize: file.size,
-          stats: getMeshStats(data),
-          visible: true,
-          detailsOpen: false,
-          wireframe: false,
-          offset: {
-            x: 0,
-            y: 0,
-            z: 0,
-          },
-          properties: kind === 'mesh'
-            ? {
-                kind,
-                enablePaintcolor: false,
-                paintColor1: '#FFFFFF',
-                paintColor2: '#FFFFFF',
-                paintColor3: '#FFFFFF',
-              }
-            : { kind },
-        };
-
-        meshFiles.value.push(item);
-
-        await nextTick();
-        viewer.addObject(id, data, {
-          visible: item.visible,
-          wireframe: item.wireframe,
-          matrix: createOffsetMatrix(item.offset),
-          uniforms: createObjectUniforms(item),
-        });
-      }
-      catch (error) {
-        console.error('Failed to parse mesh file:', file.name, error);
-
-        if (id) removeMeshFile(id);
-
-        toast.add({
-          title: t('parse_error'),
-          description: t('parse_error_description', { fileName: file.name }),
-          icon: 'i-lucide-circle-alert',
-          color: 'error',
-        });
-      }
+      meshFiles.value.push({
+        id: `object-${nextMeshFileId++}`,
+        fileName: file.name,
+        fileSize: file.size,
+        data,
+        stats: getMeshStats(data),
+        visible: true,
+        detailsOpen: false,
+        wireframe: false,
+        offset: new THREE.Vector3(),
+        properties: kind === 'mesh'
+          ? {
+              kind,
+              enablePaintcolor: false,
+              paintColor1: '#FFFFFF',
+              paintColor2: '#FFFFFF',
+              paintColor3: '#FFFFFF',
+            }
+          : { kind },
+      });
     }
-  }
-  else {
-    console.error('Failed to get an instance of Viewer');
+    catch (error) {
+      console.error('Failed to parse mesh file:', file.name, error);
+
+      toast.add({
+        title: t('parse_error'),
+        description: t('parse_error_description', { fileName: file.name }),
+        icon: 'i-lucide-circle-alert',
+        color: 'error',
+      });
+    }
   }
 
   fileUploadModel.value = null;
@@ -369,7 +332,7 @@ const formatFileSize = (size: number) => {
       </div>
     </div>
 
-    <div class="lg:col-span-8 flex flex-col bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 relative">
+    <div class="lg:col-span-8 flex flex-col bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative">
       <div
         v-if="meshFiles.length === 0"
         class="m-auto flex flex-col items-center gap-2 p-6 text-center text-muted"
@@ -383,12 +346,37 @@ const formatFileSize = (size: number) => {
         </div>
       </div>
 
-      <MeshViewer
+      <TresCanvas
         v-show="meshFiles.length > 0"
-        ref="meshViewer"
-        :objects="objectProps"
+        :alpha="true"
+        :clear-alpha="0"
+        :antialias="true"
+        :window-size="false"
         class="w-full h-full"
-      />
+      >
+        <TresPerspectiveCamera
+          :position="cameraPosition"
+          :look-at="cameraLookAt"
+        />
+        <OrbitControls
+          :enable-damping="false"
+          :mouse-buttons="orbitMouseButtons"
+        />
+        <primitive :object="lights" />
+        <TresGroup
+          v-for="item in meshFiles"
+          :key="item.id"
+          :position="item.offset"
+        >
+          <SwMeshPrimitive
+            :data="item.data"
+            :name="item.id"
+            :uniforms="createObjectUniforms(item)"
+            :visible="item.visible"
+            :wireframe="item.wireframe"
+          />
+        </TresGroup>
+      </TresCanvas>
     </div>
   </UContainer>
 </template>

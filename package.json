@@ -25,6 +25,7 @@
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.80",
     "@nuxt/eslint": "^1.12.1",
+    "@types/three": "^0.185.0",
     "eslint": "^10.6.0",
     "typescript": "^6.0.3"
   }
