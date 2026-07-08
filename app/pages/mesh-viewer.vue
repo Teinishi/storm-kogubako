@@ -1,15 +1,8 @@
 <script setup lang="ts">
-import * as THREE from 'three';
-import { OrbitControls } from '@tresjs/cientos';
-import { TresCanvas } from '@tresjs/core';
 import { parseMeshData, type MeshData } from 'sw-mesh-viewer';
-import { createStormworksLightGroup, type StormworksUniforms } from 'sw-mesh-viewer/viewer';
-import { SwMeshPrimitive } from 'sw-mesh-viewer/vue';
-import { markRaw } from 'vue';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 const { t } = useI18n({ useScope: 'local' });
-const colorMode = useColorMode();
 
 useHead({ title: gt('mesh_viewer') });
 definePageMeta({ layout: 'app' });
@@ -26,6 +19,12 @@ type ItemProperties = {
   kind: 'phys';
 };
 
+interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
 interface MeshFileItem {
   id: string;
   fileName: string;
@@ -38,7 +37,7 @@ interface MeshFileItem {
   visible: boolean;
   detailsOpen: boolean;
   wireframe: boolean;
-  offset: THREE.Vector3;
+  offset: Vec3;
   properties: ItemProperties;
 }
 
@@ -61,42 +60,6 @@ function getMeshStats(data: MeshData) {
 const meshFiles = ref<MeshFileItem[]>([]);
 const fileUploadModel = ref<File[] | null>(null);
 let nextMeshFileId = 1;
-
-const hexToVec4 = (hex: string): [number, number, number, number] => {
-  const { r, g, b } = hexToRgb(hex);
-  return [r / 255, g / 255, b / 255, 1];
-};
-
-const createObjectUniforms = (item: MeshFileItem): StormworksUniforms => item.properties.kind === 'mesh'
-  ? ({
-      opaque: {
-        overrideColor: {
-          type: 'int' as const,
-          value: item.properties.enablePaintcolor ? 1 : 0,
-        },
-        overrideColor1: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor1),
-        },
-        overrideColor2: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor2),
-        },
-        overrideColor3: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor3),
-        },
-      },
-    })
-  : {};
-
-const lights = markRaw(createStormworksLightGroup());
-const viewerClearColor = computed(() => colorMode.value === 'dark' ? '#111827' : '#f9fafb');
-const orbitMouseButtons = {
-  LEFT: undefined,
-  MIDDLE: THREE.MOUSE.PAN,
-  RIGHT: THREE.MOUSE.ROTATE,
-};
 
 const removeMeshFile = (id: string) => {
   const i = meshFiles.value.findIndex(v => v.id === id);
@@ -121,7 +84,11 @@ const addMeshFiles = async (files: File[] | File | null | undefined) => {
         visible: true,
         detailsOpen: false,
         wireframe: false,
-        offset: new THREE.Vector3(),
+        offset: {
+          x: 0,
+          y: 0,
+          z: 0,
+        },
         properties: kind === 'mesh'
           ? {
               kind,
@@ -346,33 +313,12 @@ const formatFileSize = (size: number) => {
         </div>
       </div>
 
-      <TresCanvas
-        v-show="meshFiles.length > 0"
-        :clear-color="viewerClearColor"
-        :antialias="true"
-        :window-size="false"
-        class="w-full h-full"
-      >
-        <TresPerspectiveCamera />
-        <OrbitControls
-          :enable-damping="false"
-          :mouse-buttons="orbitMouseButtons"
+      <ClientOnly>
+        <MeshViewerCanvas
+          v-show="meshFiles.length > 0"
+          :items="meshFiles"
         />
-        <primitive :object="lights" />
-        <TresGroup
-          v-for="item in meshFiles"
-          :key="item.id"
-          :position="item.offset"
-        >
-          <SwMeshPrimitive
-            :data="item.data"
-            :name="item.id"
-            :uniforms="createObjectUniforms(item)"
-            :visible="item.visible"
-            :wireframe="item.wireframe"
-          />
-        </TresGroup>
-      </TresCanvas>
+      </ClientOnly>
     </div>
   </UContainer>
 </template>
