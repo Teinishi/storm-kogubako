@@ -1,3 +1,7 @@
 {
-  "stormskey": "すとーむすきー"
+  "stormskey": "すとーむすきー",
+  "img2paint": "ペインタブルブロック変換",
+  "img2paint_description": "画像ファイルからペインタブルブロックへ変換します。",
+  "mesh_viewer": "メッシュビューアー",
+  "mesh_viewer_description": ".mesh ファイルと .phys ファイルを3Dで確認できます。"
 }
