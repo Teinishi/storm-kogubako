@@ -1,3 +1,7 @@
 {
-  "stormskey": "Stormskey"
+  "stormskey": "Stormskey",
+  "img2paint": "Image to Paintable Signs",
+  "img2paint_description": "Convert an image file to paintable signs for a vehicle.",
+  "mesh_viewer": "Mesh Viewer",
+  "mesh_viewer_description": "Quick 3D viewer for .mesh and .phys files."
 }

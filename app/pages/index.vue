@@ -1,30 +1,15 @@
 <script setup lang="ts">
-const { t } = useI18n({
-  useScope: 'local',
-});
+const { t: gt } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: 'local' });
 
 const web_tools = [
   {
-    title: {
-      en: 'Image to Paintable Signs',
-      ja: 'ペインタブルブロック変換',
-    },
-    description: {
-      en: 'Convert an image file to paintable signs for a vehicle.',
-      ja: '画像ファイルからペインタブルブロックへ変換します。',
-    },
+    key: 'img2paint',
     to: '/img2paint',
     icon: 'i-lucide-image',
   },
   {
-    title: {
-      en: 'Mesh Viewer',
-      ja: 'メッシュビューアー',
-    },
-    description: {
-      en: 'Quick 3D viewer for .mesh and .phys files.',
-      ja: '.mesh ファイルと .phys ファイルを3Dで確認できます。',
-    },
+    key: 'mesh_viewer',
     to: '/mesh-viewer',
     icon: 'i-lucide-box',
   },
@@ -61,8 +46,8 @@ const other_tools = [
       <LinkCard
         v-for="(tool_data, index) in web_tools"
         :key="index"
-        :title="tool_data.title"
-        :description="tool_data.description"
+        :title="gt(tool_data.key)"
+        :description="gt(`${tool_data.key}_description`)"
         :to="tool_data.to"
         :icon="tool_data.icon"
       />
