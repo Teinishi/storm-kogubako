@@ -3,5 +3,7 @@
   "img2paint": "ペインタブルブロック変換",
   "img2paint_description": "画像ファイルからペインタブルブロックへ変換します。",
   "mesh_viewer": "メッシュビューアー",
-  "mesh_viewer_description": ".mesh ファイルと .phys ファイルを3Dで確認できます。"
+  "mesh_viewer_description": ".mesh ファイルと .phys ファイルを3Dで確認できます。",
+  "custom_train_door": "鉄道用ドアパーツメーカー",
+  "custom_train_door_description": "自由に仕様を決めて鉄道車両用ドアパーツのコンポーネント Mod を作成できます。"
 }

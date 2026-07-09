@@ -3,5 +3,7 @@
   "img2paint": "Image to Paintable Signs",
   "img2paint_description": "Convert an image file to paintable signs for a vehicle.",
   "mesh_viewer": "Mesh Viewer",
-  "mesh_viewer_description": "Quick 3D viewer for .mesh and .phys files."
+  "mesh_viewer_description": "Quick 3D viewer for .mesh and .phys files.",
+  "custom_train_door": "Custom Train Door Component",
+  "custom_train_door_description": "Create train door component mod with specifications you want for your vehicle."
 }

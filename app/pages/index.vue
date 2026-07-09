@@ -13,6 +13,11 @@ const web_tools = [
     to: '/mesh-viewer',
     icon: 'i-lucide-box',
   },
+  {
+    key: 'custom_train_door',
+    to: '/custom-train-door',
+    icon: '',
+  },
 ];
 
 const other_tools = [
