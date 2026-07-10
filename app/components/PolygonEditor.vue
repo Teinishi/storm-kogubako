@@ -1,88 +1,39 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useManualRefHistory, useResizeObserver } from '@vueuse/core';
-
-export interface PolygonEditorPoint {
-  x: number;
-  y: number;
-}
-
-export interface PolygonEditorPolygon {
-  id: number;
-  color: string;
-  vertices: PolygonEditorPoint[];
-}
-
-export interface PolygonEditorGrid {
-  enabled: boolean;
-  minorDivisions: number;
-}
-
-export interface PolygonEditorValue {
-  backgroundColor: string;
-  grid: PolygonEditorGrid;
-  polygons: PolygonEditorPolygon[];
-}
+import {
+  clampToLogicalBounds,
+  clampVerticesToLogicalBounds,
+  clonePoint,
+  clonePolygonEditorValue,
+  createDefaultPolygonEditorValue,
+  createRectangleVertices,
+  DEFAULT_POLYGON_COLOR,
+  findHitEdge as findHitEdgeInPolygons,
+  findHitPolygon as findHitPolygonInPolygons,
+  findHitVertex as findHitVertexInPolygons,
+  getNextPolygonColor,
+  getViewTransform,
+  GRID_SCALE,
+  HANDLE_HIT_THRESHOLD_PX,
+  isWithinLogicalBounds,
+  roundCoordinate,
+  snapPoint as snapPointWithGrid,
+  worldToCanvas as worldToCanvasWithBounds,
+} from '../utils/polygonEditorCore';
+import type {
+  CanvasMetrics,
+  HitEdge,
+  PolygonEditorPoint,
+  PolygonEditorPolygon,
+  PolygonEditorValue,
+} from '../utils/polygonEditorCore';
 
 type DraftRectangle = {
   start: PolygonEditorPoint;
   current: PolygonEditorPoint;
   color: string;
 };
-
-type CanvasMetrics = {
-  width: number;
-  height: number;
-  dpr: number;
-  originX: number;
-  originY: number;
-};
-
-type HitVertex = {
-  polygonId: number;
-  vertexIndex: number;
-  distance: number;
-};
-
-type HitEdge = {
-  polygonId: number;
-  edgeIndex: number;
-  point: PolygonEditorPoint;
-  distance: number;
-};
-
-type ViewTransform = {
-  scale: number;
-  offsetX: number;
-  offsetY: number;
-  logicalWidth: number;
-  logicalHeight: number;
-};
-
-const DEFAULT_BACKGROUND_COLOR = '#F8FAFC';
-const DEFAULT_POLYGON_COLOR = '#2563EB';
-const GRID_SCALE = 56;
-const HANDLE_HIT_THRESHOLD_PX = 14;
-const SNAP_PRECISION = 1_000_000;
-
-const POLYGON_COLORS = [
-  '#0F766E',
-  '#1D4ED8',
-  '#7C3AED',
-  '#B45309',
-  '#DC2626',
-  '#059669',
-  '#C026D3',
-  '#0284C7',
-];
-
-let nextPolygonColorIndex = 0;
-
-function getNextPolygonColor() {
-  const color = POLYGON_COLORS[nextPolygonColorIndex % POLYGON_COLORS.length]!;
-  nextPolygonColorIndex += 1;
-  return color;
-}
 
 const props = withDefaults(defineProps<{
   logicalWidth?: number;
@@ -182,80 +133,6 @@ const selectedPolygonColorProxy = computed({
   },
 });
 
-function clamp(value: number, min: number, max: number) {
-  return Math.min(max, Math.max(min, value));
-}
-
-function clampToLogicalBounds(point: PolygonEditorPoint): PolygonEditorPoint {
-  return {
-    x: clamp(point.x, logicalBounds.value.minX, logicalBounds.value.maxX),
-    y: clamp(point.y, logicalBounds.value.minY, logicalBounds.value.maxY),
-  };
-}
-
-function clampVerticesToLogicalBounds(vertices: PolygonEditorPoint[]) {
-  return vertices.map(vertex => clampToLogicalBounds(vertex));
-}
-
-function isWithinLogicalBounds(point: PolygonEditorPoint) {
-  return point.x >= logicalBounds.value.minX
-    && point.x <= logicalBounds.value.maxX
-    && point.y >= logicalBounds.value.minY
-    && point.y <= logicalBounds.value.maxY;
-}
-
-function clonePoint(point: PolygonEditorPoint): PolygonEditorPoint {
-  return {
-    x: point.x,
-    y: point.y,
-  };
-}
-
-function clonePolygon(polygon: PolygonEditorPolygon): PolygonEditorPolygon {
-  return {
-    id: polygon.id,
-    color: polygon.color,
-    vertices: polygon.vertices.map(clonePoint),
-  };
-}
-
-function clonePolygonEditorValue(value: PolygonEditorValue): PolygonEditorValue {
-  return {
-    backgroundColor: value.backgroundColor,
-    grid: {
-      enabled: value.grid.enabled,
-      minorDivisions: value.grid.minorDivisions,
-    },
-    polygons: value.polygons.map(clonePolygon),
-  };
-}
-
-function createDefaultPolygonEditorValue(): PolygonEditorValue {
-  return {
-    backgroundColor: DEFAULT_BACKGROUND_COLOR,
-    grid: {
-      enabled: true,
-      minorDivisions: 4,
-    },
-    polygons: [],
-  };
-}
-
-function getViewTransform(metrics: CanvasMetrics): ViewTransform {
-  const logicalWidth = Math.max(0.000001, logicalBounds.value.maxX - logicalBounds.value.minX);
-  const logicalHeight = Math.max(0.000001, logicalBounds.value.maxY - logicalBounds.value.minY);
-  const scale = Math.min(metrics.width / logicalWidth, metrics.height / logicalHeight);
-  const offsetX = (metrics.width - logicalWidth * scale) / 2 - logicalBounds.value.minX * scale;
-  const offsetY = metrics.height - (metrics.height - logicalHeight * scale) / 2 + logicalBounds.value.minY * scale;
-  return {
-    scale,
-    offsetX,
-    offsetY,
-    logicalWidth,
-    logicalHeight,
-  };
-}
-
 function getNextPolygonId() {
   let nextId = 1;
   for (const polygon of editorState.value.polygons) {
@@ -268,7 +145,7 @@ function createPolygon(vertices: PolygonEditorPoint[], color = getNextPolygonCol
   return {
     id: getNextPolygonId(),
     color,
-    vertices: clampVerticesToLogicalBounds(vertices.map(clonePoint)),
+    vertices: clampVerticesToLogicalBounds(vertices.map(clonePoint), logicalBounds.value),
   } satisfies PolygonEditorPolygon;
 }
 
@@ -281,38 +158,11 @@ function createDraftPolygon() {
 }
 
 function createRectanglePolygon(start: PolygonEditorPoint, end: PolygonEditorPoint, color = DEFAULT_POLYGON_COLOR) {
-  const clampedStart = clampToLogicalBounds(start);
-  const clampedEnd = clampToLogicalBounds(end);
-  const minX = Math.min(clampedStart.x, clampedEnd.x);
-  const maxX = Math.max(clampedStart.x, clampedEnd.x);
-  const minY = Math.min(clampedStart.y, clampedEnd.y);
-  const maxY = Math.max(clampedStart.y, clampedEnd.y);
-
-  return createPolygon([
-    { x: minX, y: minY },
-    { x: maxX, y: minY },
-    { x: maxX, y: maxY },
-    { x: minX, y: maxY },
-  ], color);
-}
-
-function roundCoordinate(value: number) {
-  return Math.round(value * SNAP_PRECISION) / SNAP_PRECISION;
+  return createPolygon(createRectangleVertices(start, end, logicalBounds.value), color);
 }
 
 function snapPoint(point: PolygonEditorPoint) {
-  if (!editorState.value.grid.enabled) {
-    return clampToLogicalBounds({
-      x: roundCoordinate(point.x),
-      y: roundCoordinate(point.y),
-    });
-  }
-
-  const step = 1 / Math.max(1, editorState.value.grid.minorDivisions);
-  return clampToLogicalBounds({
-    x: roundCoordinate(Math.round(point.x / step) * step),
-    y: roundCoordinate(Math.round(point.y / step) * step),
-  });
+  return snapPointWithGrid(point, editorState.value.grid, logicalBounds.value);
 }
 
 function canvasToWorldRaw(clientX: number, clientY: number) {
@@ -327,7 +177,7 @@ function canvasToWorldRaw(clientX: number, clientY: number) {
     return { x: 0, y: 0 };
   }
 
-  const transform = getViewTransform(metrics);
+  const transform = getViewTransform(metrics, logicalBounds.value);
   const x = (clientX - rect.left - transform.offsetX) / transform.scale;
   const y = (transform.offsetY - (clientY - rect.top)) / transform.scale;
   return { x, y };
@@ -650,7 +500,7 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
       ...item.vertices[index],
       [axis]: roundCoordinate(value ?? 0),
     } satisfies PolygonEditorPoint;
-    item.vertices[index] = clampToLogicalBounds(nextVertex);
+    item.vertices[index] = clampToLogicalBounds(nextVertex, logicalBounds.value);
   });
 }
 
@@ -707,125 +557,39 @@ function getCanvasMetrics() {
 }
 
 function worldToCanvas(point: PolygonEditorPoint, metrics: CanvasMetrics) {
-  const transform = getViewTransform(metrics);
-  return {
-    x: transform.offsetX + point.x * transform.scale,
-    y: transform.offsetY - point.y * transform.scale,
-  };
+  return worldToCanvasWithBounds(point, metrics, logicalBounds.value);
 }
 
 function canvasToWorld(clientX: number, clientY: number) {
   return snapPoint(canvasToWorldRaw(clientX, clientY));
 }
 
-function distanceToSegment(point: PolygonEditorPoint, start: PolygonEditorPoint, end: PolygonEditorPoint) {
-  const deltaX = end.x - start.x;
-  const deltaY = end.y - start.y;
-  const lengthSquared = deltaX * deltaX + deltaY * deltaY;
-
-  if (lengthSquared === 0) {
-    const dx = point.x - start.x;
-    const dy = point.y - start.y;
-    return {
-      distance: Math.hypot(dx, dy),
-      point: clonePoint(start),
-    };
-  }
-
-  const rawT = ((point.x - start.x) * deltaX + (point.y - start.y) * deltaY) / lengthSquared;
-  const t = Math.max(0, Math.min(1, rawT));
-  const projected = {
-    x: start.x + t * deltaX,
-    y: start.y + t * deltaY,
-  };
-  return {
-    distance: Math.hypot(point.x - projected.x, point.y - projected.y),
-    point: projected,
-  };
-}
-
-function pointInPolygon(point: PolygonEditorPoint, vertices: PolygonEditorPoint[]) {
-  if (vertices.length < 3) return false;
-
-  let inside = false;
-  for (let index = 0, previous = vertices.length - 1; index < vertices.length; previous = index, index += 1) {
-    const current = vertices[index];
-    const previousVertex = vertices[previous];
-    if (!current || !previousVertex) continue;
-    const intersects = ((current.y > point.y) !== (previousVertex.y > point.y))
-      && (point.x < ((previousVertex.x - current.x) * (point.y - current.y)) / ((previousVertex.y - current.y) || 1e-12) + current.x);
-    if (intersects) inside = !inside;
-  }
-
-  return inside;
-}
-
 function findHitVertex(point: PolygonEditorPoint) {
-  const threshold = HANDLE_HIT_THRESHOLD_PX / GRID_SCALE;
-  for (let polygonIndex = editorState.value.polygons.length - 1; polygonIndex >= 0; polygonIndex -= 1) {
-    const polygon = editorState.value.polygons[polygonIndex];
-    if (!polygon) continue;
-    for (let vertexIndex = 0; vertexIndex < polygon.vertices.length; vertexIndex += 1) {
-      const vertex = polygon.vertices[vertexIndex];
-      if (!vertex) continue;
-      const distance = Math.hypot(point.x - vertex.x, point.y - vertex.y);
-      if (distance <= threshold) {
-        return {
-          polygonId: polygon.id,
-          vertexIndex,
-          distance,
-        } satisfies HitVertex;
-      }
-    }
-  }
-
-  return null;
+  return findHitVertexInPolygons(
+    point,
+    editorState.value.polygons,
+    HANDLE_HIT_THRESHOLD_PX / GRID_SCALE,
+  );
 }
 
 function findHitEdge(point: PolygonEditorPoint) {
-  const threshold = HANDLE_HIT_THRESHOLD_PX / GRID_SCALE;
-
-  for (let polygonIndex = editorState.value.polygons.length - 1; polygonIndex >= 0; polygonIndex -= 1) {
-    const polygon = editorState.value.polygons[polygonIndex];
-    if (!polygon) continue;
-    if (polygon.vertices.length < 2) continue;
-
-    for (let edgeIndex = 0; edgeIndex < polygon.vertices.length; edgeIndex += 1) {
-      const start = polygon.vertices[edgeIndex];
-      const end = polygon.vertices[(edgeIndex + 1) % polygon.vertices.length];
-      if (!start || !end) continue;
-      const result = distanceToSegment(point, start, end);
-      if (result.distance <= threshold) {
-        return {
-          polygonId: polygon.id,
-          edgeIndex,
-          point: snapPoint(result.point),
-          distance: result.distance,
-        } satisfies HitEdge;
-      }
-    }
-  }
-
-  return null;
+  return findHitEdgeInPolygons(
+    point,
+    editorState.value.polygons,
+    HANDLE_HIT_THRESHOLD_PX / GRID_SCALE,
+    snapPoint,
+  );
 }
 
 function findHitPolygon(point: PolygonEditorPoint) {
-  for (let polygonIndex = editorState.value.polygons.length - 1; polygonIndex >= 0; polygonIndex -= 1) {
-    const polygon = editorState.value.polygons[polygonIndex];
-    if (!polygon) continue;
-    if (pointInPolygon(point, polygon.vertices)) {
-      return polygon;
-    }
-  }
-
-  return null;
+  return findHitPolygonInPolygons(point, editorState.value.polygons);
 }
 
 function renderGrid(ctx: CanvasRenderingContext2D, metrics: CanvasMetrics) {
   if (!editorState.value.grid.enabled) return;
 
   const minorDivisions = Math.max(1, editorState.value.grid.minorDivisions);
-  const transform = getViewTransform(metrics);
+  const transform = getViewTransform(metrics, logicalBounds.value);
   const minX = logicalBounds.value.minX;
   const maxX = logicalBounds.value.maxX;
   const minY = logicalBounds.value.minY;
@@ -1113,7 +877,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
     return;
   }
 
-  if (!isWithinLogicalBounds(rawWorldPoint)) {
+  if (!isWithinLogicalBounds(rawWorldPoint, logicalBounds.value)) {
     if (mode.value === 'select') {
       clearSelection();
     }
@@ -1170,7 +934,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
 
 function handleCanvasPointerMove(event: PointerEvent) {
   if (mode.value === 'drawRectangle' && draftRectangle.value) {
-    draftRectangle.value.current = clampToLogicalBounds(canvasToWorld(event.clientX, event.clientY));
+    draftRectangle.value.current = clampToLogicalBounds(canvasToWorld(event.clientX, event.clientY), logicalBounds.value);
     renderCanvas();
     return;
   }
@@ -1186,7 +950,7 @@ function handleCanvasPointerMove(event: PointerEvent) {
 
 function handleCanvasPointerUp(event: PointerEvent) {
   if (mode.value === 'drawRectangle' && draftRectangle.value) {
-    draftRectangle.value.current = clampToLogicalBounds(canvasToWorld(event.clientX, event.clientY));
+    draftRectangle.value.current = clampToLogicalBounds(canvasToWorld(event.clientX, event.clientY), logicalBounds.value);
     finalizeRectangleDraft();
     event.preventDefault();
     return;
