@@ -116,8 +116,6 @@ const selectedVertexIndex = ref<number | null>(null);
 const mode = ref<'select' | 'drawPolygon' | 'drawRectangle'>('select');
 const draftPolygon = ref<PolygonEditorPolygon | null>(null);
 const draftRectangle = ref<DraftRectangle | null>(null);
-const draggingPolygonId = ref<number | null>(null);
-const dragInsertIndex = ref<number | null>(null);
 const dragState = ref<{
   polygonId: number;
   vertexIndex: number;
@@ -510,101 +508,29 @@ function handlePolygonListClick(polygonId: number) {
   selectPolygon(polygonId, null);
 }
 
-function handlePolygonDragStart(event: DragEvent, polygonId: number) {
+function handlePolygonListReorder(payload: { fromIndex: number; toIndex: number }) {
   if (editingLocked.value) return;
-  draggingPolygonId.value = polygonId;
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', String(polygonId));
-  }
-}
-
-function handlePolygonDragOver(event: DragEvent, polygonId: number) {
-  if (editingLocked.value || draggingPolygonId.value === null) return;
-  event.preventDefault();
-
-  const list = polygonsForList.value;
-  const overIndex = list.findIndex(polygon => polygon.id === polygonId);
-  if (overIndex === -1) return;
-
-  const target = event.currentTarget as HTMLElement | null;
-  const rect = target?.getBoundingClientRect();
-  const isAfter = rect ? (event.clientY - rect.top) >= rect.height / 2 : false;
-  const candidate = overIndex + (isAfter ? 1 : 0);
-  dragInsertIndex.value = Math.max(0, Math.min(candidate, list.length));
-
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move';
-  }
-}
-
-function handlePolygonListDragOver(event: DragEvent) {
-  if (editingLocked.value || draggingPolygonId.value === null) return;
-  event.preventDefault();
-  dragInsertIndex.value = polygonsForList.value.length;
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move';
-  }
-}
-
-function updatePolygonOrderByDragInsert() {
-  const draggedId = draggingPolygonId.value;
-  const insertIndex = dragInsertIndex.value;
-  if (draggedId === null || insertIndex === null) return;
-
   applyStateChange((state) => {
     const frontToBack = [...state.polygons].reverse();
-    const fromIndex = frontToBack.findIndex(polygon => polygon.id === draggedId);
-    if (fromIndex === -1) return;
+    const { fromIndex, toIndex } = payload;
+    if (fromIndex < 0 || fromIndex >= frontToBack.length) return;
+    if (toIndex < 0 || toIndex >= frontToBack.length) return;
 
     const [dragged] = frontToBack.splice(fromIndex, 1);
     if (!dragged) return;
-
-    const normalizedInsertIndex = fromIndex < insertIndex ? insertIndex - 1 : insertIndex;
-    const clampedInsertIndex = Math.max(0, Math.min(normalizedInsertIndex, frontToBack.length));
-    frontToBack.splice(clampedInsertIndex, 0, dragged);
+    frontToBack.splice(toIndex, 0, dragged);
     state.polygons = frontToBack.reverse();
   });
 }
 
-function showDragInsertLine(index: number) {
-  return dragInsertIndex.value !== null
-    && draggingPolygonId.value !== null
-    && dragInsertIndex.value === index;
+function handlePolygonListItemClick(payload: { key: string | number }) {
+  const polygonId = Number(payload.key);
+  if (!Number.isFinite(polygonId)) return;
+  handlePolygonListClick(polygonId);
 }
 
-function clearDragState() {
-  draggingPolygonId.value = null;
-  dragInsertIndex.value = null;
-}
-
-function handlePolygonDrop(event: DragEvent, targetPolygonId: number) {
-  if (editingLocked.value) return;
-  event.preventDefault();
-  event.stopPropagation();
-
-  if (dragInsertIndex.value === null) {
-    const list = polygonsForList.value;
-    const overIndex = list.findIndex(polygon => polygon.id === targetPolygonId);
-    if (overIndex !== -1) {
-      dragInsertIndex.value = overIndex;
-    }
-  }
-
-  updatePolygonOrderByDragInsert();
-  clearDragState();
-}
-
-function handlePolygonListDrop(event: DragEvent) {
-  if (editingLocked.value) return;
-  event.preventDefault();
-
-  if (dragInsertIndex.value === null) {
-    dragInsertIndex.value = polygonsForList.value.length;
-  }
-
-  updatePolygonOrderByDragInsert();
-  clearDragState();
+function asPolygonListItem(item: unknown) {
+  return item as PolygonEditorPolygon;
 }
 
 function deleteSelectedPolygon() {
@@ -1441,64 +1367,29 @@ useResizeObserver(surfaceRef, renderCanvas);
         <div
           v-else
           class="space-y-2"
-          @dragover="handlePolygonListDragOver"
-          @drop="handlePolygonListDrop"
         >
-          <div
-            v-if="showDragInsertLine(0)"
-            class="pointer-events-none h-0 relative"
+          <ReorderableList
+            :items="polygonsForList"
+            item-key="id"
+            :selected-key="selectedPolygonId"
+            :disabled="editingLocked"
+            :handle-aria-label="t('drag_handle')"
+            @reorder="handlePolygonListReorder"
+            @item-click="handlePolygonListItemClick"
           >
-            <span class="absolute inset-x-0 -top-1 h-0.5 rounded-full bg-primary-500" />
-          </div>
-
-          <template
-            v-for="(polygon, index) in polygonsForList"
-            :key="polygon.id"
-          >
-            <button
-              class="relative flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition"
-              :class="[
-                polygon.id === selectedPolygonId
-                  ? 'border-primary-400 bg-primary-50 dark:border-primary-500 dark:bg-primary-950/30'
-                  : 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800',
-              ]"
-              type="button"
-              @click="handlePolygonListClick(polygon.id)"
-              @dragover.stop="handlePolygonDragOver($event, polygon.id)"
-              @drop.stop="handlePolygonDrop($event, polygon.id)"
-            >
-              <span
-                class="cursor-grab rounded p-1 text-gray-400 hover:text-gray-600 active:cursor-grabbing dark:hover:bg-gray-800 dark:hover:text-gray-200"
-                :aria-label="t('drag_handle')"
-                draggable="true"
-                role="button"
-                @click.stop
-                @dragstart="handlePolygonDragStart($event, polygon.id)"
-                @dragend="clearDragState"
-              >
-                <UIcon
-                  name="i-lucide-grip-vertical"
-                  class="size-5 block"
-                />
-              </span>
-
+            <template #item="{ item }">
               <span
                 class="size-3 rounded-full ring-1 ring-black/10"
-                :style="{ backgroundColor: polygon.color }"
+                :style="{ backgroundColor: asPolygonListItem(item).color }"
               />
 
               <div class="min-w-0 grow">
                 <div class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ t('polygon_item_meta', { id: polygon.id, count: polygon.vertices.length }) }}
+                  {{ t('polygon_item_meta', { id: asPolygonListItem(item).id, count: asPolygonListItem(item).vertices.length }) }}
                 </div>
               </div>
-
-              <span
-                v-if="showDragInsertLine(index + 1)"
-                class="pointer-events-none absolute -bottom-1.5 left-0 right-0 h-0.5 rounded-full bg-primary-500"
-              />
-            </button>
-          </template>
+            </template>
+          </ReorderableList>
         </div>
       </div>
 
