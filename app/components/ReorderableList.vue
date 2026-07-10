@@ -1,7 +1,5 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T, K">
 import { ref } from 'vue';
-
-type ItemKey = string | number;
 
 type ReorderPayload = {
   fromIndex: number;
@@ -9,22 +7,21 @@ type ReorderPayload = {
 };
 
 type ItemClickPayload = {
-  key: ItemKey;
+  key: K;
   index: number;
 };
 
 const props = withDefaults(defineProps<{
-  items: unknown[];
-  itemKey?: string;
+  items: T[];
+  itemKey: string;
   disabled?: boolean;
-  selectedKey?: ItemKey | null;
+  selectedKey?: K | null;
   handleAriaLabel?: string;
   containerClass?: string;
   rowClass?: string;
   selectedRowClass?: string;
   defaultRowClass?: string;
 }>(), {
-  itemKey: '',
   disabled: false,
   selectedKey: null,
   handleAriaLabel: 'Reorder',
@@ -42,24 +39,9 @@ const emit = defineEmits<{
 const draggingFromIndex = ref<number | null>(null);
 const dragInsertIndex = ref<number | null>(null);
 
-function toItemKey(value: unknown, fallback: number): ItemKey {
-  if (typeof value === 'number' || typeof value === 'string') {
-    return value;
-  }
-  return fallback;
-}
-
-function getItemKey(item: unknown, index: number): ItemKey {
-  if (!props.itemKey) {
-    return index;
-  }
-
-  if (item && typeof item === 'object' && props.itemKey in item) {
-    const record = item as Record<string, unknown>;
-    return toItemKey(record[props.itemKey], index);
-  }
-
-  return index;
+function getItemKey(item: T): K {
+  const record = item as Record<string, unknown>;
+  return record[props.itemKey] as K;
 }
 
 function clearDragState() {
@@ -170,9 +152,9 @@ function showDragInsertLine(index: number) {
     && dragInsertIndex.value === index;
 }
 
-function handleItemClick(item: unknown, index: number) {
+function handleItemClick(item: T, index: number) {
   emit('itemClick', {
-    key: getItemKey(item, index),
+    key: getItemKey(item),
     index,
   });
 }
@@ -193,12 +175,12 @@ function handleItemClick(item: unknown, index: number) {
 
     <template
       v-for="(item, index) in items"
-      :key="getItemKey(item, index)"
+      :key="getItemKey(item)"
     >
       <button
         :class="[
           rowClass,
-          getItemKey(item, index) === selectedKey ? selectedRowClass : defaultRowClass,
+          getItemKey(item) === selectedKey ? selectedRowClass : defaultRowClass,
         ]"
         data-reorder-row="true"
         type="button"
@@ -227,7 +209,7 @@ function handleItemClick(item: unknown, index: number) {
           name="item"
           :item="item"
           :index="index"
-          :key-value="getItemKey(item, index)"
+          :key-value="getItemKey(item)"
         />
 
         <span

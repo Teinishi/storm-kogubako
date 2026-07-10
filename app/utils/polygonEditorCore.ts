@@ -56,10 +56,21 @@ export type ViewTransform = {
   logicalHeight: number;
 };
 
+export type ReadonlyVertex = {
+  readonly x: number;
+  readonly y: number;
+};
+
+export type ReadonlyPolygon = {
+  readonly id: number;
+  readonly color: string;
+  readonly vertices: readonly ReadonlyVertex[];
+};
+
 export const DEFAULT_BACKGROUND_COLOR = '#F8FAFC';
 export const DEFAULT_POLYGON_COLOR = '#2563EB';
 export const GRID_SCALE = 56;
-export const HANDLE_HIT_THRESHOLD_PX = 14;
+export const HANDLE_HIT_THRESHOLD_PX = 8;
 export const SNAP_PRECISION = 1_000_000;
 
 const POLYGON_COLORS = [
@@ -167,7 +178,7 @@ export function roundCoordinate(value: number) {
   return Math.round(value * SNAP_PRECISION) / SNAP_PRECISION;
 }
 
-export function snapPoint(point: PolygonEditorPoint, grid: PolygonEditorGrid, bounds: LogicalBounds) {
+export function snapPointWithGrid(point: PolygonEditorPoint, grid: PolygonEditorGrid, bounds: LogicalBounds) {
   if (!grid.enabled) {
     return clampToLogicalBounds({
       x: roundCoordinate(point.x),
@@ -224,7 +235,7 @@ export function distanceToSegment(point: PolygonEditorPoint, start: PolygonEdito
   };
 }
 
-export function pointInPolygon(point: PolygonEditorPoint, vertices: PolygonEditorPoint[]) {
+export function pointInPolygon(point: PolygonEditorPoint, vertices: readonly ReadonlyVertex[]) {
   if (vertices.length < 3) return false;
 
   let inside = false;
@@ -240,7 +251,7 @@ export function pointInPolygon(point: PolygonEditorPoint, vertices: PolygonEdito
   return inside;
 }
 
-export function findHitVertex(point: PolygonEditorPoint, polygons: PolygonEditorPolygon[], threshold: number) {
+export function findHitVertex(point: PolygonEditorPoint, polygons: readonly ReadonlyPolygon[], threshold: number) {
   for (let polygonIndex = polygons.length - 1; polygonIndex >= 0; polygonIndex -= 1) {
     const polygon = polygons[polygonIndex];
     if (!polygon) continue;
@@ -263,7 +274,7 @@ export function findHitVertex(point: PolygonEditorPoint, polygons: PolygonEditor
 
 export function findHitEdge(
   point: PolygonEditorPoint,
-  polygons: PolygonEditorPolygon[],
+  polygons: readonly ReadonlyPolygon[],
   threshold: number,
   snapper: (point: PolygonEditorPoint) => PolygonEditorPoint,
 ) {
@@ -291,7 +302,7 @@ export function findHitEdge(
   return null;
 }
 
-export function findHitPolygon(point: PolygonEditorPoint, polygons: PolygonEditorPolygon[]) {
+export function findHitPolygon(point: PolygonEditorPoint, polygons: readonly ReadonlyPolygon[]) {
   for (let polygonIndex = polygons.length - 1; polygonIndex >= 0; polygonIndex -= 1) {
     const polygon = polygons[polygonIndex];
     if (!polygon) continue;

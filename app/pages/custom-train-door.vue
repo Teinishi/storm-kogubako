@@ -30,8 +30,7 @@ const serializedValue = computed(() => JSON.stringify(editorValue.value, null, 2
 
       <PolygonEditor
         v-model="editorValue"
-        :logical-width="3"
-        :logical-height="8"
+        :logical-bounds="{ width: 3, height: 8 }"
         :style="{ height: '600px' }"
       />
 

@@ -1,4 +1,4 @@
-import type { ComputedRef, Ref } from 'vue';
+import type { Ref } from 'vue';
 import {
   findHitEdge as findHitEdgeInPolygons,
   findHitPolygon as findHitPolygonInPolygons,
@@ -12,11 +12,10 @@ import type {
   CanvasMetrics,
   HitEdge,
   HitVertex,
-  LogicalBounds,
   PolygonEditorPoint,
-  PolygonEditorPolygon,
-  PolygonEditorValue,
+  ReadonlyPolygon,
 } from '../utils/polygonEditorCore';
+import type { PolygonEditor } from './usePolygonEditor';
 
 export type PolygonDraftRectangle = {
   start: PolygonEditorPoint;
@@ -26,19 +25,15 @@ export type PolygonDraftRectangle = {
 
 type UsePolygonCanvasOptions = {
   canvasRef: Ref<HTMLCanvasElement | null>;
-  logicalBounds: ComputedRef<LogicalBounds>;
-  editorState: Ref<PolygonEditorValue>;
-  selectedPolygonId: Ref<number | null>;
-  selectedVertexIndex: Ref<number | null>;
-  draftPolygon: Ref<PolygonEditorPolygon | null>;
-  draftRectangle: Ref<PolygonDraftRectangle | null>;
-  snapPoint: (point: PolygonEditorPoint) => PolygonEditorPoint;
-  createRectanglePolygon: (start: PolygonEditorPoint, end: PolygonEditorPoint, color?: string) => PolygonEditorPolygon;
+  editor: PolygonEditor;
 };
 
-export function usePolygonCanvas(options: UsePolygonCanvasOptions) {
+export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
   const {
     canvasRef,
+    editor,
+  } = options;
+  const {
     logicalBounds,
     editorState,
     selectedPolygonId,
@@ -47,7 +42,7 @@ export function usePolygonCanvas(options: UsePolygonCanvasOptions) {
     draftRectangle,
     snapPoint,
     createRectanglePolygon,
-  } = options;
+  } = editor;
 
   function getCanvasMetrics() {
     const canvas = canvasRef.value;
@@ -182,7 +177,7 @@ export function usePolygonCanvas(options: UsePolygonCanvasOptions) {
   function renderPolygon(
     ctx: CanvasRenderingContext2D,
     metrics: CanvasMetrics,
-    polygon: PolygonEditorPolygon,
+    polygon: ReadonlyPolygon,
     options?: {
       noFill?: boolean;
       stroke?: boolean;
@@ -297,7 +292,18 @@ export function usePolygonCanvas(options: UsePolygonCanvasOptions) {
     ctx.setTransform(metrics.dpr, 0, 0, metrics.dpr, 0, 0);
     ctx.clearRect(0, 0, metrics.width, metrics.height);
     ctx.fillStyle = editorState.value.backgroundColor;
-    ctx.fillRect(0, 0, metrics.width, metrics.height);
+    {
+      const { x: x1, y: y1 } = worldToCanvas({ x: logicalBounds.value.minX, y: logicalBounds.value.minY }, metrics);
+      const { x: x2, y: y2 } = worldToCanvas({ x: logicalBounds.value.maxX, y: logicalBounds.value.maxY }, metrics);
+      const x = Math.min(x1, x2);
+      const y = Math.min(y1, y2);
+      ctx.fillRect(
+        x,
+        y,
+        Math.max(x1, x2) - x,
+        Math.max(y1, y2) - y,
+      );
+    }
 
     renderGrid(ctx, metrics);
 
