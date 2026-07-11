@@ -49,12 +49,10 @@ const selectedPolygonColorProxy = computed({
   },
 });
 
-function handleReorder(value: { fromIndex: number; toIndex: number }) {
+function reorder(fromIndex: number, toIndex: number) {
   clearTransientInteraction();
   applyStateChange((state) => {
     const len = state.polygons.length;
-    const fromIndex = len - value.fromIndex - 1;
-    const toIndex = len - value.toIndex - 1;
     if (fromIndex < 0 || len <= fromIndex) return;
     if (toIndex < 0 || len <= toIndex) return;
 
@@ -64,6 +62,11 @@ function handleReorder(value: { fromIndex: number; toIndex: number }) {
     polygons.splice(toIndex, 0, item);
     state.polygons = polygons;
   });
+}
+
+function handleReorder(value: { fromIndex: number; toIndex: number }) {
+  const len = editorState.value.polygons.length;
+  reorder(len - value.fromIndex - 1, len - value.toIndex - 1);
 }
 
 function handleListItemClick(payload: { key: string | number }) {
@@ -80,10 +83,7 @@ function handleListItemClick(payload: { key: string | number }) {
 
 function moveSelectedPolygon(direction: number) {
   const i = selectedPolygonIndex.value;
-  handleReorder({
-    fromIndex: i,
-    toIndex: i + direction,
-  });
+  reorder(i, i + direction);
 }
 
 function duplicateSelectedPolygon() {
@@ -125,12 +125,33 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
 
 <template>
   <div class="space-y-4">
-    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-      <div class="mb-3 flex flex-wrap items-center gap-2">
+    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+      <div class="flex">
+        <UTooltip :text="t('undo')">
+          <UButton
+            icon="i-lucide-undo-2"
+            color="neutral"
+            variant="ghost"
+            :disabled="editingLocked || !canUndo"
+            @click="performUndo"
+          />
+        </UTooltip>
+        <UTooltip :text="t('redo')">
+          <UButton
+            icon="i-lucide-redo-2"
+            color="neutral"
+            variant="ghost"
+            :disabled="editingLocked || !canRedo"
+            @click="performRedo"
+          />
+        </UTooltip>
+      </div>
+
+      <div class="grid sm:grid-cols-3 gap-2">
         <UButton
           :label="t('select_tool')"
           icon="i-lucide-mouse-pointer-2"
-          color="neutral"
+          color="primary"
           :variant="mode === 'select' ? 'solid' : 'outline'"
           :disabled="editingLocked"
           @click="activateSelectMode"
@@ -146,56 +167,49 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
         <UButton
           :label="t('rectangle_tool')"
           icon="i-lucide-square"
-          color="neutral"
+          color="primary"
           :variant="mode === 'drawRectangle' ? 'solid' : 'outline'"
           :disabled="editingLocked"
           @click="activateRectangleMode"
         />
-        <UButton
-          :label="t('undo')"
-          icon="i-lucide-undo-2"
-          color="neutral"
-          variant="ghost"
-          :disabled="editingLocked || !canUndo"
-          @click="performUndo"
-        />
-        <UButton
-          :label="t('redo')"
-          icon="i-lucide-redo-2"
-          color="neutral"
-          variant="ghost"
-          :disabled="editingLocked || !canRedo"
-          @click="performRedo"
-        />
       </div>
 
-      <div class="grid gap-3 sm:grid-cols-2">
-        <UFormField :label="t('grid_visible')">
-          <USwitch
-            v-model="gridEnabled"
-            :disabled="editingLocked"
-          />
-        </UFormField>
+      <div class="grid sm:grid-cols-2 gap-2 items-center">
+        <USwitch
+          v-model="gridEnabled"
+          :disabled="editingLocked"
+          :label="t('grid_visible')"
+        />
 
         <UFormField :label="t('minor_divisions')">
           <UInputNumber
             v-model="minorDivisions"
             :min="1"
             :step="1"
-            :disabled="editingLocked"
+            :disabled="editingLocked || !gridEnabled"
           />
         </UFormField>
-
-        <div class="sm:col-span-2">
-          <ColorPicker
-            v-model="backgroundColor"
-            :label="t('background_color')"
-          />
-        </div>
       </div>
+
+      <ColorPicker
+        v-model="backgroundColor"
+        :label="t('background_color')"
+      />
     </div>
 
-    <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <UAlert
+      v-if="draftPolygon"
+      :title="t('polygon_draw_hint')"
+      variant="subtle"
+    />
+
+    <UAlert
+      v-if="draftRectangle"
+      :title="t('rectangle_draw_hint')"
+      variant="subtle"
+    />
+
+    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
       <div class="mb-3 flex items-center justify-between gap-2">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
           {{ t('polygon_list') }}
@@ -233,7 +247,7 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
 
             <div class="min-w-0 grow">
               <div class="text-xs text-gray-500 dark:text-gray-400">
-                {{ t('polygon_item_meta', { id: item.id, count: item.vertices.length }) }}
+                {{ t('polygon_item_meta', { count: item.vertices.length }) }}
               </div>
             </div>
           </template>
@@ -243,7 +257,7 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
 
     <div
       v-if="selectedPolygon"
-      class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+      class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4"
     >
       <div class="mb-3 flex items-center justify-between gap-2">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
@@ -256,28 +270,22 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
             color="neutral"
             variant="ghost"
             size="xs"
-            :disabled="editingLocked || selectedPolygonIndex <= 0"
-            @click="moveSelectedPolygon(-1)"
+            :disabled="editingLocked || selectedPolygonIndex < 0 || selectedPolygonIndex >= editorState.polygons.length - 1"
+            @click="moveSelectedPolygon(1)"
           />
           <UButton
             icon="i-lucide-arrow-down"
             color="neutral"
             variant="ghost"
             size="xs"
-            :disabled="editingLocked || selectedPolygonIndex < 0 || selectedPolygonIndex >= editorState.polygons.length - 1"
-            @click="moveSelectedPolygon(1)"
+            :disabled="editingLocked || selectedPolygonIndex <= 0"
+            @click="moveSelectedPolygon(-1)"
           />
         </div>
       </div>
 
       <div class="space-y-3">
-        <ColorPicker
-          v-if="selectedPolygonColorProxy !== undefined"
-          v-model="selectedPolygonColorProxy"
-          :label="t('polygon_color')"
-        />
-
-        <div class="flex flex-wrap gap-2">
+        <div class="grid sm:grid-cols-2 gap-2">
           <UButton
             :label="t('duplicate')"
             icon="i-lucide-copy"
@@ -294,12 +302,17 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
             :disabled="editingLocked"
             @click="deleteSelectedPolygon"
           />
+          <ColorPicker
+            v-if="selectedPolygonColorProxy !== undefined"
+            v-model="selectedPolygonColorProxy"
+            :label="t('polygon_color')"
+          />
           <UButton
             :label="t('add_vertex_on_edge')"
             icon="i-lucide-plus"
             color="neutral"
             variant="soft"
-            :disabled="editingLocked"
+            :disabled="editingLocked || selectedVertexIndex === null"
             @click="insertVertexAtSelectedEdge"
           />
         </div>
@@ -353,20 +366,6 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
         </div>
       </div>
     </div>
-
-    <div
-      v-if="draftPolygon"
-      class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 shadow-sm dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100"
-    >
-      {{ t('polygon_draw_hint') }}
-    </div>
-
-    <div
-      v-if="draftRectangle"
-      class="rounded-xl border border-sky-200 bg-sky-50 p-4 text-sm text-sky-900 shadow-sm dark:border-sky-900/50 dark:bg-sky-950/30 dark:text-sky-100"
-    >
-      {{ t('rectangle_draw_hint') }}
-    </div>
   </div>
 </template>
 
@@ -383,15 +382,15 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
     "add_rectangle": "Add Rectangle",
     "undo": "Undo",
     "redo": "Redo",
-    "grid_visible": "Show Grid",
-    "minor_divisions": "Minor Divisions",
+    "grid_visible": "Grid",
+    "minor_divisions": "Grid Divisions",
     "background_color": "Background Color",
-    "polygon_list": "Polygons",
+    "polygon_list": "Layers",
     "polygon_count": "{count} items",
-    "polygon_empty": "No polygons yet. Add a rectangle or start polygon drawing.",
-    "polygon_item_meta": "ID {id} · {count} vertices",
-    "selected_polygon": "Selected Polygon",
-    "polygon_color": "Polygon Color",
+    "polygon_empty": "Nothing yet. Add a rectangle or start polygon drawing.",
+    "polygon_item_meta": "{count} vertices",
+    "selected_polygon": "Selected",
+    "polygon_color": "Color",
     "duplicate": "Duplicate",
     "delete": "Delete",
     "add_vertex_on_edge": "Add Vertex On Edge",
@@ -408,20 +407,20 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
     "start_polygon_draw": "多角形を描く",
     "rectangle_dragging": "矩形のドラッグ中",
     "add_rectangle": "矩形を追加",
-    "undo": "Undo",
-    "redo": "Redo",
-    "grid_visible": "グリッド表示",
-    "minor_divisions": "マイナー分割数",
+    "undo": "元に戻す",
+    "redo": "やり直し",
+    "grid_visible": "グリッド",
+    "minor_divisions": "グリッド分割数",
     "background_color": "背景色",
-    "polygon_list": "多角形一覧",
+    "polygon_list": "レイヤー一覧",
     "polygon_count": "{count} 件",
-    "polygon_empty": "まだ多角形がありません。矩形を追加するか、多角形描画を開始してください。",
-    "polygon_item_meta": "ID {id} ・ {count} 頂点",
-    "selected_polygon": "選択中の多角形",
-    "polygon_color": "多角形色",
+    "polygon_empty": "まだ何もありません。矩形を追加するか、多角形描画を開始してください。",
+    "polygon_item_meta": "{count} 頂点",
+    "selected_polygon": "選択中",
+    "polygon_color": "色",
     "duplicate": "複製",
     "delete": "削除",
-    "add_vertex_on_edge": "辺上に頂点追加",
+    "add_vertex_on_edge": "頂点追加",
     "vertices": "頂点",
     "polygon_draw_hint": "多角形描画中です。キャンバスをクリックして頂点を追加し、最初の頂点をクリックすると確定します。Esc でキャンセルできます。",
     "rectangle_draw_hint": "矩形をドラッグ中です。キャンバスを押したまま対角へ移動し、離すと確定します。Esc でキャンセルできます。"

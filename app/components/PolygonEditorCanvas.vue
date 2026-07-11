@@ -33,6 +33,7 @@ const {
   snapPoint,
   performUndo,
   performRedo,
+  activateSelectMode,
   selectPolygon,
   clearSelection,
   deletePolygon,
@@ -115,6 +116,9 @@ function handleCanvasPointerDown(event: PointerEvent) {
     if (mode.value === 'select') {
       clearSelection();
     }
+    else {
+      activateSelectMode();
+    }
     return;
   }
   const worldPoint = snapPoint(rawWorldPoint);
@@ -185,8 +189,11 @@ function handleCanvasPointerMove(event: PointerEvent) {
 function handleCanvasPointerUp(event: PointerEvent) {
   if (mode.value === 'drawRectangle' && draftRectangle.value) {
     draftRectangle.value.current = clampToLogicalBounds(canvasToWorld(event.clientX, event.clientY), logicalBounds.value);
-    finalizeRectangleDraft();
+    const rectCreated = finalizeRectangleDraft();
     event.preventDefault();
+    if (!rectCreated) {
+      activateSelectMode();
+    }
     return;
   }
 

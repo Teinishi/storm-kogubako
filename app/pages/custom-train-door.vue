@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
 
-useHead({ title: 'Polygon editor playground' });
+const { t: gt } = useI18n({ useScope: 'global' });
+const { t } = useI18n({ useScope: 'local' });
+
+useHead({ title: gt('custom_train_door') });
 definePageMeta({ layout: 'app' });
 
 const editorValue = ref({
@@ -14,23 +17,41 @@ const editorValue = ref({
 });
 
 const serializedValue = computed(() => JSON.stringify(editorValue.value, null, 2));
+
+const doorWidth = ref(3);
+const doorHeight = ref(8);
 </script>
 
 <template>
   <UContainer class="grow py-4">
-    <div class="space-y-4">
-      <div class="space-y-1">
-        <h1 class="text-2xl font-bold">
-          Polygon editor playground
-        </h1>
-        <p class="text-sm text-muted">
-          埋め込み用コンポーネントの初期実装です。親側とは v-model で接続できます。
-        </p>
+    <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-auto">
+      <h1 class="text-2xl font-bold">
+        {{ gt('custom_train_door') }}
+      </h1>
+
+      <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+          <UFormField :label="t('door_width')">
+            <UInputNumber
+              v-model="doorWidth"
+              :step="1"
+              :min="1"
+            />
+          </UFormField>
+
+          <UFormField :label="t('door_height')">
+            <UInputNumber
+              v-model="doorHeight"
+              :step="1"
+              :min="1"
+            />
+          </UFormField>
+        </div>
       </div>
 
       <PolygonEditor
         v-model="editorValue"
-        :logical-bounds="{ width: 3, height: 8 }"
+        :logical-bounds="{ width: doorWidth, height: doorHeight }"
         :style="{ height: '600px' }"
       />
 
@@ -43,3 +64,16 @@ const serializedValue = computed(() => JSON.stringify(editorValue.value, null, 2
     </div>
   </UContainer>
 </template>
+
+<i18n lang="json">
+{
+  "en": {
+    "door_width": "Door Width",
+    "door_height": "Door Height"
+  },
+  "ja": {
+    "door_width": "ドア幅",
+    "door_height": "ドア高さ"
+  }
+}
+</i18n>

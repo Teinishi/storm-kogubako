@@ -32,6 +32,10 @@ const editor = usePolygonEditor({
 });
 
 providePolygonEditor(editor);
+
+watch(props, () => {
+  canvasRef.value?.renderCanvas();
+});
 </script>
 
 <template>

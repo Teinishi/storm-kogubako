@@ -257,7 +257,8 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
       }
       if (vertexIndex < 0 || polygon.vertices.length <= vertexIndex) return;
       polygon.vertices.splice(vertexIndex, 1);
-      selectVertex(Math.min(vertexIndex, polygon.vertices.length - 1));
+      selectedVertexIndex.value = null;
+      renderCanvas();
     });
   }
 
@@ -380,13 +381,13 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
   }
 
   function finalizeRectangleDraft() {
-    if (editingLocked.value || !draftRectangle.value) return;
+    if (editingLocked.value || !draftRectangle.value) return false;
 
     const { start, current, color } = draftRectangle.value;
     if (start.x === current.x && start.y === current.y) {
       draftRectangle.value = null;
       renderCanvas();
-      return;
+      return false;
     }
 
     const polygon = createRectanglePolygon(start, current, color);
@@ -396,6 +397,8 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
       selectedPolygonId.value = polygon.id;
       selectedVertexIndex.value = null;
     });
+
+    return true;
   }
 
   function commitCanvasDrag() {
