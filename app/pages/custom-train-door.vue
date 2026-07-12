@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { polygonsToDisjointTriangles } from '~/utils/polygonUtils';
+import { BufferGeometry } from 'three';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 const { t } = useI18n({ useScope: 'local' });
@@ -7,7 +9,10 @@ const { t } = useI18n({ useScope: 'local' });
 useHead({ title: gt('custom_train_door') });
 definePageMeta({ layout: 'app' });
 
-const editorValue = ref({
+const doorWidth = ref(3);
+const doorHeight = ref(8);
+
+const editorValue = ref<PolygonEditorValue>({
   backgroundColor: '#F8FAFC',
   grid: {
     enabled: true,
@@ -16,8 +21,18 @@ const editorValue = ref({
   polygons: [],
 });
 
-const doorWidth = ref(3);
-const doorHeight = ref(8);
+const geometry = new BufferGeometry();
+
+watchEffect(() => {
+  const { polygons, backgroundColor } = editorValue.value;
+  const rect = { x: 0, y: 0, width: doorWidth.value, height: doorHeight.value };
+  const triangulated = polygonsToDisjointTriangles(polygons, rect);
+  updateGeometry(
+    geometry,
+    triangulated,
+    ({ id }) => hexToRgb(polygons.find(v => v.id === id)?.color ?? backgroundColor),
+  );
+});
 </script>
 
 <template>
@@ -57,9 +72,8 @@ const doorHeight = ref(8);
     <div>
       <ClientOnly>
         <MeshViewerCanvas>
-          <TresMesh>
-            <TresBoxGeometry />
-            <TresMeshStandardMaterial :color="0xffffff" />
+          <TresMesh :geometry="geometry">
+            <TresMeshStandardMaterial :vertex-colors="true" />
           </TresMesh>
         </MeshViewerCanvas>
       </ClientOnly>

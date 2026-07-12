@@ -21,14 +21,14 @@ export default defineNuxtConfig({
   },
   vite: {
     optimizeDeps: {
+      entries: [
+        'pages/**/*.vue',
+        'layouts/**/*.vue',
+        'components/**/*.vue',
+      ],
       include: [
-        '@tresjs/cientos',
-        '@tresjs/core',
         '@vue/devtools-core',
         '@vue/devtools-kit',
-        'sw-mesh-viewer',
-        'sw-mesh-viewer/viewer',
-        'sw-mesh-viewer/vue',
         'three',
       ],
     },
