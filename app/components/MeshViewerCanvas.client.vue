@@ -31,7 +31,7 @@ interface MeshViewerCanvasItem {
 }
 
 defineProps<{
-  items: MeshViewerCanvasItem[];
+  items?: MeshViewerCanvasItem[];
 }>();
 
 const colorMode = useColorMode();
@@ -86,7 +86,7 @@ const createObjectUniforms = (item: MeshViewerCanvasItem): StormworksUniforms =>
     />
     <primitive :object="lights" />
     <TresGroup
-      v-for="item in items"
+      v-for="item in items ?? []"
       :key="item.id"
       :position="[item.offset.x, item.offset.y, item.offset.z]"
     >
@@ -98,5 +98,6 @@ const createObjectUniforms = (item: MeshViewerCanvasItem): StormworksUniforms =>
         :wireframe="item.wireframe"
       />
     </TresGroup>
+    <slot />
   </TresCanvas>
 </template>
