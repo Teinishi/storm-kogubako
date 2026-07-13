@@ -147,8 +147,17 @@ const formatFileSize = (size: number) => {
             @update:model-value="addMeshFiles"
           />
 
+          <UAlert
+            v-if="meshFiles.length === 0"
+            color="neutral"
+            variant="soft"
+            icon="i-lucide-info"
+            :title="t('no_files')"
+            :description="t('no_files_description')"
+          />
+
           <div
-            v-if="meshFiles.length"
+            v-else
             class="space-y-2"
           >
             <div
@@ -286,15 +295,6 @@ const formatFileSize = (size: number) => {
               </div>
             </div>
           </div>
-
-          <UAlert
-            v-else
-            color="neutral"
-            variant="soft"
-            icon="i-lucide-info"
-            :title="t('no_files')"
-            :description="t('no_files_description')"
-          />
         </div>
       </div>
     </div>

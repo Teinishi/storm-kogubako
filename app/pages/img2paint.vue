@@ -379,20 +379,24 @@ const saveVehicleXml = () => {
       <div class="grow flex flex-col px-4 pt-0 pb-18 sm:pb-4 gap-4 overflow-y-auto">
         <template v-if="!baseImage">
           <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
-            <p>{{ t('guide1') }}</p>
-            <p>{{ t('guide2') }}</p>
-            <p>{{ t('guide3') }}</p>
-          </div>
+            <UFileUpload
+              :label="t('pick_image_file')"
+              :description="t('pick_image_file_description')"
+              accept="image/*"
+              :preview="false"
+              class="w-full"
+              multiple
+              @update:model-value="fileDropped"
+            />
 
-          <UFileUpload
-            :label="t('pick_image_file')"
-            :description="t('pick_image_file_description')"
-            accept="image/*"
-            :preview="false"
-            class="w-full"
-            multiple
-            @update:model-value="fileDropped"
-          />
+            <UAlert
+              color="neutral"
+              variant="soft"
+              icon="i-lucide-info"
+              :title="t('no_files')"
+              :description="t('no_files_description')"
+            />
+          </div>
         </template>
 
         <div
@@ -625,9 +629,10 @@ const saveVehicleXml = () => {
 <i18n lang="json">
 {
   "en": {
-    "guide1": "This tool converts images into paintable blocks for Stormworks. You can save the resulting vehicle XML file and load it into existing vehicles within Stormworks.",
-    "guide2": "All processing occurs within the browser; no images are sent externally.",
-    "guide3": "Start by selecting an image.",
+    "pick_image_file": "Pick Image File",
+    "pick_image_file_description": "Click, or drop files here",
+    "no_files": "Pick an image file",
+    "no_files_description": "Pick an image file to convert into paintable blocks and save the vehicle XML file.",
     "image_file": "Image File",
     "base_image": "Base Image",
     "glow_image": "Glow Image",
@@ -651,8 +656,6 @@ const saveVehicleXml = () => {
     "electric_links_enabled": "Electric links for indicators",
     "file_name": "File Name",
     "save_file": "Save File",
-    "pick_image_file": "Pick Image File",
-    "pick_image_file_description": "Click, or drop files here",
     "grid": "Grid",
     "glow": "Glow",
     "zoom": "Zoom",
@@ -660,9 +663,10 @@ const saveVehicleXml = () => {
     "preview": "Preview"
   },
   "ja": {
-    "guide1": "画像から Stormworks のペインタブルブロックへ変換するツールです。変換後のビークルXMLファイルを保存して、Stormworks 上で既存ビークルに追加読み込みすることができます。",
-    "guide2": "処理はすべてブラウザ上で完結し、画像を外部へ送信することはありません。",
-    "guide3": "まずは画像を選択してみてください。",
+    "pick_image_file": "画像を選択",
+    "pick_image_file_description": "ドラッグ＆ドロップまたはクリック",
+    "no_files": "画像ファイルを選択してください",
+    "no_files_description": "画像ファイルを選択するとペインタブルブロックに変換してビークルXMLファイルを保存できます。",
     "image_file": "画像ファイル",
     "base_image": "基本画像",
     "glow_image": "発光画像",
@@ -686,8 +690,6 @@ const saveVehicleXml = () => {
     "electric_links_enabled": "インジケーターの電気配線",
     "file_name": "ファイル名",
     "save_file": "ファイルを保存",
-    "pick_image_file": "画像を選択",
-    "pick_image_file_description": "ドラッグ＆ドロップまたはクリック",
     "grid": "グリッド",
     "glow": "発光",
     "zoom": "拡大率",
