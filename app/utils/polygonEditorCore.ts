@@ -68,6 +68,7 @@ export type ReadonlyPolygon = {
 export const GRID_SCALE = 56;
 export const HANDLE_HIT_THRESHOLD_PX = 8;
 export const SNAP_PRECISION = 1_000_000;
+export const VIEW_PADDING = 16;
 
 const POLYGON_COLORS = [
   '#0F766E',
@@ -136,9 +137,11 @@ export function createDefaultPolygonEditorValue(): PolygonEditorValue {
 export function getViewTransform(metrics: CanvasMetrics, bounds: LogicalBounds): ViewTransform {
   const logicalWidth = Math.max(0.000001, bounds.maxX - bounds.minX);
   const logicalHeight = Math.max(0.000001, bounds.maxY - bounds.minY);
-  const scale = Math.min(metrics.width / logicalWidth, metrics.height / logicalHeight);
-  const offsetX = (metrics.width - logicalWidth * scale) / 2 - bounds.minX * scale;
-  const offsetY = metrics.height - (metrics.height - logicalHeight * scale) / 2 + bounds.minY * scale;
+  const innerWidth = metrics.width - 2 * VIEW_PADDING;
+  const innerHeight = metrics.height - 2 * VIEW_PADDING;
+  const scale = Math.min(innerWidth / logicalWidth, innerHeight / logicalHeight);
+  const offsetX = (innerWidth - logicalWidth * scale) / 2 - bounds.minX * scale + VIEW_PADDING;
+  const offsetY = innerHeight - (innerHeight - logicalHeight * scale) / 2 + bounds.minY * scale + VIEW_PADDING;
   return {
     scale,
     offsetX,
