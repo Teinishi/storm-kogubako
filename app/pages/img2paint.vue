@@ -372,11 +372,9 @@ const saveVehicleXml = () => {
 </script>
 
 <template>
-  <UContainer class="grow overflow-hidden py-4 grid grid-cols-1 grid-rows-2 lg:grid-cols-12 lg:grid-rows-1 gap-4">
+  <div class="h-full p-4 grid grid-cols-1 grid-rows-2 lg:grid-cols-12 lg:grid-rows-1 gap-4">
     <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-auto">
-      <h1 class="text-2xl font-bold">
-        {{ gt('img2paint') }}
-      </h1>
+      <AppTitle :title="gt('img2paint')" />
 
       <div
         v-if="!baseImage"
@@ -620,7 +618,7 @@ const saveVehicleXml = () => {
         </div>
       </div>
     </div>
-  </UContainer>
+  </div>
 </template>
 
 <i18n lang="json">

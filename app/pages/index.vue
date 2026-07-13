@@ -40,7 +40,7 @@ const other_tools = [
   <UContainer class="py-8 space-y-8">
     <div class="text-center">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-        {{ t('web_tools_for_stormworks') }}
+        {{ gt('web_tools_for_stormworks') }}
       </h1>
       <p class="text-gray-600 dark:text-gray-400">
         {{ t('more_to_come') }}
@@ -60,7 +60,7 @@ const other_tools = [
 
     <div class="text-center pt-8">
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-        {{ t('other_tools') }}
+        {{ gt('other_tools') }}
       </h1>
     </div>
 
@@ -80,14 +80,10 @@ const other_tools = [
 <i18n lang="json">
 {
   "en": {
-    "web_tools_for_stormworks": "Web tools for Stormworks",
-    "more_to_come": "More to come",
-    "other_tools": "Other tools"
+    "more_to_come": "More to come"
   },
   "ja": {
-    "web_tools_for_stormworks": "Stormworks 向け Web ツール",
-    "more_to_come": "随時追加予定",
-    "other_tools": "その他のツール"
+    "more_to_come": "随時追加予定"
   }
 }
 </i18n>

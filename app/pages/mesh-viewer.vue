@@ -131,11 +131,9 @@ const formatFileSize = (size: number) => {
 </script>
 
 <template>
-  <UContainer class="grow overflow-hidden py-4 grid grid-cols-1 grid-rows-2 lg:grid-cols-12 lg:grid-rows-1 gap-4">
+  <div class="h-full p-4 grid grid-cols-1 grid-rows-2 lg:grid-cols-12 lg:grid-rows-1 gap-4">
     <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-scroll">
-      <h1 class="text-2xl font-bold">
-        {{ gt('mesh_viewer') }}
-      </h1>
+      <AppTitle :title="gt('mesh_viewer')" />
 
       <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
         <UFileUpload
@@ -299,7 +297,7 @@ const formatFileSize = (size: number) => {
       </div>
     </div>
 
-    <div class="lg:col-span-8 flex flex-col bg-gray-50 dark:bg-gray-900 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 relative">
+    <div class="lg:col-span-8 flex items-center justify-center overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
       <div
         v-if="meshFiles.length === 0"
         class="m-auto flex flex-col items-center gap-2 p-6 text-center text-muted"
@@ -320,7 +318,7 @@ const formatFileSize = (size: number) => {
         />
       </ClientOnly>
     </div>
-  </UContainer>
+  </div>
 </template>
 
 <i18n lang="json">

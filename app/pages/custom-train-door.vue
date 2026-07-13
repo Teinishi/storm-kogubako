@@ -36,11 +36,9 @@ watchEffect(() => {
 </script>
 
 <template>
-  <UContainer class="grow py-4 grid sm:grid-cols-[600px_1fr] gap-4">
+  <div class="h-full p-4 grow grid sm:grid-cols-[600px_1fr] gap-4">
     <div class="flex flex-col gap-4 overflow-y-auto">
-      <h1 class="text-2xl font-bold">
-        {{ gt('custom_train_door') }}
-      </h1>
+      <AppTitle :title="gt('custom_train_door')" />
 
       <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
@@ -69,7 +67,7 @@ watchEffect(() => {
       />
     </div>
 
-    <div>
+    <div class="flex items-center justify-center overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
       <ClientOnly>
         <MeshViewerCanvas>
           <TresMesh :geometry="geometry">
@@ -78,7 +76,7 @@ watchEffect(() => {
         </MeshViewerCanvas>
       </ClientOnly>
     </div>
-  </UContainer>
+  </div>
 </template>
 
 <i18n lang="json">
