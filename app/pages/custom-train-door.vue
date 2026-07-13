@@ -9,14 +9,6 @@ const { t } = useI18n({ useScope: 'local' });
 useHead({ title: gt('custom_train_door') });
 definePageMeta({ layout: 'app' });
 
-const { isSm } = useResponsive();
-
-const showPreview = ref(false);
-
-function togglePreview() {
-  showPreview.value = !showPreview.value;
-}
-
 const doorWidth = ref(3);
 const doorHeight = ref(8);
 
@@ -83,38 +75,18 @@ watchEffect(() => {
       </div>
     </div>
 
-    <ClientOnly>
-      <transition
-        enter-active-class="transition-opacity duration-200"
-        leave-active-class="transition-opacity duration-200"
-        enter-from-class="opacity-0"
-        leave-to-class="opacity-0"
-      >
-        <div
-          v-show="isSm || showPreview"
-          class="fixed sm:static w-screen h-screen sm:w-auto flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 sm:border-l border-gray-200 dark:border-gray-700"
-        >
-          <MeshViewerCanvas>
-            <TresMesh :geometry="geometry">
-              <TresMeshStandardMaterial :vertex-colors="true" />
-            </TresMesh>
-          </MeshViewerCanvas>
-        </div>
-      </transition>
-
-      <Teleport
-        v-if="!isSm"
-        to="body"
-      >
-        <UButton
-          :icon="showPreview ? 'i-lucide-x' : 'i-lucide-box'"
-          :label="t('preview')"
-          size="xl"
-          class="fixed right-4 bottom-4 shadow-lg rounded-full"
-          @click="togglePreview"
-        />
-      </Teleport>
-    </ClientOnly>
+    <ResponsivePanel
+      icon="i-lucide-box"
+      :label="t('preview')"
+    >
+      <ClientOnly>
+        <MeshViewerCanvas>
+          <TresMesh :geometry="geometry">
+            <TresMeshStandardMaterial :vertex-colors="true" />
+          </TresMesh>
+        </MeshViewerCanvas>
+      </ClientOnly>
+    </ResponsivePanel>
   </div>
 </template>
 

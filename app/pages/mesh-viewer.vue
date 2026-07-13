@@ -131,193 +131,185 @@ const formatFileSize = (size: number) => {
 </script>
 
 <template>
-  <div class="h-full p-4 grid grid-cols-1 grid-rows-2 lg:grid-cols-12 lg:grid-rows-1 gap-4">
-    <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-scroll">
+  <div class="h-full grid sm:grid-cols-[24rem_1fr]">
+    <div class="min-w-0 h-screen flex flex-col">
       <AppTitle :title="gt('mesh_viewer')" />
 
-      <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
-        <UFileUpload
-          v-model="fileUploadModel"
-          :label="t('drop_files')"
-          :description="t('drop_files_description')"
-          :preview="false"
-          multiple
-          class="w-full"
-          @update:model-value="addMeshFiles"
-        />
+      <div class="grow flex flex-col px-4 pt-0 pb-18 sm:pb-4 gap-4 overflow-y-auto">
+        <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+          <UFileUpload
+            v-model="fileUploadModel"
+            :label="t('drop_files')"
+            :description="t('drop_files_description')"
+            :preview="false"
+            multiple
+            class="w-full"
+            @update:model-value="addMeshFiles"
+          />
 
-        <div
-          v-if="meshFiles.length"
-          class="space-y-2"
-        >
           <div
-            v-for="item in meshFiles"
-            :key="item.id"
-            class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
+            v-if="meshFiles.length"
+            class="space-y-2"
           >
-            <div class="flex items-center gap-3 p-3">
-              <UTooltip :text="item.visible ? t('hide_item') : t('show_item')">
-                <UButton
-                  :icon="item.visible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
-                  color="neutral"
-                  variant="ghost"
-                  size="sm"
-                  :aria-label="item.visible ? t('hide_item') : t('show_item')"
-                  @click="toggleMeshVisibility(item)"
-                />
-              </UTooltip>
-
-              <div class="min-w-0 grow">
-                <div class="truncate text-sm font-medium">
-                  {{ item.fileName }}
-                </div>
-                <div class="text-xs text-muted">
-                  {{ formatFileSize(item.fileSize) }}
-                </div>
-              </div>
-
-              <UTooltip :text="t('item_settings')">
-                <UButton
-                  :icon="item.detailsOpen ? 'i-lucide-chevron-up' : 'i-lucide-sliders-horizontal'"
-                  color="neutral"
-                  variant="ghost"
-                  size="sm"
-                  :aria-label="t('item_settings')"
-                  @click="toggleMeshDetails(item)"
-                />
-              </UTooltip>
-
-              <UTooltip :text="t('remove_item')">
-                <UButton
-                  icon="i-lucide-trash"
-                  color="error"
-                  variant="ghost"
-                  size="sm"
-                  :aria-label="t('remove_item')"
-                  @click="removeMeshFile(item.id)"
-                />
-              </UTooltip>
-            </div>
-
             <div
-              v-if="item.detailsOpen"
-              class="space-y-4 border-t border-gray-200 p-3 dark:border-gray-700"
+              v-for="item in meshFiles"
+              :key="item.id"
+              class="rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900"
             >
-              <div class="text-sm text-muted">
-                {{ t('mesh_stats', item.stats) }}
-              </div>
-
-              <USwitch
-                v-model="item.wireframe"
-                :label="t('wireframe')"
-              />
-
-              <div class="space-y-2">
-                <div class="text-sm font-medium">
-                  {{ t('offset') }}
-                </div>
-                <div class="grid grid-cols-3 gap-2">
-                  <UFormField
-                    label="X"
+              <div class="flex items-center gap-3 p-3">
+                <UTooltip :text="item.visible ? t('hide_item') : t('show_item')">
+                  <UButton
+                    :icon="item.visible ? 'i-lucide-eye' : 'i-lucide-eye-off'"
+                    color="neutral"
+                    variant="ghost"
                     size="sm"
-                  >
-                    <UInputNumber
-                      v-model="item.offset.x"
-                      class="w-full"
-                      size="sm"
-                      orientation="vertical"
-                      :step="0.125"
-                    />
-                  </UFormField>
-                  <UFormField
-                    label="Y"
-                    size="sm"
-                  >
-                    <UInputNumber
-                      v-model="item.offset.y"
-                      class="w-full"
-                      size="sm"
-                      orientation="vertical"
-                      :step="0.125"
-                    />
-                  </UFormField>
-                  <UFormField
-                    label="Z"
-                    size="sm"
-                  >
-                    <UInputNumber
-                      v-model="item.offset.z"
-                      class="w-full"
-                      size="sm"
-                      orientation="vertical"
-                      :step="0.125"
-                    />
-                  </UFormField>
-                </div>
-              </div>
+                    :aria-label="item.visible ? t('hide_item') : t('show_item')"
+                    @click="toggleMeshVisibility(item)"
+                  />
+                </UTooltip>
 
-              <template v-if="item.properties.kind === 'mesh'">
-                <USwitch
-                  v-model="item.properties.enablePaintcolor"
-                  :label="t('paint_colors')"
-                />
-
-                <div
-                  v-if="item.properties.enablePaintcolor"
-                  class="space-y-2"
-                >
-                  <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                    <ColorPicker
-                      v-model="item.properties.paintColor1"
-                      :label="t('paint_color_1')"
-                    />
-                    <ColorPicker
-                      v-model="item.properties.paintColor2"
-                      :label="t('paint_color_2')"
-                    />
-                    <ColorPicker
-                      v-model="item.properties.paintColor3"
-                      :label="t('paint_color_3')"
-                    />
+                <div class="min-w-0 grow">
+                  <div class="truncate text-sm font-medium">
+                    {{ item.fileName }}
+                  </div>
+                  <div class="text-xs text-muted">
+                    {{ formatFileSize(item.fileSize) }}
                   </div>
                 </div>
-              </template>
+
+                <UTooltip :text="t('item_settings')">
+                  <UButton
+                    :icon="item.detailsOpen ? 'i-lucide-chevron-up' : 'i-lucide-sliders-horizontal'"
+                    color="neutral"
+                    variant="ghost"
+                    size="sm"
+                    :aria-label="t('item_settings')"
+                    @click="toggleMeshDetails(item)"
+                  />
+                </UTooltip>
+
+                <UTooltip :text="t('remove_item')">
+                  <UButton
+                    icon="i-lucide-trash"
+                    color="error"
+                    variant="ghost"
+                    size="sm"
+                    :aria-label="t('remove_item')"
+                    @click="removeMeshFile(item.id)"
+                  />
+                </UTooltip>
+              </div>
+
+              <div
+                v-if="item.detailsOpen"
+                class="space-y-4 border-t border-gray-200 p-3 dark:border-gray-700"
+              >
+                <div class="text-sm text-muted">
+                  {{ t('mesh_stats', item.stats) }}
+                </div>
+
+                <USwitch
+                  v-model="item.wireframe"
+                  :label="t('wireframe')"
+                />
+
+                <div class="space-y-2">
+                  <div class="text-sm font-medium">
+                    {{ t('offset') }}
+                  </div>
+                  <div class="grid grid-cols-3 gap-2">
+                    <UFormField
+                      label="X"
+                      size="sm"
+                    >
+                      <UInputNumber
+                        v-model="item.offset.x"
+                        class="w-full"
+                        size="sm"
+                        orientation="vertical"
+                        :step="0.125"
+                      />
+                    </UFormField>
+                    <UFormField
+                      label="Y"
+                      size="sm"
+                    >
+                      <UInputNumber
+                        v-model="item.offset.y"
+                        class="w-full"
+                        size="sm"
+                        orientation="vertical"
+                        :step="0.125"
+                      />
+                    </UFormField>
+                    <UFormField
+                      label="Z"
+                      size="sm"
+                    >
+                      <UInputNumber
+                        v-model="item.offset.z"
+                        class="w-full"
+                        size="sm"
+                        orientation="vertical"
+                        :step="0.125"
+                      />
+                    </UFormField>
+                  </div>
+                </div>
+
+                <template v-if="item.properties.kind === 'mesh'">
+                  <USwitch
+                    v-model="item.properties.enablePaintcolor"
+                    :label="t('paint_colors')"
+                  />
+
+                  <div
+                    v-if="item.properties.enablePaintcolor"
+                    class="space-y-2"
+                  >
+                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                      <ColorPicker
+                        v-model="item.properties.paintColor1"
+                        :label="t('paint_color_1')"
+                      />
+                      <ColorPicker
+                        v-model="item.properties.paintColor2"
+                        :label="t('paint_color_2')"
+                      />
+                      <ColorPicker
+                        v-model="item.properties.paintColor3"
+                        :label="t('paint_color_3')"
+                      />
+                    </div>
+                  </div>
+                </template>
+              </div>
             </div>
           </div>
-        </div>
 
-        <UAlert
-          v-else
-          color="neutral"
-          variant="soft"
-          icon="i-lucide-info"
-          :title="t('no_files')"
-          :description="t('no_files_description')"
-        />
+          <UAlert
+            v-else
+            color="neutral"
+            variant="soft"
+            icon="i-lucide-info"
+            :title="t('no_files')"
+            :description="t('no_files_description')"
+          />
+        </div>
       </div>
     </div>
 
-    <div class="lg:col-span-8 flex items-center justify-center overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-      <div
-        v-if="meshFiles.length === 0"
-        class="m-auto flex flex-col items-center gap-2 p-6 text-center text-muted"
-      >
-        <UIcon
-          name="i-lucide-box"
-          class="size-10"
-        />
-        <div class="text-sm">
-          {{ t('viewer_placeholder') }}
-        </div>
-      </div>
-
+    <ResponsivePanel
+      icon="i-lucide-box"
+      :label="t('viewer')"
+      :disabled="meshFiles.length === 0"
+    >
       <ClientOnly>
         <MeshViewerCanvas
-          v-show="meshFiles.length > 0"
           :items="meshFiles"
         />
       </ClientOnly>
-    </div>
+    </ResponsivePanel>
   </div>
 </template>
 
@@ -339,9 +331,9 @@ const formatFileSize = (size: number) => {
     "paint_color_1": "Color 1",
     "paint_color_2": "Color 2",
     "paint_color_3": "Color 3",
-    "viewer_placeholder": "Mesh preview will appear here.",
     "parse_error": "Could not load mesh file",
-    "parse_error_description": "{fileName} could not be parsed. Please check the file format."
+    "parse_error_description": "{fileName} could not be parsed. Please check the file format.",
+    "viewer": "Viewer"
   },
   "ja": {
     "drop_files": "メッシュファイルを選択",
@@ -359,9 +351,9 @@ const formatFileSize = (size: number) => {
     "paint_color_1": "カラー1",
     "paint_color_2": "カラー2",
     "paint_color_3": "カラー3",
-    "viewer_placeholder": "メッシュのプレビューはここに表示されます。",
     "parse_error": "メッシュファイルを読み込めませんでした",
-    "parse_error_description": "{fileName} をパースできませんでした。ファイル形式を確認してください。"
+    "parse_error_description": "{fileName} をパースできませんでした。ファイル形式を確認してください。",
+    "viewer": "ビューアー"
   }
 }
 </i18n>

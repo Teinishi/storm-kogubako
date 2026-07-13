@@ -372,252 +372,253 @@ const saveVehicleXml = () => {
 </script>
 
 <template>
-  <div class="h-full p-4 grid grid-cols-1 grid-rows-2 lg:grid-cols-12 lg:grid-rows-1 gap-4">
-    <div class="lg:col-span-4 flex flex-col gap-4 overflow-y-auto">
+  <div class="h-full grid sm:grid-cols-[24rem_1fr]">
+    <div class="h-screen flex flex-col">
       <AppTitle :title="gt('img2paint')" />
 
-      <div
-        v-if="!baseImage"
-        class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4"
-      >
-        <p>{{ t('guide1') }}</p>
-        <p>{{ t('guide2') }}</p>
-        <p>{{ t('guide3') }}</p>
-      </div>
+      <div class="grow flex flex-col px-4 pt-0 pb-18 sm:pb-4 gap-4 overflow-y-auto">
+        <template v-if="!baseImage">
+          <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+            <p>{{ t('guide1') }}</p>
+            <p>{{ t('guide2') }}</p>
+            <p>{{ t('guide3') }}</p>
+          </div>
 
-      <div
-        v-show="baseImage"
-        class="flex flex-col gap-4"
-      >
-        <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
-          <h2 class="font-bold text-lg">
-            {{ t('image_file') }}
-          </h2>
+          <UFileUpload
+            :label="t('pick_image_file')"
+            :description="t('pick_image_file_description')"
+            accept="image/*"
+            :preview="false"
+            class="w-full"
+            multiple
+            @update:model-value="fileDropped"
+          />
+        </template>
 
-          <div class="space-y-4">
-            <ImageFileUpload
-              v-model="baseImageFile"
-              :label="t('base_image')"
-              @update:image="updateBaseImage"
-              @update:model-value="updateSaveFileName"
-            />
-            <ImageFileUpload
-              v-model="glowImageFile"
-              :label="t('glow_image')"
-              removable
-              @update:image="updateGlowImage"
-            />
+        <div
+          v-show="baseImage"
+          class="flex flex-col gap-4"
+        >
+          <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+            <h2 class="font-bold text-lg">
+              {{ t('image_file') }}
+            </h2>
 
-            <USwitch
-              v-if="glowImage"
-              v-model="adjustGlow"
-              :label="t('adjust_glow')"
+            <div class="space-y-4">
+              <ImageFileUpload
+                v-model="baseImageFile"
+                :label="t('base_image')"
+                @update:image="updateBaseImage"
+                @update:model-value="updateSaveFileName"
+              />
+              <ImageFileUpload
+                v-model="glowImageFile"
+                :label="t('glow_image')"
+                removable
+                @update:image="updateGlowImage"
+              />
+
+              <USwitch
+                v-if="glowImage"
+                v-model="adjustGlow"
+                :label="t('adjust_glow')"
+              />
+            </div>
+
+            <UAlert
+              v-if="separateSettings"
+              color="primary"
+              variant="soft"
+              :title="t('image_size_mismatch1')"
+              :description="t('image_size_mismatch2')"
+              icon="i-lucide-info"
             />
           </div>
 
-          <UAlert
-            v-if="separateSettings"
-            color="primary"
-            variant="soft"
-            :title="t('image_size_mismatch1')"
-            :description="t('image_size_mismatch2')"
-            icon="i-lucide-info"
-          />
-        </div>
-
-        <UAccordion
-          v-model="detailCollapsing"
-          :items="[{ label: t('advanced_settings') }]"
-        >
-          <template #body>
-            <div class="flex flex-col gap-4">
-              <ResizeSettings
-                v-if="baseImageSize"
-                v-model="baseResizeSettings"
-                :label="separateSettings ? t('dimensions_base') : t('dimensions')"
-                :image-size="baseImageSize"
-                :size-blocks="{ width: baseDrawData.widthBlocks, height: baseDrawData.heightBlocks }"
-              />
-
-              <AnchorSettings
-                v-model="baseAnchorSettings"
-                :label="separateSettings ? t('position_base') : t('position')"
-                :anchor-disabled="baseDrawData.isMultiplesOf9"
-              />
-
-              <template v-if="separateSettings">
+          <UAccordion
+            v-model="detailCollapsing"
+            :items="[{ label: t('advanced_settings') }]"
+          >
+            <template #body>
+              <div class="flex flex-col gap-4">
                 <ResizeSettings
-                  v-if="glowImageSize"
-                  v-model="glowResizeSettings"
-                  :label="t('dimensions_glow')"
-                  :image-size="glowImageSize"
+                  v-if="baseImageSize"
+                  v-model="baseResizeSettings"
+                  :label="separateSettings ? t('dimensions_base') : t('dimensions')"
+                  :image-size="baseImageSize"
+                  :size-blocks="{ width: baseDrawData.widthBlocks, height: baseDrawData.heightBlocks }"
                 />
 
                 <AnchorSettings
-                  v-model="glowAnchorSettings"
-                  :label="t('position_glow')"
+                  v-model="baseAnchorSettings"
+                  :label="separateSettings ? t('position_base') : t('position')"
+                  :anchor-disabled="baseDrawData.isMultiplesOf9"
                 />
-              </template>
 
-              <div
-                v-show="marginExists"
-                class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4"
-              >
-                <h2 class="font-bold text-lg">
-                  {{ t('background') }}
-                </h2>
+                <template v-if="separateSettings">
+                  <ResizeSettings
+                    v-if="glowImageSize"
+                    v-model="glowResizeSettings"
+                    :label="t('dimensions_glow')"
+                    :image-size="glowImageSize"
+                  />
 
-                <ColorPicker v-model="bgColor" />
+                  <AnchorSettings
+                    v-model="glowAnchorSettings"
+                    :label="t('position_glow')"
+                  />
+                </template>
 
-                <div class="text-xs text-gray-500">
-                  {{ t('background_description') }}
+                <div
+                  v-show="marginExists"
+                  class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4"
+                >
+                  <h2 class="font-bold text-lg">
+                    {{ t('background') }}
+                  </h2>
+
+                  <ColorPicker v-model="bgColor" />
+
+                  <div class="text-xs text-gray-500">
+                    {{ t('background_description') }}
+                  </div>
                 </div>
               </div>
-            </div>
-          </template>
-        </UAccordion>
+            </template>
+          </UAccordion>
 
-        <UModal :title="t('save_vehicle_xml')">
-          <UButton
-            block
-            size="xl"
-            color="primary"
-            class="mt-auto"
-          >
-            {{ t('save_vehicle_xml') }}
-          </UButton>
+          <UModal :title="t('save_vehicle_xml')">
+            <UButton
+              block
+              size="xl"
+              color="primary"
+              class="mt-auto"
+            >
+              {{ t('save_vehicle_xml') }}
+            </UButton>
 
-          <template
-            #body="{ close }"
-          >
-            <div class="space-y-4">
-              <USwitch
-                v-model="minimizeSigns"
-                :label="t('minimize_signs')"
-              />
-              <template v-if="glowImage">
+            <template
+              #body="{ close }"
+            >
+              <div class="space-y-4">
                 <USwitch
-                  v-model="minimizeIndicators"
-                  :label="t('minimize_indicators')"
+                  v-model="minimizeSigns"
+                  :label="t('minimize_signs')"
                 />
-                <USwitch
-                  v-model="logicLinksEnabled"
-                  :label="t('logic_links_enabled')"
-                />
-                <USwitch
-                  v-model="electricLinksEnabled"
-                  :label="t('electric_links_enabled')"
-                />
-              </template>
-
-              <div class="flex gap-4">
-                <UFormField
-                  class="grow"
-                  :label="t('file_name')"
-                >
-                  <UInput
-                    v-model="saveFileName"
-                    class="w-full"
+                <template v-if="glowImage">
+                  <USwitch
+                    v-model="minimizeIndicators"
+                    :label="t('minimize_indicators')"
                   />
-                </UFormField>
+                  <USwitch
+                    v-model="logicLinksEnabled"
+                    :label="t('logic_links_enabled')"
+                  />
+                  <USwitch
+                    v-model="electricLinksEnabled"
+                    :label="t('electric_links_enabled')"
+                  />
+                </template>
 
-                <UButton
-                  class="self-end"
-                  icon="i-lucide-download"
-                  @click="saveVehicleXml(); close()"
-                >
-                  {{ t('save_file') }}
-                </UButton>
+                <div class="flex gap-4">
+                  <UFormField
+                    class="grow"
+                    :label="t('file_name')"
+                  >
+                    <UInput
+                      v-model="saveFileName"
+                      class="w-full"
+                    />
+                  </UFormField>
+
+                  <UButton
+                    class="self-end"
+                    icon="i-lucide-download"
+                    @click="saveVehicleXml(); close()"
+                  >
+                    {{ t('save_file') }}
+                  </UButton>
+                </div>
               </div>
-            </div>
-          </template>
-        </UModal>
+            </template>
+          </UModal>
+        </div>
       </div>
     </div>
 
-    <div
-      v-if="!baseImage"
-      class="lg:col-span-8 bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden"
+    <ResponsivePanel
+      :label="t('preview')"
+      icon="i-lucide-eye"
+      :disabled="!baseImage"
     >
-      <UFileUpload
-        :label="t('pick_image_file')"
-        :description="t('pick_image_file_description')"
-        accept="image/*"
-        :preview="false"
-        class="w-full h-full"
-        :ui="{ base: 'bg-transparent border-none' }"
-        multiple
-        @update:model-value="fileDropped"
-      />
-    </div>
-
-    <div
-      v-show="baseImage"
-      class="lg:col-span-8 flex flex-col bg-gray-50 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 relative"
-    >
-      <div class="p-4 border-b border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-between z-10">
-        <div class="flex items-center gap-4">
-          <USwitch
-            v-model="showGrid"
-            :label="t('grid')"
-          />
-          <USwitch
-            v-if="glowImage"
-            v-model="showGlow"
-            :label="t('glow')"
-          />
-        </div>
-        <div class="flex items-center gap-4">
-          <div class="flex items-center gap-2">
-            <span class="text-sm">{{ t('zoom') }}: x{{ previewZoom }}</span>
-            <USlider
-              v-model="previewZoom"
-              :min="1"
-              :max="10"
-              class="w-32"
+      <div
+        v-show="baseImage"
+        class="w-full h-full flex flex-col relative"
+      >
+        <div class="p-4 border-b border-gray-200 dark:border-gray-700 dark:bg-gray-800 flex items-center justify-between z-10">
+          <div class="flex items-center gap-4">
+            <USwitch
+              v-model="showGrid"
+              :label="t('grid')"
+            />
+            <USwitch
+              v-if="glowImage"
+              v-model="showGlow"
+              :label="t('glow')"
             />
           </div>
-          <USwitch
-            v-if="glowImage"
-            v-model="previewBloom"
-            :disabled="!showGlow"
-            :label="t('bloom')"
-          />
+          <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2">
+              <span class="text-sm">{{ t('zoom') }}: x{{ previewZoom }}</span>
+              <USlider
+                v-model="previewZoom"
+                :min="1"
+                :max="10"
+                class="w-32"
+              />
+            </div>
+            <USwitch
+              v-if="glowImage"
+              v-model="previewBloom"
+              :disabled="!showGlow"
+              :label="t('bloom')"
+            />
+          </div>
         </div>
-      </div>
 
-      <div class="flex-1 flex overflow-auto relative p-4">
-        <div
-          class="m-auto flex-none relative shadow-lg"
-          :style="{ width: `${baseDrawData.canvasWidth * previewZoom}px`, height: `${baseDrawData.canvasHeight * previewZoom}px` }"
-        >
-          <canvas
-            ref="baseCanvas"
-            class="absolute inset-0 w-full h-full"
-            style="image-rendering: pixelated;"
-          />
-          <canvas
-            v-show="showGlow && previewBloom"
-            ref="glowCanvas"
-            class="absolute inset-0 w-full h-full"
-            style="image-rendering: pixelated; mix-blend-mode: screen;"
-            :style="{ filter: `blur(${1 * previewZoom}px) brightness(200%)` }"
-          />
+        <div class="flex-1 flex overflow-auto relative p-4">
           <div
-            v-if="showGrid"
-            class="absolute inset-0 pointer-events-none opacity-80"
-            :style="{
-              margin: `${-GRID_LINE_WIDTH / 2}px`,
-              borderColor: '#6ED7FF',
-              borderRightWidth: `${GRID_LINE_WIDTH}px`,
-              borderBottomWidth: `${GRID_LINE_WIDTH}px`,
-              backgroundImage: `linear-gradient(to right, #6ED7FF ${GRID_LINE_WIDTH}px, transparent 1px), linear-gradient(to bottom, #6ED7FF ${GRID_LINE_WIDTH}px, transparent 1px)`,
-              backgroundSize: `${gridCssSize} ${gridCssSize}`,
-            }"
-          />
+            class="m-auto flex-none relative shadow-lg"
+            :style="{ width: `${baseDrawData.canvasWidth * previewZoom}px`, height: `${baseDrawData.canvasHeight * previewZoom}px` }"
+          >
+            <canvas
+              ref="baseCanvas"
+              class="absolute inset-0 w-full h-full"
+              style="image-rendering: pixelated;"
+            />
+            <canvas
+              v-show="showGlow && previewBloom"
+              ref="glowCanvas"
+              class="absolute inset-0 w-full h-full"
+              style="image-rendering: pixelated; mix-blend-mode: screen;"
+              :style="{ filter: `blur(${1 * previewZoom}px) brightness(200%)` }"
+            />
+            <div
+              v-if="showGrid"
+              class="absolute inset-0 pointer-events-none opacity-80"
+              :style="{
+                margin: `${-GRID_LINE_WIDTH / 2}px`,
+                borderColor: '#6ED7FF',
+                borderRightWidth: `${GRID_LINE_WIDTH}px`,
+                borderBottomWidth: `${GRID_LINE_WIDTH}px`,
+                backgroundImage: `linear-gradient(to right, #6ED7FF ${GRID_LINE_WIDTH}px, transparent 1px), linear-gradient(to bottom, #6ED7FF ${GRID_LINE_WIDTH}px, transparent 1px)`,
+                backgroundSize: `${gridCssSize} ${gridCssSize}`,
+              }"
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </ResponsivePanel>
   </div>
 </template>
 
@@ -655,7 +656,8 @@ const saveVehicleXml = () => {
     "grid": "Grid",
     "glow": "Glow",
     "zoom": "Zoom",
-    "bloom": "Bloom"
+    "bloom": "Bloom",
+    "preview": "Preview"
   },
   "ja": {
     "guide1": "画像から Stormworks のペインタブルブロックへ変換するツールです。変換後のビークルXMLファイルを保存して、Stormworks 上で既存ビークルに追加読み込みすることができます。",
@@ -689,7 +691,8 @@ const saveVehicleXml = () => {
     "grid": "グリッド",
     "glow": "発光",
     "zoom": "拡大率",
-    "bloom": "ブルーム"
+    "bloom": "ブルーム",
+    "preview": "プレビュー"
   }
 }
 </i18n>
