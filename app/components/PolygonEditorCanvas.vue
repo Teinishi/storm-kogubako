@@ -118,6 +118,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
     }
     else {
       activateSelectMode();
+      clearSelection();
     }
     return;
   }
@@ -193,6 +194,7 @@ function handleCanvasPointerUp(event: PointerEvent) {
     event.preventDefault();
     if (!rectCreated) {
       activateSelectMode();
+      clearSelection();
     }
     return;
   }
