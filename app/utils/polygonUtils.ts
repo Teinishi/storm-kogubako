@@ -88,6 +88,7 @@ export function updateGeometry(
   geometry: BufferGeometry,
   triangulated: TriangulatedItem[],
   getColor: (item: TriangulatedItem) => { r: number; g: number; b: number },
+  coordinateConversion: (point: Point2D) => { x: number; y: number; z: number },
 ) {
   const totalVertexCount = triangulated.reduce((acc, item) => acc + item.vertices.length, 0);
 
@@ -102,9 +103,10 @@ export function updateGeometry(
     indices = indices.concat(item.indices.map(i => i + offset));
 
     for (const vertex of item.vertices) {
-      positions[3 * offset] = 0.25 * vertex.x;
-      positions[3 * offset + 1] = 0.25 * vertex.y;
-      positions[3 * offset + 2] = 0.25 * 0;
+      const { x, y, z } = coordinateConversion(vertex);
+      positions[3 * offset] = x;
+      positions[3 * offset + 1] = y;
+      positions[3 * offset + 2] = z;
       colors[3 * offset] = r / 255;
       colors[3 * offset + 1] = g / 255;
       colors[3 * offset + 2] = b / 255;
@@ -116,4 +118,6 @@ export function updateGeometry(
   geometry.setAttribute('color', new BufferAttribute(colors, 3));
   geometry.setIndex(indices);
   geometry.computeVertexNormals();
+
+  geometry.addGroup(0, indices.length, 0);
 }

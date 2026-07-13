@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { polygonsToDisjointTriangles } from '~/utils/polygonUtils';
 import { BufferGeometry } from 'three';
+import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 const { t } = useI18n({ useScope: 'local' });
@@ -22,6 +23,7 @@ const editorValue = ref<PolygonEditorValue>({
 });
 
 const geometry = new BufferGeometry();
+const materials = createStormworksMaterials();
 
 watchEffect(() => {
   const { polygons, backgroundColor } = editorValue.value;
@@ -31,6 +33,11 @@ watchEffect(() => {
     geometry,
     triangulated,
     ({ id }) => hexToRgb(polygons.find(v => v.id === id)?.color ?? backgroundColor),
+    ({ x, y }) => ({
+      x: 0.25 * (x - doorWidth.value / 2),
+      y: 0.25 * (y - doorHeight.value / 2),
+      z: 0,
+    }),
   );
 });
 </script>
@@ -81,9 +88,10 @@ watchEffect(() => {
     >
       <ClientOnly>
         <MeshViewerCanvas>
-          <TresMesh :geometry="geometry">
-            <TresMeshStandardMaterial :vertex-colors="true" />
-          </TresMesh>
+          <TresMesh
+            :geometry="geometry"
+            :material="[materials.opaque, materials.glass, materials.additive]"
+          />
         </MeshViewerCanvas>
       </ClientOnly>
     </ResponsivePanel>
