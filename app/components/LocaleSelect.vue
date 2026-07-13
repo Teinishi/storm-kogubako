@@ -7,12 +7,10 @@ const locales = [
   {
     label: en.name,
     value: en.code,
-    icon: 'i-circle-flags:gb',
   },
   {
     label: ja.name,
     value: ja.code,
-    icon: 'i-circle-flags:jp',
   },
 ];
 </script>
@@ -21,7 +19,6 @@ const locales = [
   <USelect
     :model-value="locale"
     :items="locales"
-    :icon="locales.find(l => l.value === locale)?.icon"
     @update:model-value="setLocale($event as 'en' | 'ja')"
   />
 </template>
