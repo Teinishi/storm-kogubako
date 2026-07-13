@@ -3,6 +3,9 @@ import { usePolygonEditorContext } from '~/composables/useEditorContext';
 
 const { t } = useI18n({ useScope: 'local' });
 
+const gridEnabled = defineModel<boolean>('gridEnabled');
+const gridMiniorDivisions = defineModel<number>('gridMiniorDivisions');
+
 const {
   editorState,
   mode,
@@ -18,9 +21,6 @@ const {
   activateRectangleMode,
   canUndo,
   canRedo,
-  gridEnabled,
-  minorDivisions,
-  backgroundColor,
   performUndo,
   performRedo,
   selectPolygon,
@@ -183,18 +183,13 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
 
         <UFormField :label="t('minor_divisions')">
           <UInputNumber
-            v-model="minorDivisions"
+            v-model="gridMiniorDivisions"
             :min="1"
             :step="1"
             :disabled="editingLocked || !gridEnabled"
           />
         </UFormField>
       </div>
-
-      <ColorPicker
-        v-model="backgroundColor"
-        :label="t('background_color')"
-      />
     </div>
 
     <UAlert

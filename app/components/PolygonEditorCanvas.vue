@@ -1,25 +1,15 @@
 <script setup lang="ts">
 import { usePolygonEditorContext } from '~/composables/useEditorContext';
-import { usePolygonEditorCanvas } from '~/composables/usePolygonEditorCanvas';
+import { usePolygonEditorCanvas, type RenderHooks } from '~/composables/usePolygonEditorCanvas';
+
+const props = defineProps<{
+  renderHooks?: RenderHooks;
+}>();
 
 const surfaceRef = ref<HTMLDivElement | null>(null);
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 
 const editor = usePolygonEditorContext();
-const {
-  canvasToWorld,
-  canvasToWorldRaw,
-  findHitVertex,
-  findHitEdge,
-  findHitPolygon,
-  renderCanvas,
-} = usePolygonEditorCanvas({
-  canvasRef,
-  editor,
-});
-
-defineExpose({ renderCanvas });
-
 const {
   editorState,
   mode,
@@ -48,6 +38,21 @@ const {
   commitCanvasDrag,
   cancelCanvasDrag,
 } = editor;
+
+const {
+  canvasToWorld,
+  canvasToWorldRaw,
+  findHitVertex,
+  findHitEdge,
+  findHitPolygon,
+  renderCanvas,
+} = usePolygonEditorCanvas({
+  canvasRef,
+  editor,
+  ...props.renderHooks,
+});
+
+defineExpose({ renderCanvas });
 
 function handleCanvasPointerDown(event: PointerEvent) {
   if (editingLocked.value) return;

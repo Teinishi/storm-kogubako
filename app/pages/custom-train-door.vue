@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { polygonsToDisjointTriangles } from '~/utils/polygonUtils';
 import { BufferGeometry } from 'three';
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
+import type { RenderHooks } from '~/composables/usePolygonEditorCanvas';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 const { t } = useI18n({ useScope: 'local' });
@@ -12,27 +13,40 @@ definePageMeta({ layout: 'app' });
 
 const doorWidth = ref(3);
 const doorHeight = ref(8);
+const baseColor = ref('#c0c7cf');
 
-const editorValue = ref<PolygonEditorValue>({
-  backgroundColor: '#F8FAFC',
-  grid: {
-    enabled: true,
-    minorDivisions: 4,
+const editorValue = ref<PolygonEditorValue>({ polygons: [] });
+
+const renderHooks: RenderHooks = {
+  onBeforeRenderPolygons({ ctx, metrics, worldToCanvas }) {
+    const { x: x1, y: y1 } = worldToCanvas({ x: 0, y: 0 }, metrics);
+    const { x: x2, y: y2 } = worldToCanvas({ x: doorWidth.value, y: doorHeight.value }, metrics);
+    const x = Math.min(x1, x2);
+    const y = Math.min(y1, y2);
+    ctx.fillStyle = baseColor.value;
+    ctx.fillRect(
+      x,
+      y,
+      Math.max(x1, x2) - x,
+      Math.max(y1, y2) - y,
+    );
   },
-  polygons: [],
-});
+  onBeforeRenderSelection(_) {
+    // todo: 窓穴を表示
+  },
+};
 
 const geometry = new BufferGeometry();
 const materials = createStormworksMaterials();
 
 watchEffect(() => {
-  const { polygons, backgroundColor } = editorValue.value;
+  const { polygons } = editorValue.value;
   const rect = { x: 0, y: 0, width: doorWidth.value, height: doorHeight.value };
   const triangulated = polygonsToDisjointTriangles(polygons, rect);
   updateGeometry(
     geometry,
     triangulated,
-    ({ id }) => hexToRgb(polygons.find(v => v.id === id)?.color ?? backgroundColor),
+    ({ id }) => hexToRgb(polygons.find(v => v.id === id)?.color ?? baseColor.value),
     ({ x, y }) => ({
       x: 0.25 * (x - doorWidth.value / 2),
       y: 0.25 * (y - doorHeight.value / 2),
@@ -67,6 +81,11 @@ watchEffect(() => {
                 />
               </UFormField>
             </div>
+
+            <ColorPicker
+              v-model="baseColor"
+              :label="t('base_color')"
+            />
           </div>
 
           <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4" />
@@ -76,6 +95,7 @@ watchEffect(() => {
           <PolygonEditor
             v-model="editorValue"
             :logical-bounds="{ width: doorWidth, height: doorHeight }"
+            :render-hooks="renderHooks"
             class="h-full"
           />
         </div>
@@ -103,11 +123,13 @@ watchEffect(() => {
   "en": {
     "door_width": "Door Width",
     "door_height": "Door Height",
+    "base_color": "Base Color",
     "preview": "Preview"
   },
   "ja": {
     "door_width": "ドア幅",
     "door_height": "ドア高さ",
+    "base_color": "ベースカラー",
     "preview": "プレビュー"
   }
 }

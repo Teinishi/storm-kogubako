@@ -15,8 +15,6 @@ export interface PolygonEditorGrid {
 }
 
 export interface PolygonEditorValue {
-  backgroundColor: string;
-  grid: PolygonEditorGrid;
   polygons: PolygonEditorPolygon[];
 }
 
@@ -67,8 +65,6 @@ export type ReadonlyPolygon = {
   readonly vertices: readonly ReadonlyVertex[];
 };
 
-export const DEFAULT_BACKGROUND_COLOR = '#F8FAFC';
-export const DEFAULT_POLYGON_COLOR = '#2563EB';
 export const GRID_SCALE = 56;
 export const HANDLE_HIT_THRESHOLD_PX = 8;
 export const SNAP_PRECISION = 1_000_000;
@@ -130,25 +126,11 @@ export function clonePolygon(polygon: PolygonEditorPolygon): PolygonEditorPolygo
 }
 
 export function clonePolygonEditorValue(value: PolygonEditorValue): PolygonEditorValue {
-  return {
-    backgroundColor: value.backgroundColor,
-    grid: {
-      enabled: value.grid.enabled,
-      minorDivisions: value.grid.minorDivisions,
-    },
-    polygons: value.polygons.map(clonePolygon),
-  };
+  return { polygons: value.polygons.map(clonePolygon) };
 }
 
 export function createDefaultPolygonEditorValue(): PolygonEditorValue {
-  return {
-    backgroundColor: DEFAULT_BACKGROUND_COLOR,
-    grid: {
-      enabled: true,
-      minorDivisions: 4,
-    },
-    polygons: [],
-  };
+  return { polygons: [] };
 }
 
 export function getViewTransform(metrics: CanvasMetrics, bounds: LogicalBounds): ViewTransform {

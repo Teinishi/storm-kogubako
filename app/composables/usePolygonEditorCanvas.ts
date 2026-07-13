@@ -23,9 +23,25 @@ export type PolygonDraftRectangle = {
   color: string;
 };
 
-type UsePolygonCanvasOptions = {
+export interface RenderHookArgs {
+  ctx: CanvasRenderingContext2D;
+  metrics: CanvasMetrics;
+  worldToCanvas(point: PolygonEditorPoint, metrics: CanvasMetrics): {
+    x: number;
+    y: number;
+  };
+}
+
+export interface RenderHooks {
+  onBeforeRenderPolygons?(args: RenderHookArgs): void;
+  onBeforeRenderSelection?(args: RenderHookArgs): void;
+  onAfterRender?(args: RenderHookArgs): void;
+}
+
+export type UsePolygonCanvasOptions = {
   canvasRef: Ref<HTMLCanvasElement | null>;
   editor: PolygonEditor;
+  renderHooks?: RenderHooks;
 };
 
 export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
@@ -34,6 +50,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     editor,
   } = options;
   const {
+    grid,
     logicalBounds,
     editorState,
     selectedPolygonId,
@@ -108,9 +125,9 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
   }
 
   function renderGrid(ctx: CanvasRenderingContext2D, metrics: CanvasMetrics) {
-    if (!editorState.value.grid.enabled) return;
+    if (!grid.value.enabled) return;
 
-    const minorDivisions = Math.max(1, editorState.value.grid.minorDivisions);
+    const minorDivisions = Math.max(1, grid.value.minorDivisions);
     const transform = getViewTransform(metrics, logicalBounds.value);
     const minX = logicalBounds.value.minX;
     const maxX = logicalBounds.value.maxX;
@@ -291,18 +308,9 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
 
     ctx.setTransform(metrics.dpr, 0, 0, metrics.dpr, 0, 0);
     ctx.clearRect(0, 0, metrics.width, metrics.height);
-    ctx.fillStyle = editorState.value.backgroundColor;
-    {
-      const { x: x1, y: y1 } = worldToCanvas({ x: logicalBounds.value.minX, y: logicalBounds.value.minY }, metrics);
-      const { x: x2, y: y2 } = worldToCanvas({ x: logicalBounds.value.maxX, y: logicalBounds.value.maxY }, metrics);
-      const x = Math.min(x1, x2);
-      const y = Math.min(y1, y2);
-      ctx.fillRect(
-        x,
-        y,
-        Math.max(x1, x2) - x,
-        Math.max(y1, y2) - y,
-      );
+
+    if (options?.renderHooks?.onBeforeRenderPolygons) {
+      options.renderHooks.onBeforeRenderPolygons({ ctx, metrics, worldToCanvas });
     }
 
     renderGrid(ctx, metrics);
@@ -316,6 +324,10 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       renderPolygon(ctx, metrics, polygon, {
         dimmed: hasSelectedPolygon && polygon.id !== selectedPolygonId.value,
       });
+    }
+
+    if (options?.renderHooks?.onBeforeRenderSelection) {
+      options.renderHooks.onBeforeRenderSelection({ ctx, metrics, worldToCanvas });
     }
 
     if (selectedPolygonItem) {
@@ -340,6 +352,10 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
         draft: true,
         vertices: true,
       });
+    }
+
+    if (options?.renderHooks?.onAfterRender) {
+      options.renderHooks.onAfterRender({ ctx, metrics, worldToCanvas });
     }
   }
 

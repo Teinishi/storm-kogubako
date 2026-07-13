@@ -1,5 +1,5 @@
-import type { DeepReadonly, ModelRef } from 'vue';
-import { snapPointWithGrid, type PolygonEditorValue } from '../utils/polygonEditorCore';
+import type { DeepReadonly, Ref } from 'vue';
+import { snapPointWithGrid, type PolygonEditorGrid, type PolygonEditorValue } from '../utils/polygonEditorCore';
 import { HANDLE_HIT_THRESHOLD_PX } from '../utils/polygonEditorCore';
 
 export type PolygonEditorMode = 'select' | 'drawPolygon' | 'drawRectangle';
@@ -10,13 +10,14 @@ export interface UsePolygonEditorOptions {
     disabled?: boolean;
     readonly?: boolean;
   }>;
-  model: ModelRef<PolygonEditorValue>;
+  grid: Ref<PolygonEditorGrid>;
+  model: Ref<PolygonEditorValue>;
   emitChange: (snapshot: PolygonEditorValue) => void;
   renderCanvas: () => void;
 }
 
 export function usePolygonEditor(options: UsePolygonEditorOptions) {
-  const { props, model, emitChange, renderCanvas } = options;
+  const { props, grid, model, emitChange, renderCanvas } = options;
 
   // 編集対象の状態管理
   const editorState = ref(clonePolygonEditorValue(model.value));
@@ -111,33 +112,6 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
   });
   const selectedPolygon = computed(() => editorState.value.polygons[selectedPolygonIndex.value] ?? null);
 
-  const backgroundColorProxy = computed({
-    get: () => editorState.value.backgroundColor,
-    set: (value: string) => {
-      applyStateChange((state) => {
-        state.backgroundColor = value;
-      });
-    },
-  });
-
-  const gridEnabledProxy = computed({
-    get: () => editorState.value.grid.enabled,
-    set: (value: boolean) => {
-      applyStateChange((state) => {
-        state.grid.enabled = value;
-      });
-    },
-  });
-
-  const minorDivisionsProxy = computed({
-    get: () => editorState.value.grid.minorDivisions,
-    set: (value: number | null) => {
-      applyStateChange((state) => {
-        state.grid.minorDivisions = Math.max(1, Math.round(value ?? 1));
-      });
-    },
-  });
-
   function getNextPolygonId() {
     let nextId = 1;
     for (const polygon of editorState.value.polygons) {
@@ -148,7 +122,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
 
   // ユーティリティ関数
   function snapPoint(point: PolygonEditorPoint) {
-    return snapPointWithGrid(point, editorState.value.grid, logicalBounds.value);
+    return snapPointWithGrid(point, grid.value, logicalBounds.value);
   }
 
   function createPolygon(vertices: PolygonEditorPoint[], color = getNextPolygonColor()) {
@@ -420,6 +394,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
   }
 
   return {
+    grid,
     editorState: readonly(editorState),
     selectedPolygonId,
     selectedVertexIndex,
@@ -433,9 +408,6 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     logicalBounds,
     canUndo,
     canRedo,
-    gridEnabled: gridEnabledProxy,
-    minorDivisions: minorDivisionsProxy,
-    backgroundColor: backgroundColorProxy,
     snapPoint,
     createPolygon,
     createRectanglePolygon,
