@@ -283,7 +283,7 @@ useResizeObserver(surfaceRef, renderCanvas);
   <div
     ref="surfaceRef"
     tabindex="0"
-    class="min-h-128 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 outline-none shadow-sm dark:border-gray-800 dark:bg-gray-950"
+    class="rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900"
     :class="editingLocked ? 'cursor-not-allowed' : 'cursor-crosshair'"
     @keydown="handleKeydown"
     @pointerdown="focusSurface"

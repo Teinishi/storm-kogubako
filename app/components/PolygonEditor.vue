@@ -39,8 +39,11 @@ watch(props, () => {
 </script>
 
 <template>
-  <div class="grid gap-4 xl:grid-cols-[22rem_minmax(0,1fr)]">
-    <PolygonEditorSidebar class="overflow-y-scroll" />
-    <PolygonEditorCanvas ref="canvas" />
+  <div class="flex flex-col lg:flex-row gap-4">
+    <PolygonEditorCanvas
+      ref="canvas"
+      class="min-h-80 max-h-[80vh] lg:flex-1"
+    />
+    <PolygonEditorSidebar class="lg:overflow-y-scroll lg:w-88" />
   </div>
 </template>

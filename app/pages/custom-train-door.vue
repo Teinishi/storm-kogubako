@@ -9,6 +9,14 @@ const { t } = useI18n({ useScope: 'local' });
 useHead({ title: gt('custom_train_door') });
 definePageMeta({ layout: 'app' });
 
+const { isSm } = useResponsive();
+
+const showPreview = ref(false);
+
+function togglePreview() {
+  showPreview.value = !showPreview.value;
+}
+
 const doorWidth = ref(3);
 const doorHeight = ref(8);
 
@@ -36,46 +44,77 @@ watchEffect(() => {
 </script>
 
 <template>
-  <div class="h-full p-4 grow grid sm:grid-cols-[600px_1fr] gap-4">
-    <div class="flex flex-col gap-4 overflow-y-auto">
+  <div class="h-full grid sm:grid-cols-[7fr_5fr]">
+    <div class="h-screen flex flex-col">
       <AppTitle :title="gt('custom_train_door')" />
 
-      <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
-          <UFormField :label="t('door_width')">
-            <UInputNumber
-              v-model="doorWidth"
-              :step="1"
-              :min="1"
-            />
-          </UFormField>
+      <div class="grow flex flex-col px-4 pt-0 pb-18 sm:pb-4 gap-4 overflow-y-auto">
+        <div class="grid lg:grid-cols-2 gap-4">
+          <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+              <UFormField :label="t('door_width')">
+                <UInputNumber
+                  v-model="doorWidth"
+                  :step="1"
+                  :min="1"
+                />
+              </UFormField>
 
-          <UFormField :label="t('door_height')">
-            <UInputNumber
-              v-model="doorHeight"
-              :step="1"
-              :min="1"
-            />
-          </UFormField>
+              <UFormField :label="t('door_height')">
+                <UInputNumber
+                  v-model="doorHeight"
+                  :step="1"
+                  :min="1"
+                />
+              </UFormField>
+            </div>
+          </div>
+
+          <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4" />
+        </div>
+
+        <div class="flex-1 lg:min-h-0">
+          <PolygonEditor
+            v-model="editorValue"
+            :logical-bounds="{ width: doorWidth, height: doorHeight }"
+            class="h-full"
+          />
         </div>
       </div>
-
-      <PolygonEditor
-        v-model="editorValue"
-        :logical-bounds="{ width: doorWidth, height: doorHeight }"
-        :style="{ height: '600px' }"
-      />
     </div>
 
-    <div class="flex items-center justify-center overflow-hidden rounded-lg bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
-      <ClientOnly>
-        <MeshViewerCanvas>
-          <TresMesh :geometry="geometry">
-            <TresMeshStandardMaterial :vertex-colors="true" />
-          </TresMesh>
-        </MeshViewerCanvas>
-      </ClientOnly>
-    </div>
+    <ClientOnly>
+      <transition
+        enter-active-class="transition-opacity duration-200"
+        leave-active-class="transition-opacity duration-200"
+        enter-from-class="opacity-0"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-show="isSm || showPreview"
+          class="fixed sm:static w-screen h-screen sm:w-auto flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 sm:border-l border-gray-200 dark:border-gray-700"
+        >
+          <MeshViewerCanvas>
+            <TresMesh :geometry="geometry">
+              <TresMeshStandardMaterial :vertex-colors="true" />
+            </TresMesh>
+          </MeshViewerCanvas>
+        </div>
+      </transition>
+
+      <Teleport
+        v-if="!isSm"
+        to="body"
+      >
+        <UButton
+          :icon="showPreview ? 'i-lucide-x' : 'i-lucide-box'"
+          :label="t('preview')"
+          size="xl"
+          class="fixed right-4 bottom-4 shadow-lg rounded-full"
+          @click="togglePreview"
+        />
+      </Teleport>
+    </ClientOnly>
   </div>
 </template>
 
@@ -83,11 +122,13 @@ watchEffect(() => {
 {
   "en": {
     "door_width": "Door Width",
-    "door_height": "Door Height"
+    "door_height": "Door Height",
+    "preview": "Preview"
   },
   "ja": {
     "door_width": "ドア幅",
-    "door_height": "ドア高さ"
+    "door_height": "ドア高さ",
+    "preview": "プレビュー"
   }
 }
 </i18n>
