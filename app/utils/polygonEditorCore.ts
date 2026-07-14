@@ -1,12 +1,15 @@
-export interface PolygonEditorPoint {
-  x: number;
-  y: number;
-}
+import type { Vec2 } from '~/utils/utils';
 
 export interface PolygonEditorPolygon {
   id: number;
   color: string;
-  vertices: PolygonEditorPoint[];
+  vertices: Vec2[];
+}
+
+export interface PolygonDraftRectangle {
+  start: Vec2;
+  current: Vec2;
+  color: string;
 }
 
 export interface PolygonEditorGrid {
@@ -42,7 +45,7 @@ export type HitVertex = {
 export type HitEdge = {
   polygonId: number;
   edgeIndex: number;
-  point: PolygonEditorPoint;
+  point: Vec2;
   distance: number;
 };
 
@@ -93,25 +96,25 @@ export function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-export function clampToLogicalBounds(point: PolygonEditorPoint, bounds: LogicalBounds): PolygonEditorPoint {
+export function clampToLogicalBounds(point: Vec2, bounds: LogicalBounds): Vec2 {
   return {
     x: clamp(point.x, bounds.minX, bounds.maxX),
     y: clamp(point.y, bounds.minY, bounds.maxY),
   };
 }
 
-export function clampVerticesToLogicalBounds(vertices: PolygonEditorPoint[], bounds: LogicalBounds) {
+export function clampVerticesToLogicalBounds(vertices: Vec2[], bounds: LogicalBounds) {
   return vertices.map(vertex => clampToLogicalBounds(vertex, bounds));
 }
 
-export function isWithinLogicalBounds(point: PolygonEditorPoint, bounds: LogicalBounds) {
+export function isWithinLogicalBounds(point: Vec2, bounds: LogicalBounds) {
   return point.x >= bounds.minX
     && point.x <= bounds.maxX
     && point.y >= bounds.minY
     && point.y <= bounds.maxY;
 }
 
-export function clonePoint(point: PolygonEditorPoint): PolygonEditorPoint {
+export function clonePoint(point: Vec2): Vec2 {
   return {
     x: point.x,
     y: point.y,
@@ -151,8 +154,7 @@ export function getViewTransform(metrics: CanvasMetrics, bounds: LogicalBounds):
   };
 }
 
-export function worldToCanvas(point: PolygonEditorPoint, metrics: CanvasMetrics, bounds: LogicalBounds) {
-  const transform = getViewTransform(metrics, bounds);
+export function worldToCanvas(point: Vec2, transform: ViewTransform) {
   return {
     x: transform.offsetX + point.x * transform.scale,
     y: transform.offsetY - point.y * transform.scale,
@@ -163,7 +165,7 @@ export function roundCoordinate(value: number) {
   return Math.round(value * SNAP_PRECISION) / SNAP_PRECISION;
 }
 
-export function snapPointWithGrid(point: PolygonEditorPoint, grid: PolygonEditorGrid, bounds: LogicalBounds) {
+export function snapPointWithGrid(point: Vec2, grid: PolygonEditorGrid, bounds: LogicalBounds) {
   if (!grid.enabled) {
     return clampToLogicalBounds({
       x: roundCoordinate(point.x),
@@ -178,7 +180,7 @@ export function snapPointWithGrid(point: PolygonEditorPoint, grid: PolygonEditor
   }, bounds);
 }
 
-export function createRectangleVertices(start: PolygonEditorPoint, end: PolygonEditorPoint, bounds: LogicalBounds) {
+export function createRectangleVertices(start: Vec2, end: Vec2, bounds: LogicalBounds) {
   const clampedStart = clampToLogicalBounds(start, bounds);
   const clampedEnd = clampToLogicalBounds(end, bounds);
   const minX = Math.min(clampedStart.x, clampedEnd.x);
@@ -191,10 +193,10 @@ export function createRectangleVertices(start: PolygonEditorPoint, end: PolygonE
     { x: maxX, y: minY },
     { x: maxX, y: maxY },
     { x: minX, y: maxY },
-  ] satisfies PolygonEditorPoint[];
+  ] satisfies Vec2[];
 }
 
-export function distanceToSegment(point: PolygonEditorPoint, start: PolygonEditorPoint, end: PolygonEditorPoint) {
+export function distanceToSegment(point: Vec2, start: Vec2, end: Vec2) {
   const deltaX = end.x - start.x;
   const deltaY = end.y - start.y;
   const lengthSquared = deltaX * deltaX + deltaY * deltaY;
@@ -220,7 +222,7 @@ export function distanceToSegment(point: PolygonEditorPoint, start: PolygonEdito
   };
 }
 
-export function pointInPolygon(point: PolygonEditorPoint, vertices: readonly ReadonlyVertex[]) {
+export function pointInPolygon(point: Vec2, vertices: readonly ReadonlyVertex[]) {
   if (vertices.length < 3) return false;
 
   let inside = false;
@@ -236,7 +238,7 @@ export function pointInPolygon(point: PolygonEditorPoint, vertices: readonly Rea
   return inside;
 }
 
-export function findHitVertex(point: PolygonEditorPoint, polygons: readonly ReadonlyPolygon[], threshold: number) {
+export function findHitVertex(point: Vec2, polygons: readonly ReadonlyPolygon[], threshold: number) {
   for (let polygonIndex = polygons.length - 1; polygonIndex >= 0; polygonIndex -= 1) {
     const polygon = polygons[polygonIndex];
     if (!polygon) continue;
@@ -258,10 +260,10 @@ export function findHitVertex(point: PolygonEditorPoint, polygons: readonly Read
 }
 
 export function findHitEdge(
-  point: PolygonEditorPoint,
+  point: Vec2,
   polygons: readonly ReadonlyPolygon[],
   threshold: number,
-  snapper: (point: PolygonEditorPoint) => PolygonEditorPoint,
+  snapper: (point: Vec2) => Vec2,
 ) {
   for (let polygonIndex = polygons.length - 1; polygonIndex >= 0; polygonIndex -= 1) {
     const polygon = polygons[polygonIndex];
@@ -287,7 +289,7 @@ export function findHitEdge(
   return null;
 }
 
-export function findHitPolygon(point: PolygonEditorPoint, polygons: readonly ReadonlyPolygon[]) {
+export function findHitPolygon(point: Vec2, polygons: readonly ReadonlyPolygon[]) {
   for (let polygonIndex = polygons.length - 1; polygonIndex >= 0; polygonIndex -= 1) {
     const polygon = polygons[polygonIndex];
     if (!polygon) continue;

@@ -29,19 +29,23 @@ const grid = computed<PolygonEditorGrid>(() => ({
 
 const canvasRef = useTemplateRef('canvas');
 
+function renderCanvas() {
+  canvasRef.value?.renderCanvas();
+}
+
 const editor = usePolygonEditor({
   props,
   grid,
   model,
   emitChange: snapshot => emit('change', snapshot),
-  renderCanvas: () => { canvasRef.value?.renderCanvas(); },
+  renderCanvas,
 });
 
 providePolygonEditor(editor);
 
-watch([props, gridEnabled, gridMiniorDivisions], () => {
-  canvasRef.value?.renderCanvas();
-});
+watch([props, gridEnabled, gridMiniorDivisions], renderCanvas);
+
+defineExpose({ renderCanvas });
 </script>
 
 <template>

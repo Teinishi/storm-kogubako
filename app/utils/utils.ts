@@ -1,5 +1,26 @@
-export type Color3 = { r: number; g: number; b: number };
-export type Position3 = { x: number; y: number; z: number };
+export interface Color3 {
+  r: number;
+  g: number;
+  b: number;
+}
+
+export interface Vec2 {
+  x: number;
+  y: number;
+}
+
+export interface Vec3 {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export interface Rect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
 
 export const BLACK = { r: 0, g: 0, b: 0 };
 export const WHITE = { r: 255, g: 255, b: 255 };

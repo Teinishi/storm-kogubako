@@ -49,7 +49,7 @@ const {
 } = usePolygonEditorCanvas({
   canvasRef,
   editor,
-  ...props.renderHooks,
+  renderHooks: props.renderHooks,
 });
 
 defineExpose({ renderCanvas });

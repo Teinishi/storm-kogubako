@@ -1,4 +1,5 @@
 import type { Ref } from 'vue';
+import type { Vec2, Rect } from '~/utils/utils';
 import {
   findHitEdge as findHitEdgeInPolygons,
   findHitPolygon as findHitPolygonInPolygons,
@@ -7,29 +8,23 @@ import {
   GRID_SCALE,
   HANDLE_HIT_THRESHOLD_PX,
   worldToCanvas as worldToCanvasWithBounds,
-} from '../utils/polygonEditorCore';
+} from '~/utils/polygonEditorCore';
 import type {
   CanvasMetrics,
   HitEdge,
   HitVertex,
-  PolygonEditorPoint,
   ReadonlyPolygon,
-} from '../utils/polygonEditorCore';
+  ViewTransform,
+} from '~/utils/polygonEditorCore';
 import type { PolygonEditor } from './usePolygonEditor';
 
-export type PolygonDraftRectangle = {
-  start: PolygonEditorPoint;
-  current: PolygonEditorPoint;
-  color: string;
-};
-
 export interface RenderHookArgs {
+  editor: PolygonEditor;
   ctx: CanvasRenderingContext2D;
   metrics: CanvasMetrics;
-  worldToCanvas(point: PolygonEditorPoint, metrics: CanvasMetrics): {
-    x: number;
-    y: number;
-  };
+  transform: ViewTransform;
+  worldToCanvas(point: Vec2): Vec2;
+  worldRectToCanvas(rect: Rect): Rect;
 }
 
 export interface RenderHooks {
@@ -77,8 +72,8 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     } satisfies CanvasMetrics;
   }
 
-  function worldToCanvas(point: PolygonEditorPoint, metrics: CanvasMetrics) {
-    return worldToCanvasWithBounds(point, metrics, logicalBounds.value);
+  function worldToCanvas(point: Vec2, transform: ViewTransform) {
+    return worldToCanvasWithBounds(point, transform);
   }
 
   function canvasToWorldRaw(clientX: number, clientY: number) {
@@ -103,7 +98,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     return snapPoint(canvasToWorldRaw(clientX, clientY));
   }
 
-  function findHitVertex(point: PolygonEditorPoint) {
+  function findHitVertex(point: Vec2) {
     return findHitVertexInPolygons(
       point,
       editorState.value.polygons,
@@ -111,7 +106,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     ) as HitVertex | null;
   }
 
-  function findHitEdge(point: PolygonEditorPoint) {
+  function findHitEdge(point: Vec2) {
     return findHitEdgeInPolygons(
       point,
       editorState.value.polygons,
@@ -120,23 +115,23 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     ) as HitEdge | null;
   }
 
-  function findHitPolygon(point: PolygonEditorPoint) {
+  function findHitPolygon(point: Vec2) {
     return findHitPolygonInPolygons(point, editorState.value.polygons);
   }
 
-  function renderGrid(ctx: CanvasRenderingContext2D, metrics: CanvasMetrics) {
+  function renderGrid(ctx: CanvasRenderingContext2D, transform: ViewTransform) {
+    // TODO: metrics が本当に必要かどうか調査
     if (!grid.value.enabled) return;
 
     const minorDivisions = Math.max(1, grid.value.minorDivisions);
-    const transform = getViewTransform(metrics, logicalBounds.value);
     const minX = logicalBounds.value.minX;
     const maxX = logicalBounds.value.maxX;
     const minY = logicalBounds.value.minY;
     const maxY = logicalBounds.value.maxY;
-    const majorStroke = 'rgba(148, 163, 184, 0.32)';
-    const minorStroke = 'rgba(148, 163, 184, 0.12)';
-    const topLeft = worldToCanvas({ x: minX, y: maxY }, metrics);
-    const bottomRight = worldToCanvas({ x: maxX, y: minY }, metrics);
+    const majorStroke = 'rgba(30, 187, 247, 0.7)';
+    const minorStroke = 'rgba(30, 187, 247, 0.3)';
+    const topLeft = worldToCanvas({ x: minX, y: maxY }, transform);
+    const bottomRight = worldToCanvas({ x: maxX, y: minY }, transform);
 
     ctx.save();
     ctx.beginPath();
@@ -149,8 +144,8 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       ctx.beginPath();
       ctx.strokeStyle = strokeStyle;
       ctx.lineWidth = width;
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, metrics.height);
+      ctx.moveTo(x, topLeft.y);
+      ctx.lineTo(x, bottomRight.y);
       ctx.stroke();
     };
 
@@ -159,8 +154,8 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       ctx.beginPath();
       ctx.strokeStyle = strokeStyle;
       ctx.lineWidth = width;
-      ctx.moveTo(0, y);
-      ctx.lineTo(metrics.width, y);
+      ctx.moveTo(topLeft.x, y);
+      ctx.lineTo(bottomRight.x, y);
       ctx.stroke();
     };
 
@@ -193,7 +188,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
 
   function renderPolygon(
     ctx: CanvasRenderingContext2D,
-    metrics: CanvasMetrics,
+    transform: ViewTransform,
     polygon: ReadonlyPolygon,
     options?: {
       noFill?: boolean;
@@ -213,15 +208,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     ctx.save();
     ctx.beginPath();
 
-    polygon.vertices.forEach((vertex, index) => {
-      const canvasPoint = worldToCanvas(vertex, metrics);
-      if (index === 0) {
-        ctx.moveTo(canvasPoint.x, canvasPoint.y);
-      }
-      else {
-        ctx.lineTo(canvasPoint.x, canvasPoint.y);
-      }
-    });
+    polygonOnCanvas(ctx, polygon.vertices, p => worldToCanvas(p, transform));
 
     if (polygon.vertices.length >= 3) {
       ctx.closePath();
@@ -254,7 +241,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
 
     if (vertices) {
       polygon.vertices.forEach((vertex, index) => {
-        const canvasPoint = worldToCanvas(vertex, metrics);
+        const canvasPoint = worldToCanvas(vertex, transform);
         const isSelectedVertex = selectedPolygonId.value === polygon.id && selectedVertexIndex.value === index;
 
         if (isSelectedVertex) {
@@ -295,6 +282,8 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     const metrics = getCanvasMetrics();
     if (!metrics) return;
 
+    const transform = getViewTransform(metrics, logicalBounds.value);
+
     const width = Math.max(1, Math.round(metrics.width * metrics.dpr));
     const height = Math.max(1, Math.round(metrics.height * metrics.dpr));
 
@@ -309,11 +298,35 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     ctx.setTransform(metrics.dpr, 0, 0, metrics.dpr, 0, 0);
     ctx.clearRect(0, 0, metrics.width, metrics.height);
 
+    const renderHookArgs = {
+      editor,
+      ctx,
+      metrics,
+      transform,
+      worldToCanvas: (point: Vec2) => worldToCanvas(point, transform),
+      worldRectToCanvas(rect: Rect) {
+        let { x: x1, y: y1 } = worldToCanvas(rect, transform);
+        let { x: x2, y: y2 } = worldToCanvas({ x: rect.x + rect.width, y: rect.y + rect.height }, transform);
+        if (x2 < x1) {
+          [x1, x2] = [x2, x1];
+        }
+        if (y2 < y1) {
+          [y1, y2] = [y2, y1];
+        }
+        return {
+          x: x1,
+          y: y1,
+          width: x2 - x1,
+          height: y2 - y1,
+        };
+      },
+    };
+
     if (options?.renderHooks?.onBeforeRenderPolygons) {
-      options.renderHooks.onBeforeRenderPolygons({ ctx, metrics, worldToCanvas });
+      options.renderHooks.onBeforeRenderPolygons(renderHookArgs);
     }
 
-    renderGrid(ctx, metrics);
+    renderGrid(ctx, transform);
 
     const hasSelectedPolygon = selectedPolygonId.value !== null;
     const selectedPolygonItem = hasSelectedPolygon
@@ -321,17 +334,17 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       : null;
 
     for (const polygon of editorState.value.polygons) {
-      renderPolygon(ctx, metrics, polygon, {
+      renderPolygon(ctx, transform, polygon, {
         dimmed: hasSelectedPolygon && polygon.id !== selectedPolygonId.value,
       });
     }
 
     if (options?.renderHooks?.onBeforeRenderSelection) {
-      options.renderHooks.onBeforeRenderSelection({ ctx, metrics, worldToCanvas });
+      options.renderHooks.onBeforeRenderSelection(renderHookArgs);
     }
 
     if (selectedPolygonItem) {
-      renderPolygon(ctx, metrics, selectedPolygonItem, {
+      renderPolygon(ctx, transform, selectedPolygonItem, {
         noFill: true,
         stroke: true,
         vertices: true,
@@ -339,7 +352,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     }
 
     if (draftPolygon.value) {
-      renderPolygon(ctx, metrics, draftPolygon.value, {
+      renderPolygon(ctx, transform, draftPolygon.value, {
         draft: true,
         vertices: true,
       });
@@ -348,14 +361,14 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     if (draftRectangle.value) {
       const { start, current } = draftRectangle.value;
       const polygon = createRectanglePolygon(start, current, draftRectangle.value.color);
-      renderPolygon(ctx, metrics, polygon, {
+      renderPolygon(ctx, transform, polygon, {
         draft: true,
         vertices: true,
       });
     }
 
     if (options?.renderHooks?.onAfterRender) {
-      options.renderHooks.onAfterRender({ ctx, metrics, worldToCanvas });
+      options.renderHooks.onAfterRender(renderHookArgs);
     }
   }
 

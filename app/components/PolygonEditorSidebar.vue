@@ -174,12 +174,14 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
         />
       </div>
 
-      <div class="grid sm:grid-cols-2 gap-2 items-center">
-        <USwitch
-          v-model="gridEnabled"
-          :disabled="editingLocked"
-          :label="t('grid_visible')"
-        />
+      <div class="grid sm:grid-cols-2 gap-2 items-end">
+        <div class="py-1.5">
+          <USwitch
+            v-model="gridEnabled"
+            :disabled="editingLocked"
+            :label="t('grid_visible')"
+          />
+        </div>
 
         <UFormField :label="t('minor_divisions')">
           <UInputNumber
