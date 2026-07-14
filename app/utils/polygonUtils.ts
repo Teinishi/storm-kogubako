@@ -1,13 +1,6 @@
 import polygonClipping from 'polygon-clipping';
 import * as earcut from 'earcut';
 import type { Vec2, Rect } from '~/utils/utils';
-import type { PolygonEditorPolygon } from './polygonEditorCore';
-
-export interface TriangulatedItem {
-  id: number;
-  vertices: Vec2[];
-  indices: number[];
-}
 
 export function polygonToGeom(points: Vec2[]): polygonClipping.Polygon {
   return [points.map(v => [v.x, v.y])];
@@ -180,52 +173,65 @@ export function offsetPolygon(
   return result;
 }
 
-// 重なったポリゴンを重なりのない三角形にする
-export function polygonsToDisjointTriangles(polygons: readonly PolygonEditorPolygon[], baseGeom?: polygonClipping.Geom) {
-  const disjointPolygons: { id: number; geom: polygonClipping.MultiPolygon }[] = [];
-  let mask: polygonClipping.Geom = [];
+// 重なったポリゴンの重なりを排除
+export function eliminatePolygonOverlap<T>(
+  polygons: readonly { id: T; vertices: Vec2[] }[],
+  base?: { geom: polygonClipping.Geom; id: T },
+) {
+  const disjointPolygons: { id: T; geom: polygonClipping.MultiPolygon }[] = [];
+  let mask: polygonClipping.MultiPolygon = [];
 
   for (let i = polygons.length - 1; 0 <= i; i--) {
     const { id, vertices } = polygons[i]!;
 
     const polygon = polygonToGeom(vertices);
     let geom = polygonClipping.difference(polygon, mask);
-    if (baseGeom) {
-      geom = polygonClipping.intersection(geom, baseGeom);
+    if (base) {
+      geom = polygonClipping.intersection(geom, base.geom);
     }
 
     disjointPolygons.push({ id, geom });
     mask = polygonClipping.union(mask, polygon);
   }
 
-  if (baseGeom) {
+  if (base) {
     disjointPolygons.push({
-      id: -1,
-      geom: polygonClipping.difference(baseGeom, mask),
+      id: base.id,
+      geom: polygonClipping.difference(base.geom, mask),
     });
   }
 
-  const triangulated = disjointPolygons.map(({ id, geom }) => {
-    let vertices: Vec2[] = [];
-    let indices: number[] = [];
+  return disjointPolygons;
+}
 
-    for (const polygon of geom) {
-      const offset = vertices.length;
+// ポリゴンを三角化
+export function triangulateGeometry(geom: polygonClipping.MultiPolygon) {
+  let vertices: Vec2[] = [];
+  let indices: number[] = [];
 
-      const localData = earcut.flatten(polygon);
+  for (const polygon of geom) {
+    const offset = vertices.length;
 
-      const localVertices: Vec2[] = [];
-      for (let i = 1; i < localData.vertices.length; i += 2) {
-        localVertices.push({ x: localData.vertices[i - 1]!, y: localData.vertices[i]! });
-      }
-      vertices = vertices.concat(localVertices);
+    const localData = earcut.flatten(polygon);
 
-      const localIndices = earcut.default(localData.vertices, localData.holes, localData.dimensions);
-      indices = indices.concat(localIndices.map(i => i + offset));
+    const localVertices: Vec2[] = [];
+    for (let i = 1; i < localData.vertices.length; i += 2) {
+      localVertices.push({ x: localData.vertices[i - 1]!, y: localData.vertices[i]! });
     }
+    vertices = vertices.concat(localVertices);
 
-    return { id, vertices, indices };
-  });
+    const localIndices = earcut.default(localData.vertices, localData.holes, localData.dimensions);
+    indices = indices.concat(localIndices.map(i => i + offset));
+  }
 
+  return { vertices, indices };
+}
+
+export function polygonsToDisjointTriangles<T>(
+  polygons: readonly { id: T; vertices: Vec2[] }[],
+  base?: { geom: polygonClipping.Geom; id: T },
+) {
+  const geometries = eliminatePolygonOverlap(polygons, base);
+  const triangulated = geometries.map(({ id, geom }) => ({ id, ...triangulateGeometry(geom) }));
   return triangulated;
 }

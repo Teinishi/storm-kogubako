@@ -1,6 +1,6 @@
 import { BufferAttribute, type BufferGeometry } from 'three';
 import type { Vec2, Vec3, Color3 } from '~/utils/utils';
-import { type TriangulatedItem, polygonWindingDirection } from './polygonUtils';
+import { polygonWindingDirection } from './polygonUtils';
 
 // ポリゴンを Canvas に書く
 export function polygonOnCanvas(ctx: CanvasRenderingContext2D, polygon: readonly Vec2[], coordinateConversion?: (point: Vec2) => Vec2) {
@@ -15,11 +15,16 @@ export function polygonOnCanvas(ctx: CanvasRenderingContext2D, polygon: readonly
   });
 }
 
+export interface TriangulatedItem {
+  vertices: Vec2[];
+  indices: number[];
+  color: Color3;
+}
+
 // 三角化したポリゴンで Three.js の BufferGeometry を更新
 export function updateGeometry(
   geometry: BufferGeometry,
   triangulated: readonly TriangulatedItem[],
-  getColor: (item: TriangulatedItem) => Color3,
   coordinateConversion: (point: Vec2) => Vec3,
 ) {
   const totalVertexCount = triangulated.reduce((acc, item) => acc + item.vertices.length, 0);
@@ -30,7 +35,7 @@ export function updateGeometry(
 
   let offset = 0;
   for (const item of triangulated) {
-    const { r, g, b } = getColor(item);
+    const { r, g, b } = item.color;
 
     indices = indices.concat(item.indices.map(i => i + offset));
 
