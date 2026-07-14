@@ -1,10 +1,26 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import polygonClipping from 'polygon-clipping';
-import { BufferGeometry } from 'three';
-import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
-import { polygonToGeom, rectToGeom, polygonsToDisjointTriangles } from '~/utils/polygonUtils';
+import type { PolygonEditorValue } from '~/utils/polygonEditorCore';
 import type { RenderHooks } from '~/composables/usePolygonEditorCanvas';
+
+const UNITS_PER_BLOCK = 9;
+const FORMAT_OPTIONS_METER = { maximumFractionDigits: 5, style: 'unit', unit: 'meter' } as const;
+
+export interface TrainDoorState {
+  doorWidth: number;
+  doorHeight: number;
+  doorThickness: number;
+  doorZOffset: number;
+  baseColor: string;
+  rubberThickness: number;
+  rubberColor: string;
+  windowXOffset: number;
+  windowYOffset: number;
+  windowWidth: number;
+  windowHeight: number;
+  windowCornerRadius: number;
+  windowCornerDivisions: number;
+}
 
 const { t: gt } = useI18n({ useScope: 'global' });
 const { t } = useI18n({ useScope: 'local' });
@@ -12,30 +28,29 @@ const { t } = useI18n({ useScope: 'local' });
 useHead({ title: gt('custom_train_door') });
 definePageMeta({ layout: 'app' });
 
-const UNITS_PER_BLOCK = 9;
-const FORMAT_OPTIONS_METER = { maximumFractionDigits: 5, style: 'unit', unit: 'meter' } as const;
-
 const polygonEditor = useTemplateRef('polygonEditor');
 
-const doorWidth = ref(3);
-const doorHeight = ref(8);
-const doorThickness = ref(0.1);
-const baseColor = ref('#c0c7cf');
-const rubberThickness = ref(1);
-const rubberColor = ref('#9B9B9B');
-
-const windowXOffset = ref(0);
-const windowYOffset = ref(0.125);
-const windowWidth = ref(0.5);
-const windowHeight = ref(1);
-const windowCornerRadius = ref(0.08);
-const windowCornerDivisions = ref(1);
+const state = reactive<TrainDoorState>({
+  doorWidth: 3,
+  doorHeight: 8,
+  doorThickness: 0.1,
+  doorZOffset: 0,
+  baseColor: '#c0c7cf',
+  rubberThickness: 1,
+  rubberColor: '#9B9B9B',
+  windowXOffset: 0,
+  windowYOffset: 0.125,
+  windowWidth: 0.5,
+  windowHeight: 1,
+  windowCornerRadius: 0.08,
+  windowCornerDivisions: 1,
+});
 
 const windowRect = computed(() => {
-  const wBlocks = windowWidth.value / 0.25;
-  const hBlocks = windowHeight.value / 0.25;
-  const x = (doorWidth.value - wBlocks) / 2 + windowXOffset.value / 0.25;
-  const top = doorHeight.value - windowYOffset.value / 0.25;
+  const wBlocks = state.windowWidth / 0.25;
+  const hBlocks = state.windowHeight / 0.25;
+  const x = (state.doorWidth - wBlocks) / 2 + state.windowXOffset / 0.25;
+  const top = state.doorHeight - state.windowYOffset / 0.25;
   return {
     x,
     y: top - hBlocks,
@@ -46,17 +61,17 @@ const windowRect = computed(() => {
 
 const windowPolygon = computed(() => createRoundedRectPolygon(
   windowRect.value,
-  windowCornerRadius.value / 0.25,
-  windowCornerDivisions.value,
+  state.windowCornerRadius / 0.25,
+  state.windowCornerDivisions,
 ));
 
-const editorValue = ref<PolygonEditorValue>({ polygons: [] });
+const polygonEditorValue = ref<PolygonEditorValue>({ polygons: [] });
 
 const renderHooks: RenderHooks = {
   onBeforeRenderPolygons({ ctx, worldRectToCanvas }) {
     // ベースカラー描画
-    const r = worldRectToCanvas({ x: 0, y: 0, width: doorWidth.value, height: doorHeight.value });
-    ctx.fillStyle = baseColor.value;
+    const r = worldRectToCanvas({ x: 0, y: 0, width: state.doorWidth, height: state.doorHeight });
+    ctx.fillStyle = state.baseColor;
     ctx.fillRect(r.x, r.y, r.width, r.height);
   },
   onBeforeRenderSelection({ editor, ctx, worldToCanvas }) {
@@ -93,28 +108,6 @@ const renderHooks: RenderHooks = {
 watch(windowPolygon, () => {
   polygonEditor.value?.renderCanvas();
 });
-
-const geometry = new BufferGeometry();
-const materials = createStormworksMaterials();
-
-watchEffect(() => {
-  const rectGeom = rectToGeom({ x: 0, y: 0, width: doorWidth.value, height: doorHeight.value });
-  const windowHole = polygonToGeom(offsetPolygon(windowPolygon.value, 0.02 / 0.25));
-  const baseGeom = polygonClipping.difference(rectGeom, windowHole);
-
-  const { polygons } = editorValue.value;
-  const triangulated = polygonsToDisjointTriangles(polygons, baseGeom);
-  updateGeometry(
-    geometry,
-    triangulated,
-    ({ id }) => hexToRgb(polygons.find(v => v.id === id)?.color ?? baseColor.value),
-    ({ x, y }) => ({
-      x: 0.25 * (x - Math.floor(doorWidth.value / 2) - 0.5),
-      y: 0.25 * (y - Math.floor(doorHeight.value / 2) - 0.5),
-      z: 0,
-    }),
-  );
-});
 </script>
 
 <template>
@@ -129,7 +122,7 @@ watchEffect(() => {
               <UFormField :label="t('door_width')">
                 <div class="flex items-center gap-2">
                   <UInputNumber
-                    v-model="doorWidth"
+                    v-model="state.doorWidth"
                     :step="1"
                     :min="1"
                     class="flex-1"
@@ -141,10 +134,10 @@ watchEffect(() => {
               <UFormField :label="t('door_height')">
                 <div class="flex items-center gap-2">
                   <UInputNumber
-                    v-model="doorHeight"
+                    v-model="state.doorHeight"
                     :step="1"
                     :min="1"
-                    class="flex-1"
+                    class="w-full"
                   />
                   <span class="text-muted">{{ t('blocks') }}</span>
                 </div>
@@ -152,18 +145,34 @@ watchEffect(() => {
 
               <UFormField :label="t('door_thickness')">
                 <UInputNumber
-                  v-model="doorThickness"
+                  v-model="state.doorThickness"
                   :step="0.05"
                   :min="0.05"
-                  class="flex-1"
+                  class="w-full"
                   :format-options="FORMAT_OPTIONS_METER"
                 />
               </UFormField>
 
+              <UFormField :label="t('door_z_offset')">
+                <UInputNumber
+                  v-model="state.doorZOffset"
+                  :step="0.05"
+                  class="w-full"
+                  :format-options="FORMAT_OPTIONS_METER"
+                />
+              </UFormField>
+
+              <ColorPicker
+                v-model="state.baseColor"
+                :label="t('base_color')"
+              />
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
               <UFormField :label="t('rubber_thickness')">
                 <div class="flex items-center gap-2">
                   <UInputNumber
-                    v-model="rubberThickness"
+                    v-model="state.rubberThickness"
                     :step="1"
                     :min="1"
                     class="flex-1"
@@ -173,12 +182,7 @@ watchEffect(() => {
               </UFormField>
 
               <ColorPicker
-                v-model="baseColor"
-                :label="t('base_color')"
-              />
-
-              <ColorPicker
-                v-model="rubberColor"
+                v-model="state.rubberColor"
                 :label="t('rubber_color')"
               />
             </div>
@@ -188,55 +192,55 @@ watchEffect(() => {
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
               <UFormField :label="t('window_x_offset')">
                 <UInputNumber
-                  v-model="windowXOffset"
+                  v-model="state.windowXOffset"
                   :step="0.0625"
-                  class="flex-1"
+                  class="w-full"
                   :format-options="FORMAT_OPTIONS_METER"
                 />
               </UFormField>
 
               <UFormField :label="t('window_y_offset')">
                 <UInputNumber
-                  v-model="windowYOffset"
+                  v-model="state.windowYOffset"
                   :step="0.0625"
-                  class="flex-1"
+                  class="w-full"
                   :format-options="FORMAT_OPTIONS_METER"
                 />
               </UFormField>
 
               <UFormField :label="t('window_width')">
                 <UInputNumber
-                  v-model="windowWidth"
+                  v-model="state.windowWidth"
                   :step="0.0625"
                   :min="0"
-                  class="flex-1"
+                  class="w-full"
                   :format-options="FORMAT_OPTIONS_METER"
                 />
               </UFormField>
 
               <UFormField :label="t('window_height')">
                 <UInputNumber
-                  v-model="windowHeight"
+                  v-model="state.windowHeight"
                   :step="0.0625"
                   :min="0"
-                  class="flex-1"
+                  class="w-full"
                   :format-options="FORMAT_OPTIONS_METER"
                 />
               </UFormField>
 
               <UFormField :label="t('window_corner_radius')">
                 <UInputNumber
-                  v-model="windowCornerRadius"
+                  v-model="state.windowCornerRadius"
                   :step="0.01"
                   :min="0"
-                  class="flex-1"
+                  class="w-full"
                   :format-options="FORMAT_OPTIONS_METER"
                 />
               </UFormField>
 
               <UFormField :label="t('window_corner_divisions')">
                 <UInputNumber
-                  v-model="windowCornerDivisions"
+                  v-model="state.windowCornerDivisions"
                   :step="1"
                   :min="0"
                   class="w-full"
@@ -249,8 +253,8 @@ watchEffect(() => {
         <div class="flex-1 lg:min-h-0">
           <PolygonEditor
             ref="polygonEditor"
-            v-model="editorValue"
-            :logical-bounds="{ width: doorWidth, height: doorHeight }"
+            v-model="polygonEditorValue"
+            :logical-bounds="{ width: state.doorWidth, height: state.doorHeight }"
             :render-hooks="renderHooks"
             class="h-full"
           />
@@ -263,12 +267,11 @@ watchEffect(() => {
       :label="t('preview')"
     >
       <ClientOnly>
-        <MeshViewerCanvas>
-          <TresMesh
-            :geometry="geometry"
-            :material="[materials.opaque, materials.glass, materials.additive]"
-          />
-        </MeshViewerCanvas>
+        <TrainDoorPreview
+          :state="state"
+          :window-hole="windowPolygon"
+          :polygon-editor-value="polygonEditorValue"
+        />
       </ClientOnly>
     </ResponsivePanel>
   </div>
@@ -281,6 +284,7 @@ watchEffect(() => {
     "door_width": "Door Width",
     "door_height": "Door Height",
     "door_thickness": "Door Thickness",
+    "door_z_offset": "Door Z Offset",
     "base_color": "Base Color",
     "rubber_thickness": "Rubber Thickness",
     "rubber_color": "Rubber Color",
@@ -297,11 +301,12 @@ watchEffect(() => {
     "door_width": "ドア幅",
     "door_height": "ドア高さ",
     "door_thickness": "ドア厚み",
+    "door_z_offset": "ドアZ",
     "base_color": "ベースカラー",
     "rubber_thickness": "戸先ゴム厚み",
     "rubber_color": "戸先ゴムカラー",
-    "window_x_offset": "窓Xオフセット",
-    "window_y_offset": "窓Yオフセット",
+    "window_x_offset": "窓X",
+    "window_y_offset": "窓Y",
     "window_width": "窓幅",
     "window_height": "窓高さ",
     "window_corner_radius": "窓角丸",

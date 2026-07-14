@@ -16,6 +16,7 @@ import type {
   ReadonlyPolygon,
   ViewTransform,
 } from '~/utils/polygonEditorCore';
+import { polygonOnCanvas } from '~/utils/polygonRenderUtils.client';
 import type { PolygonEditor } from './usePolygonEditor';
 
 export interface RenderHookArgs {

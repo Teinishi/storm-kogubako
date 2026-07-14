@@ -1,18 +1,12 @@
 import polygonClipping from 'polygon-clipping';
 import * as earcut from 'earcut';
-import { BufferAttribute, type BufferGeometry } from 'three';
 import type { Vec2, Rect } from '~/utils/utils';
 import type { PolygonEditorPolygon } from './polygonEditorCore';
 
-interface TriangulatedItem {
+export interface TriangulatedItem {
   id: number;
   vertices: Vec2[];
   indices: number[];
-}
-
-// 自前の PolygonEditor 用形式から polygon-clipping の形式へ変換
-function editorToClipping(vertices: Vec2[]): polygonClipping.Polygon {
-  return [vertices.map(v => [v.x, v.y])];
 }
 
 export function polygonToGeom(points: Vec2[]): polygonClipping.Polygon {
@@ -28,91 +22,21 @@ export function rectToGeom(rect: Rect): polygonClipping.Polygon {
   ]];
 }
 
-export function polygonsToDisjointTriangles(polygons: PolygonEditorPolygon[], baseGeom?: polygonClipping.Geom) {
-  const disjointPolygons: { id: number; geom: polygonClipping.MultiPolygon }[] = [];
-  let mask: polygonClipping.Geom = [];
-
-  for (let i = polygons.length - 1; 0 <= i; i--) {
-    const { id, vertices } = polygons[i]!;
-
-    const polygon = editorToClipping(vertices);
-    let geom = polygonClipping.difference(polygon, mask);
-    if (baseGeom) {
-      geom = polygonClipping.intersection(geom, baseGeom);
-    }
-
-    disjointPolygons.push({ id, geom });
-    mask = polygonClipping.union(mask, polygon);
+// 向きを判定
+export function polygonWindingDirection(polygon: readonly Vec2[]) {
+  const n = polygon.length;
+  if (n < 3) {
+    throw new Error('Polygon must have at least 3 vertices.');
   }
 
-  if (baseGeom) {
-    disjointPolygons.push({
-      id: -1,
-      geom: polygonClipping.difference(baseGeom, mask),
-    });
+  let area = 0;
+  for (let i = 0; i < n; i++) {
+    const a = polygon[i]!;
+    const b = polygon[(i + 1) % n]!;
+    area += a.x * b.y - b.x * a.y;
   }
 
-  const triangulated = disjointPolygons.map(({ id, geom }) => {
-    let vertices: Vec2[] = [];
-    let indices: number[] = [];
-
-    for (const polygon of geom) {
-      const offset = vertices.length;
-
-      const localData = earcut.flatten(polygon);
-
-      const localVertices: Vec2[] = [];
-      for (let i = 1; i < localData.vertices.length; i += 2) {
-        localVertices.push({ x: localData.vertices[i - 1]!, y: localData.vertices[i]! });
-      }
-      vertices = vertices.concat(localVertices);
-
-      const localIndices = earcut.default(localData.vertices, localData.holes, localData.dimensions);
-      indices = indices.concat(localIndices.map(i => i + offset));
-    }
-
-    return { id, vertices, indices };
-  });
-
-  return triangulated;
-}
-
-export function updateGeometry(
-  geometry: BufferGeometry,
-  triangulated: TriangulatedItem[],
-  getColor: (item: TriangulatedItem) => { r: number; g: number; b: number },
-  coordinateConversion: (point: Vec2) => { x: number; y: number; z: number },
-) {
-  const totalVertexCount = triangulated.reduce((acc, item) => acc + item.vertices.length, 0);
-
-  const positions = new Float32Array(3 * totalVertexCount);
-  const colors = new Float32Array(3 * totalVertexCount);
-  let indices: number[] = [];
-
-  let offset = 0;
-  for (const item of triangulated) {
-    const { r, g, b } = getColor(item);
-
-    indices = indices.concat(item.indices.map(i => i + offset));
-
-    for (const vertex of item.vertices) {
-      const { x, y, z } = coordinateConversion(vertex);
-      positions[3 * offset] = x;
-      positions[3 * offset + 1] = y;
-      positions[3 * offset + 2] = z;
-      colors[3 * offset] = r / 255;
-      colors[3 * offset + 1] = g / 255;
-      colors[3 * offset + 2] = b / 255;
-      offset++;
-    }
-  }
-
-  geometry.setAttribute('position', new BufferAttribute(positions, 3));
-  geometry.setAttribute('color', new BufferAttribute(colors, 3));
-  geometry.setIndex(indices);
-  geometry.computeVertexNormals();
-
-  geometry.addGroup(0, indices.length, 0);
+  return area > 0 ? 'CCW' : 'CW';
 }
 
 // 角丸矩形のポリゴンを生成
@@ -165,19 +89,8 @@ export function offsetPolygon(
   polygon: readonly Vec2[],
   distance: number,
 ): Vec2[] {
+  const normalSign = polygonWindingDirection(polygon) === 'CCW' ? -1 : 1;
   const n = polygon.length;
-  if (n < 3) {
-    throw new Error('Polygon must have at least 3 vertices.');
-  }
-
-  // 向きを判定
-  let area = 0;
-  for (let i = 0; i < n; i++) {
-    const a = polygon[i]!;
-    const b = polygon[(i + 1) % n]!;
-    area += a.x * b.y - b.x * a.y;
-  }
-  const normalSign = area > 0 ? -1 : 1;
 
   const result: Vec2[] = [];
 
@@ -267,14 +180,52 @@ export function offsetPolygon(
   return result;
 }
 
-export function polygonOnCanvas(ctx: CanvasRenderingContext2D, polygon: readonly Vec2[], coordinateConversion?: (point: Vec2) => Vec2) {
-  polygon.forEach((point, i) => {
-    const p = coordinateConversion ? coordinateConversion(point) : point;
-    if (i === 0) {
-      ctx.moveTo(p.x, p.y);
+// 重なったポリゴンを重なりのない三角形にする
+export function polygonsToDisjointTriangles(polygons: readonly PolygonEditorPolygon[], baseGeom?: polygonClipping.Geom) {
+  const disjointPolygons: { id: number; geom: polygonClipping.MultiPolygon }[] = [];
+  let mask: polygonClipping.Geom = [];
+
+  for (let i = polygons.length - 1; 0 <= i; i--) {
+    const { id, vertices } = polygons[i]!;
+
+    const polygon = polygonToGeom(vertices);
+    let geom = polygonClipping.difference(polygon, mask);
+    if (baseGeom) {
+      geom = polygonClipping.intersection(geom, baseGeom);
     }
-    else {
-      ctx.lineTo(p.x, p.y);
+
+    disjointPolygons.push({ id, geom });
+    mask = polygonClipping.union(mask, polygon);
+  }
+
+  if (baseGeom) {
+    disjointPolygons.push({
+      id: -1,
+      geom: polygonClipping.difference(baseGeom, mask),
+    });
+  }
+
+  const triangulated = disjointPolygons.map(({ id, geom }) => {
+    let vertices: Vec2[] = [];
+    let indices: number[] = [];
+
+    for (const polygon of geom) {
+      const offset = vertices.length;
+
+      const localData = earcut.flatten(polygon);
+
+      const localVertices: Vec2[] = [];
+      for (let i = 1; i < localData.vertices.length; i += 2) {
+        localVertices.push({ x: localData.vertices[i - 1]!, y: localData.vertices[i]! });
+      }
+      vertices = vertices.concat(localVertices);
+
+      const localIndices = earcut.default(localData.vertices, localData.holes, localData.dimensions);
+      indices = indices.concat(localIndices.map(i => i + offset));
     }
+
+    return { id, vertices, indices };
   });
+
+  return triangulated;
 }
