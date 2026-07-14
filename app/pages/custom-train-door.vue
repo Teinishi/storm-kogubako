@@ -3,8 +3,11 @@ import { ref } from 'vue';
 import type { PolygonEditorValue } from '~/utils/polygonEditorCore';
 import type { RenderHooks } from '~/composables/usePolygonEditorCanvas';
 
-const UNITS_PER_BLOCK = 9;
-const FORMAT_OPTIONS_METER = { maximumFractionDigits: 5, style: 'unit', unit: 'meter' } as const;
+const FORMAT_OPTIONS_METER = {
+  maximumFractionDigits: 5,
+  style: 'unit',
+  unit: 'meter',
+} as const;
 
 export interface TrainDoorState {
   doorWidth: number;
@@ -36,8 +39,8 @@ const state = reactive<TrainDoorState>({
   doorThickness: 0.1,
   doorZOffset: 0,
   baseColor: '#c0c7cf',
-  rubberThickness: 1,
-  rubberColor: '#9B9B9B',
+  rubberThickness: 0.03,
+  rubberColor: '#545454',
   windowXOffset: 0,
   windowYOffset: 0.125,
   windowWidth: 0.5,
@@ -49,7 +52,8 @@ const state = reactive<TrainDoorState>({
 const windowRect = computed(() => {
   const wBlocks = state.windowWidth / 0.25;
   const hBlocks = state.windowHeight / 0.25;
-  const x = (state.doorWidth - wBlocks) / 2 + state.windowXOffset / 0.25;
+  const rubber = state.rubberThickness / 0.25;
+  const x = (state.doorWidth - rubber - wBlocks) / 2 + rubber + state.windowXOffset / 0.25;
   const top = state.doorHeight - state.windowYOffset / 0.25;
   return {
     x,
@@ -74,7 +78,7 @@ const renderHooks: RenderHooks = {
     ctx.fillStyle = state.baseColor;
     ctx.fillRect(r.x, r.y, r.width, r.height);
   },
-  onBeforeRenderSelection({ editor, ctx, worldToCanvas }) {
+  onBeforeRenderSelection({ editor, ctx, worldToCanvas, worldRectToCanvas }) {
     // 窓描画
     const points = windowPolygon.value;
     if (points.length < 3) return;
@@ -96,12 +100,22 @@ const renderHooks: RenderHooks = {
     polygonOnCanvas(ctx, hasSelection ? points : midRing, worldToCanvas);
     ctx.fill();
 
-    ctx.fillStyle = '#9B9B9B';
+    ctx.fillStyle = '#545454';
     ctx.beginPath();
     polygonOnCanvas(ctx, points, worldToCanvas);
     polygonOnCanvas(ctx, outerRing, worldToCanvas);
     ctx.closePath();
     ctx.fill('evenodd');
+
+    // 戸先ゴム描画
+    ctx.fillStyle = state.rubberColor;
+    const r = worldRectToCanvas({
+      x: 0,
+      y: 0,
+      width: state.rubberThickness / 0.25,
+      height: state.doorHeight,
+    });
+    ctx.fillRect(r.x, r.y, r.width, r.height);
   },
 };
 
@@ -137,7 +151,7 @@ watch(windowPolygon, () => {
                     v-model="state.doorHeight"
                     :step="1"
                     :min="1"
-                    class="w-full"
+                    class="flex-1"
                   />
                   <span class="text-muted">{{ t('blocks') }}</span>
                 </div>
@@ -170,15 +184,13 @@ watch(windowPolygon, () => {
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
               <UFormField :label="t('rubber_thickness')">
-                <div class="flex items-center gap-2">
-                  <UInputNumber
-                    v-model="state.rubberThickness"
-                    :step="1"
-                    :min="1"
-                    class="flex-1"
-                  />
-                  <span class="text-muted">/ {{ UNITS_PER_BLOCK }}</span>
-                </div>
+                <UInputNumber
+                  v-model="state.rubberThickness"
+                  :step="0.01"
+                  :min="0"
+                  class="w-full"
+                  :format-options="FORMAT_OPTIONS_METER"
+                />
               </UFormField>
 
               <ColorPicker

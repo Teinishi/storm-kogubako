@@ -1,4 +1,4 @@
-export interface Color3 {
+export interface Color {
   r: number;
   g: number;
   b: number;
@@ -25,7 +25,7 @@ export interface Rect {
 export const BLACK = { r: 0, g: 0, b: 0 };
 export const WHITE = { r: 255, g: 255, b: 255 };
 
-export const colorEquals = (a: Color3, b: Color3) => a.r === b.r && a.g === b.g && a.b === b.b;
+export const colorEquals = (a: Color, b: Color) => a.r === b.r && a.g === b.g && a.b === b.b;
 
 export const hexToRgb = (hex: string) => {
   if (hex.startsWith('#')) {
@@ -51,6 +51,10 @@ const to16 = (num: number) => {
   const hex = num.toString(16);
   return hex.length === 1 ? `0${hex}` : hex;
 };
-export const rgbToHex = ({ r, g, b }: Color3) => `#${to16(r)}${to16(g)}${to16(b)}`;
+export const rgbToHex = ({ r, g, b }: Color) => `#${to16(r)}${to16(g)}${to16(b)}`;
 
 export const round = (x: number, n: number) => Math.round(x * 10 ** n) / 10 ** n;
+
+export function lerp(a: number, b: number, t: number) {
+  return (1 - t) * a + t * b;
+}
