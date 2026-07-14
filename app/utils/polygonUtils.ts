@@ -4,14 +4,9 @@ import { BufferAttribute, type BufferGeometry } from 'three';
 import type { Vec2, Rect } from '~/utils/utils';
 import type { PolygonEditorPolygon } from './polygonEditorCore';
 
-interface Point2D {
-  x: number;
-  y: number;
-}
-
 interface TriangulatedItem {
   id: number;
-  vertices: Point2D[];
+  vertices: Vec2[];
   indices: number[];
 }
 
@@ -20,16 +15,20 @@ function editorToClipping(vertices: Vec2[]): polygonClipping.Polygon {
   return [vertices.map(v => [v.x, v.y])];
 }
 
-export function polygonsToDisjointTriangles(polygons: PolygonEditorPolygon[], rect?: Rect) {
-  const rectGeom: polygonClipping.Polygon | undefined = rect
-    ? [[
-        [rect.x, rect.y],
-        [rect.x + rect.width, rect.y],
-        [rect.x + rect.width, rect.y + rect.height],
-        [rect.x, rect.y + rect.height],
-      ]]
-    : undefined;
+export function polygonToGeom(points: Vec2[]): polygonClipping.Polygon {
+  return [points.map(v => [v.x, v.y])];
+}
 
+export function rectToGeom(rect: Rect): polygonClipping.Polygon {
+  return [[
+    [rect.x, rect.y],
+    [rect.x + rect.width, rect.y],
+    [rect.x + rect.width, rect.y + rect.height],
+    [rect.x, rect.y + rect.height],
+  ]];
+}
+
+export function polygonsToDisjointTriangles(polygons: PolygonEditorPolygon[], baseGeom?: polygonClipping.Geom) {
   const disjointPolygons: { id: number; geom: polygonClipping.MultiPolygon }[] = [];
   let mask: polygonClipping.Geom = [];
 
@@ -38,23 +37,23 @@ export function polygonsToDisjointTriangles(polygons: PolygonEditorPolygon[], re
 
     const polygon = editorToClipping(vertices);
     let geom = polygonClipping.difference(polygon, mask);
-    if (rectGeom) {
-      geom = polygonClipping.intersection(geom, rectGeom);
+    if (baseGeom) {
+      geom = polygonClipping.intersection(geom, baseGeom);
     }
 
     disjointPolygons.push({ id, geom });
     mask = polygonClipping.union(mask, polygon);
   }
 
-  if (rect && rectGeom) {
+  if (baseGeom) {
     disjointPolygons.push({
       id: -1,
-      geom: polygonClipping.difference(rectGeom, mask),
+      geom: polygonClipping.difference(baseGeom, mask),
     });
   }
 
   const triangulated = disjointPolygons.map(({ id, geom }) => {
-    let vertices: Point2D[] = [];
+    let vertices: Vec2[] = [];
     let indices: number[] = [];
 
     for (const polygon of geom) {
@@ -62,7 +61,7 @@ export function polygonsToDisjointTriangles(polygons: PolygonEditorPolygon[], re
 
       const localData = earcut.flatten(polygon);
 
-      const localVertices: Point2D[] = [];
+      const localVertices: Vec2[] = [];
       for (let i = 1; i < localData.vertices.length; i += 2) {
         localVertices.push({ x: localData.vertices[i - 1]!, y: localData.vertices[i]! });
       }
@@ -82,7 +81,7 @@ export function updateGeometry(
   geometry: BufferGeometry,
   triangulated: TriangulatedItem[],
   getColor: (item: TriangulatedItem) => { r: number; g: number; b: number },
-  coordinateConversion: (point: Point2D) => { x: number; y: number; z: number },
+  coordinateConversion: (point: Vec2) => { x: number; y: number; z: number },
 ) {
   const totalVertexCount = triangulated.reduce((acc, item) => acc + item.vertices.length, 0);
 

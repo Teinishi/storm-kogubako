@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { polygonsToDisjointTriangles } from '~/utils/polygonUtils';
+import polygonClipping from 'polygon-clipping';
 import { BufferGeometry } from 'three';
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
+import { polygonToGeom, rectToGeom, polygonsToDisjointTriangles } from '~/utils/polygonUtils';
 import type { RenderHooks } from '~/composables/usePolygonEditorCanvas';
 
 const { t: gt } = useI18n({ useScope: 'global' });
@@ -53,13 +54,15 @@ const editorValue = ref<PolygonEditorValue>({ polygons: [] });
 
 const renderHooks: RenderHooks = {
   onBeforeRenderPolygons({ ctx, worldRectToCanvas }) {
+    // ベースカラー描画
     const r = worldRectToCanvas({ x: 0, y: 0, width: doorWidth.value, height: doorHeight.value });
     ctx.fillStyle = baseColor.value;
     ctx.fillRect(r.x, r.y, r.width, r.height);
   },
   onBeforeRenderSelection({ editor, ctx, worldToCanvas }) {
+    // 窓描画
     const points = windowPolygon.value;
-    if (points.length === 0) return;
+    if (points.length < 3) return;
 
     const hasSelection = editor.selectedPolygonId.value !== null;
     ctx.globalAlpha = hasSelection ? 0.6 : 1;
@@ -95,9 +98,12 @@ const geometry = new BufferGeometry();
 const materials = createStormworksMaterials();
 
 watchEffect(() => {
+  const rectGeom = rectToGeom({ x: 0, y: 0, width: doorWidth.value, height: doorHeight.value });
+  const windowHole = polygonToGeom(offsetPolygon(windowPolygon.value, 0.02 / 0.25));
+  const baseGeom = polygonClipping.difference(rectGeom, windowHole);
+
   const { polygons } = editorValue.value;
-  const rect = { x: 0, y: 0, width: doorWidth.value, height: doorHeight.value };
-  const triangulated = polygonsToDisjointTriangles(polygons, rect);
+  const triangulated = polygonsToDisjointTriangles(polygons, baseGeom);
   updateGeometry(
     geometry,
     triangulated,
