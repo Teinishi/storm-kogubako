@@ -1,6 +1,7 @@
 import type { DeepReadonly, Ref } from 'vue';
-import { snapPointWithGrid, type PolygonEditorGrid, type PolygonEditorValue } from '../utils/polygonEditorCore';
-import { HANDLE_HIT_THRESHOLD_PX } from '../utils/polygonEditorCore';
+import type { Vec2 } from '~/utils/utils';
+import { snapPointWithGrid, type PolygonEditorGrid, type PolygonEditorValue } from '~/utils/polygonEditorCore';
+import { HANDLE_HIT_THRESHOLD_PX } from '~/utils/polygonEditorCore';
 
 export type PolygonEditorMode = 'select' | 'drawPolygon' | 'drawRectangle';
 
@@ -95,7 +96,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     polygonId: number;
     vertexIndex: number;
     pointerId: number;
-    original: PolygonEditorPoint;
+    original: Vec2;
   } | null>(null);
 
   const logicalBounds = computed(() => ({
@@ -121,11 +122,11 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
   }
 
   // ユーティリティ関数
-  function snapPoint(point: PolygonEditorPoint) {
-    return snapPointWithGrid(point, grid.value, logicalBounds.value);
+  function snapPoint(point: Vec2, clampBounds?: boolean) {
+    return snapPointWithGrid(point, grid.value, clampBounds ? logicalBounds.value : undefined);
   }
 
-  function createPolygon(vertices: PolygonEditorPoint[], color = getNextPolygonColor()) {
+  function createPolygon(vertices: Vec2[], color = getNextPolygonColor()) {
     return {
       id: getNextPolygonId(),
       color,
@@ -133,7 +134,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     } satisfies PolygonEditorPolygon;
   }
 
-  function createRectanglePolygon(start: PolygonEditorPoint, end: PolygonEditorPoint, color: string) {
+  function createRectanglePolygon(start: Vec2, end: Vec2, color: string) {
     return createPolygon(createRectangleVertices(start, end, logicalBounds.value), color);
   }
 
@@ -312,7 +313,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     clearSelection();
   }
 
-  function addDraftPoint(point: PolygonEditorPoint) {
+  function addDraftPoint(point: Vec2) {
     if (editingLocked.value || !draftPolygon.value) return;
     draftPolygon.value.vertices.push(snapPoint(point));
     renderCanvas();
@@ -323,7 +324,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     renderCanvas();
   }
 
-  function completePolygon(point: PolygonEditorPoint) {
+  function completePolygon(point: Vec2) {
     if (!draftPolygon.value || draftPolygon.value.vertices.length < 3) return false;
     const first = draftPolygon.value.vertices[0];
     if (!first) return false;

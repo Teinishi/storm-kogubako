@@ -165,19 +165,23 @@ export function roundCoordinate(value: number) {
   return Math.round(value * SNAP_PRECISION) / SNAP_PRECISION;
 }
 
-export function snapPointWithGrid(point: Vec2, grid: PolygonEditorGrid, bounds: LogicalBounds) {
+export function snapPointWithGrid(point: Vec2, grid: PolygonEditorGrid, bounds?: LogicalBounds) {
+  let p;
   if (!grid.enabled) {
-    return clampToLogicalBounds({
+    p = {
       x: roundCoordinate(point.x),
       y: roundCoordinate(point.y),
-    }, bounds);
+    };
+  }
+  else {
+    const step = 1 / Math.max(1, grid.minorDivisions);
+    p = {
+      x: roundCoordinate(Math.round(point.x / step) * step),
+      y: roundCoordinate(Math.round(point.y / step) * step),
+    };
   }
 
-  const step = 1 / Math.max(1, grid.minorDivisions);
-  return clampToLogicalBounds({
-    x: roundCoordinate(Math.round(point.x / step) * step),
-    y: roundCoordinate(Math.round(point.y / step) * step),
-  }, bounds);
+  return bounds ? clampToLogicalBounds(p, bounds) : p;
 }
 
 export function createRectangleVertices(start: Vec2, end: Vec2, bounds: LogicalBounds) {

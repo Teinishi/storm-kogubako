@@ -116,8 +116,10 @@ function handleCanvasPointerDown(event: PointerEvent) {
     return;
   }
 
+  const worldPoint = snapPoint(rawWorldPoint, false);
+
   // 範囲外クリック
-  if (!isWithinLogicalBounds(rawWorldPoint, logicalBounds.value)) {
+  if (!isWithinLogicalBounds(worldPoint, logicalBounds.value)) {
     if (mode.value === 'select') {
       clearSelection();
     }
@@ -127,7 +129,6 @@ function handleCanvasPointerDown(event: PointerEvent) {
     }
     return;
   }
-  const worldPoint = snapPoint(rawWorldPoint);
 
   if (mode.value === 'drawRectangle') {
     if (!draftRectangle.value) {
