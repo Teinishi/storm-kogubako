@@ -1,22 +1,25 @@
 import polygonClipping from 'polygon-clipping';
-import * as earcut from 'earcut';
 import type { Vec2, Rect } from '~/utils/utils';
 
-export function polygonToGeom(points: Vec2[]): polygonClipping.Polygon {
-  return [points.map(v => [v.x, v.y])];
+function forPolygonClipping(polygon: Vec2[][]): polygonClipping.Polygon {
+  return polygon.map(ring => ring.map(v => [v.x, v.y]));
 }
 
-export function rectToGeom(rect: Rect): polygonClipping.Polygon {
-  return [[
-    [rect.x, rect.y],
-    [rect.x + rect.width, rect.y],
-    [rect.x + rect.width, rect.y + rect.height],
-    [rect.x, rect.y + rect.height],
-  ]];
+function toVec2Polygon(polygon: polygonClipping.Polygon): Vec2[][] {
+  return polygon.map(ring => ring.map(v => ({ x: v[0], y: v[1] })));
+}
+
+export function rectToPolygon(rect: Rect): Vec2[] {
+  return [
+    { x: rect.x, y: rect.y },
+    { x: rect.x + rect.width, y: rect.y },
+    { x: rect.x + rect.width, y: rect.y + rect.height },
+    { x: rect.x, y: rect.y + rect.height },
+  ];
 }
 
 // 向きを判定
-export function polygonWindingDirection(polygon: readonly Vec2[]) {
+function polygonWindingDirection(polygon: readonly Vec2[]) {
   const n = polygon.length;
   if (n < 3) {
     throw new Error('Polygon must have at least 3 vertices.');
@@ -173,65 +176,61 @@ export function offsetPolygon(
   return result;
 }
 
+interface PolygonWithId<T> {
+  id: T;
+  polygon: Vec2[][];
+}
+
 // 重なったポリゴンの重なりを排除
 export function eliminatePolygonOverlap<T>(
-  polygons: readonly { id: T; vertices: Vec2[] }[],
-  base?: { geom: polygonClipping.Geom; id: T },
+  polygons: readonly PolygonWithId<T>[],
+  options?: {
+    base?: PolygonWithId<T>;
+    holes?: readonly Vec2[][];
+  },
 ) {
-  const disjointPolygons: { id: T; multiPolygon: polygonClipping.MultiPolygon }[] = [];
-  let mask: polygonClipping.MultiPolygon = [];
+  const base = options?.base;
+  const holes = options?.holes ?? [];
 
-  for (let i = polygons.length - 1; 0 <= i; i--) {
-    const { id, vertices } = polygons[i]!;
+  const basePolygon = base ? forPolygonClipping(base?.polygon) : undefined;
+  const masks: polygonClipping.Polygon[] = holes.map(ring => forPolygonClipping([ring]));
+  const disjointPolygons: {
+    id: T;
+    multiPolygon: polygonClipping.MultiPolygon;
+  }[] = [];
 
-    const polygon = polygonToGeom(vertices);
-    let multiPolygon = polygonClipping.difference(polygon, mask);
-    if (base) {
-      multiPolygon = polygonClipping.intersection(multiPolygon, base.geom);
+  for (const item of polygons.toReversed()) {
+    const polygon = forPolygonClipping(item.polygon);
+
+    let p = [polygon];
+    for (const mask of masks) {
+      p = polygonClipping.difference(p, mask);
+    }
+    if (basePolygon) {
+      p = polygonClipping.intersection(p, basePolygon);
     }
 
-    disjointPolygons.push({ id, multiPolygon });
-    mask = polygonClipping.union(mask, polygon);
+    disjointPolygons.push({ id: item.id, multiPolygon: p });
+
+    masks.push(polygon);
   }
 
-  if (base) {
+  if (base && basePolygon) {
+    let p = [basePolygon];
+    for (const mask of masks) {
+      p = polygonClipping.difference(p, mask);
+    }
+
     disjointPolygons.push({
       id: base.id,
-      multiPolygon: polygonClipping.difference(base.geom, mask),
+      multiPolygon: p,
     });
   }
 
-  return disjointPolygons;
-}
-
-// ポリゴンを三角化
-export function triangulate(multiPolygon: polygonClipping.MultiPolygon) {
-  let vertices: Vec2[] = [];
-  let indices: number[] = [];
-
-  for (const polygon of multiPolygon) {
-    const offset = vertices.length;
-
-    const localData = earcut.flatten(polygon);
-
-    const localVertices: Vec2[] = [];
-    for (let i = 1; i < localData.vertices.length; i += 2) {
-      localVertices.push({ x: localData.vertices[i - 1]!, y: localData.vertices[i]! });
-    }
-    vertices = vertices.concat(localVertices);
-
-    const localIndices = earcut.default(localData.vertices, localData.holes, localData.dimensions);
-    indices = indices.concat(localIndices.map(i => i + offset));
-  }
-
-  return { vertices, indices };
-}
-
-export function polygonsToDisjointTriangles<T>(
-  polygons: readonly { id: T; vertices: Vec2[] }[],
-  base?: { geom: polygonClipping.Geom; id: T },
-) {
-  const geometries = eliminatePolygonOverlap(polygons, base);
-  const triangulated = geometries.map(({ id, multiPolygon: geom }) => ({ id, ...triangulate(geom) }));
-  return triangulated;
+  return disjointPolygons.flatMap(({ id, multiPolygon }) => {
+    return multiPolygon.map(polygon => ({
+      id,
+      polygon: toVec2Polygon(polygon),
+    }));
+  });
 }

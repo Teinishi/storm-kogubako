@@ -65,7 +65,6 @@ interface AddFaceOptions {
 }
 
 interface AddPolygonOptions extends AddFaceOptions {
-  holes?: Vec2[][];
   z?: number;
 }
 
@@ -105,9 +104,9 @@ export class GeometryBuilder {
     const blue = color.b / 255;
 
     const normal = computeNormal(
-      getVertexFromFlat(flatVertices, 0)!,
-      getVertexFromFlat(flatVertices, 1)!,
-      getVertexFromFlat(flatVertices, 2)!,
+      getVertexFromFlat(flatVertices, indices[0]!)!,
+      getVertexFromFlat(flatVertices, indices[1]!)!,
+      getVertexFromFlat(flatVertices, indices[2]!)!,
     );
     if (options?.flip) {
       normal.x *= -1;
@@ -142,6 +141,7 @@ export class GeometryBuilder {
     }
   }
 
+  // 凸多角形面
   addFace(vertices: readonly Vec3[], options?: number | Color | AddFaceOptions) {
     if (vertices.length < 3) {
       return;
@@ -168,20 +168,18 @@ export class GeometryBuilder {
     this.addCoplanarTriangles(flatVertices, indices, normalizedOptions);
   }
 
-  addPolygon(polygon: readonly Vec2[], options?: AddPolygonOptions) {
+  // ポリゴンを追加 (polygon[0] は外周、それ以降は内側の穴)
+  addPolygon(polygon: readonly Vec2[][], options?: AddPolygonOptions) {
     const z = options?.z ?? 0;
 
-    const data = [vec2RingToTuple(polygon, z)];
-    if (options?.holes) {
-      data.push(...options.holes.map(hole => vec2RingToTuple(hole, z)));
-    }
-    const earcutData = earcut.flatten(data);
-    const indices = earcut.default(earcutData.vertices, earcutData.holes, earcutData.dimensions);
+    const data = earcut.flatten(polygon.map(ring => vec2RingToTuple(ring, z)));
+    const indices = earcut.default(data.vertices, data.holes, data.dimensions);
 
-    this.addCoplanarTriangles(earcutData.vertices, indices, options);
+    this.addCoplanarTriangles(data.vertices, indices, options);
   }
 
-  addExtrudedSide(vertices: Vec2[], options?: AddExtrudedSideOptions) {
+  // ポリゴンをZ軸方向に押し出した側面
+  addExtrudedSides(vertices: Vec2[], options?: AddExtrudedSideOptions) {
     const [z1, z2] = options?.zRange ?? [0, 1];
 
     const quadCount = options?.close ? vertices.length : vertices.length - 1;

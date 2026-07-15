@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import polygonClipping from 'polygon-clipping';
 import { BufferGeometry } from 'three';
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
 import { type Vec2, type Vec3, hexToRgb, lerp } from '~/utils/utils';
-import { polygonToGeom, rectToGeom, polygonsToDisjointTriangles, triangulate } from '~/utils/polygonUtils';
+import { rectToPolygon, eliminatePolygonOverlap } from '~/utils/polygonUtils';
 import type { PolygonEditorValue } from '~/utils/polygonEditorCore';
-import { updateGeometry } from '~/utils/polygonRenderUtils.client';
 import { GeometryBuilder } from '~/utils/geometryBuilder.client';
 import type { TrainDoorState } from '~/pages/custom-train-door.vue';
 
@@ -33,10 +31,14 @@ const doorZ = computed(() => ({
   back: -props.state.doorThickness / 2 + props.state.doorZOffset,
 }));
 
-function coordinateConversion(p: Vec2, z?: number): Vec3 {
+function posToMeters(p: Vec2, z?: number): Vec3 {
   const x = 0.25 * (p.x - Math.floor(props.state.doorWidth / 2) - 0.5);
   const y = 0.25 * (p.y - Math.floor(props.state.doorHeight / 2) - 0.5);
   return { x, y, z: z ?? 0 };
+}
+
+function ringToMeters(ring: Vec2[], z?: number) {
+  return ring.map(v => posToMeters(v, z));
 }
 
 const frontGeometry = new BufferGeometry();
@@ -49,43 +51,57 @@ const materials = [materialSet.opaque, materialSet.glass, materialSet.additive];
 
 watchEffect(() => {
   // frontGeometry の更新
-  const rectGeom = rectToGeom(doorRect.value);
-  const windowHole = polygonToGeom(offsetPolygon(props.windowHole, WINDOW_FRAME_WIDTH / 0.25));
-  const baseGeom = polygonClipping.difference(rectGeom, windowHole);
+  const polygons = props.polygonEditorValue.polygons;
+  const transformedPolygons = polygons.map(({ id, vertices }) => ({
+    id,
+    polygon: [ringToMeters(vertices)],
+  }));
+  const rectRing = ringToMeters(rectToPolygon(doorRect.value));
+  const holeRing = ringToMeters(offsetPolygon(props.windowHole, WINDOW_FRAME_WIDTH / 0.25));
+  const z = doorZ.value.front;
 
-  const { polygons } = props.polygonEditorValue;
-  const triangulated = polygonsToDisjointTriangles(polygons, { id: -1, geom: baseGeom });
-  updateGeometry(
-    frontGeometry,
-    triangulated.map(({ id, vertices, indices }) => ({
-      color: hexToRgb(polygons.find(v => v.id === id)?.color ?? props.state.baseColor),
-      vertices,
-      indices,
-    })),
+  const disjoint = eliminatePolygonOverlap(
+    transformedPolygons,
     {
-      coordinateConversion: p => coordinateConversion(p, doorZ.value.front),
+      base: { id: -1, polygon: [rectRing] },
+      holes: [holeRing],
     },
   );
+
+  const builder = new GeometryBuilder();
+  for (const { id, polygon } of disjoint) {
+    const color = hexToRgb(polygons.find(v => v.id === id)?.color ?? props.state.baseColor);
+    builder.addPolygon(polygon, { z, color });
+  }
+  builder.apply(frontGeometry);
 });
 
 watchEffect(() => {
   // backGeometry の更新
-  const rectGeom = rectToGeom(doorRect.value);
-  const windowHole = polygonToGeom(offsetPolygon(props.windowHole, WINDOW_FRAME_WIDTH / 0.25));
-  const baseGeom = polygonClipping.difference(rectGeom, windowHole);
-  const { vertices, indices } = triangulate(baseGeom);
-  updateGeometry(
-    backGeometry,
-    [{
-      color: hexToRgb(props.state.baseColor),
-      vertices,
-      indices,
-    }],
+  const w = props.state.doorWidth;
+  const polygons = props.polygonEditorValue.polygons;
+  const transformedPolygons = polygons.map(({ id, vertices }) => ({
+    id,
+    polygon: [ringToMeters(vertices.map(v => ({ x: w - v.x, y: v.y })))],
+  }));
+  const rectRing = ringToMeters(rectToPolygon(doorRect.value));
+  const holeRing = offsetPolygon(ringToMeters(props.windowHole), WINDOW_FRAME_WIDTH);
+  const z = doorZ.value.back;
+
+  const disjoint = eliminatePolygonOverlap(
+    transformedPolygons,
     {
-      coordinateConversion: p => coordinateConversion(p, doorZ.value.back),
-      flip: true,
+      base: { id: -1, polygon: [rectRing] },
+      holes: [holeRing],
     },
   );
+
+  const builder = new GeometryBuilder();
+  for (const { id, polygon } of disjoint) {
+    const color = hexToRgb(polygons.find(v => v.id === id)?.color ?? props.state.baseColor);
+    builder.addPolygon(polygon, { z, color, flip: true });
+  }
+  builder.apply(backGeometry);
 });
 
 watchEffect(() => {
@@ -101,8 +117,8 @@ watchEffect(() => {
   ];
 
   const builder = new GeometryBuilder();
-  builder.addExtrudedSide(
-    path.map(coordinateConversion),
+  builder.addExtrudedSides(
+    path.map(posToMeters),
     {
       zRange: [z1, z2],
       color: hexToRgb(props.state.baseColor),
@@ -115,8 +131,8 @@ watchEffect(() => {
   // rubberGeometry の更新
   const color = hexToRgb(props.state.rubberColor);
 
-  const { x: x1, y: y1 } = coordinateConversion({ x: 0, y: 0 });
-  const { x: x2, y: y2 } = coordinateConversion({ x: props.state.rubberThickness / 0.25, y: props.state.doorHeight });
+  const { x: x1, y: y1 } = posToMeters({ x: 0, y: 0 });
+  const { x: x2, y: y2 } = posToMeters({ x: props.state.rubberThickness / 0.25, y: props.state.doorHeight });
   const { front: z1, back: z2 } = doorZ.value;
   const z1i = lerp(z1, z2, 0.2);
   const z2i = lerp(z2, z1, 0.2);
@@ -144,30 +160,16 @@ watchEffect(() => {
   // windowGeometry の更新
   const color = hexToRgb(WINDOW_FRAME_COLOR);
   const { front: z1, back: z2 } = doorZ.value;
-  const innerRing = props.windowHole.map(coordinateConversion);
+  const innerRing = ringToMeters(props.windowHole);
   const outerRing = offsetPolygon(innerRing, WINDOW_FRAME_WIDTH);
+  innerRing.reverse();
 
   const builder = new GeometryBuilder();
-  builder.addPolygon(
-    outerRing,
-    { holes: [innerRing], z: z1, color },
-  );
-  builder.addPolygon(
-    outerRing,
-    { holes: [innerRing], z: z2, color, flip: true },
-  );
-  builder.addExtrudedSide(
-    innerRing,
-    { close: true, zRange: [z2, z1], color },
-  );
-  builder.addPolygon(
-    innerRing,
-    { z: z1, materialIndex: 1 },
-  );
-  builder.addPolygon(
-    innerRing,
-    { z: z1 - 0.02, materialIndex: 1, flip: true },
-  );
+  builder.addPolygon([outerRing, innerRing], { z: z1, color });
+  builder.addPolygon([outerRing, innerRing], { z: z2, color, flip: true });
+  builder.addExtrudedSides(innerRing, { close: true, zRange: [z1, z2], color });
+  builder.addPolygon([innerRing], { z: z1, materialIndex: 1 });
+  builder.addPolygon([innerRing], { z: z1 - 0.02, materialIndex: 1, flip: true });
   builder.apply(windowGeometry);
 });
 </script>
