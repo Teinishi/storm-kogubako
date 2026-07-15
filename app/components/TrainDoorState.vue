@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TrainDoorState } from '~/pages/custom-train-door.vue';
+import type { TrainDoorState } from '~/composables/useCustomTrainDoor';
 
 const FORMAT_OPTIONS_METER = {
   maximumFractionDigits: 5,
@@ -60,8 +60,13 @@ const state = defineModel<TrainDoorState>({ required: true });
         </UFormField>
 
         <ColorPicker
-          v-model="state.baseColor"
-          :label="t('base_color')"
+          v-model="state.outsideColor"
+          :label="t('outside_color')"
+        />
+
+        <ColorPicker
+          v-model="state.insideColor"
+          :label="t('inside_color')"
         />
       </div>
 
@@ -154,7 +159,8 @@ const state = defineModel<TrainDoorState>({ required: true });
     "door_height": "Door Height",
     "door_thickness": "Door Thickness",
     "door_z_offset": "Door Z Offset",
-    "base_color": "Base Color",
+    "outside_color": "Outside Base Color",
+    "inside_color": "Inside Base Color",
     "rubber_thickness": "Rubber Thickness",
     "rubber_color": "Rubber Color",
     "window_x_offset": "Window X Offset",
@@ -170,7 +176,8 @@ const state = defineModel<TrainDoorState>({ required: true });
     "door_height": "ドア高さ",
     "door_thickness": "ドア厚み",
     "door_z_offset": "ドアZ",
-    "base_color": "ベースカラー",
+    "outside_color": "外側ベースカラー",
+    "inside_color": "内側ベースカラー",
     "rubber_thickness": "戸先ゴム厚み",
     "rubber_color": "戸先ゴムカラー",
     "window_x_offset": "窓X",

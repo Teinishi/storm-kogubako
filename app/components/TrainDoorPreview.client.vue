@@ -5,7 +5,7 @@ import { type Vec2, type Vec3, hexToRgb, lerp } from '~/utils/utils';
 import { rectToPolygon, eliminatePolygonOverlap } from '~/utils/polygonUtils';
 import type { PolygonEditorValue } from '~/utils/polygonEditorCore';
 import { GeometryBuilder } from '~/utils/geometryBuilder.client';
-import type { TrainDoorState } from '~/pages/custom-train-door.vue';
+import type { TrainDoorState } from '~/composables/useCustomTrainDoor';
 
 const WINDOW_FRAME_WIDTH = 0.02;
 const WINDOW_FRAME_COLOR = '#545454';
@@ -13,7 +13,8 @@ const WINDOW_FRAME_COLOR = '#545454';
 const props = defineProps<{
   state: TrainDoorState;
   windowHole: Vec2[];
-  polygonEditorValue: PolygonEditorValue;
+  outsidePaint: PolygonEditorValue;
+  insidePaint: PolygonEditorValue;
 }>();
 
 const doorRect = computed(() => {
@@ -51,7 +52,7 @@ const materials = [materialSet.opaque, materialSet.glass, materialSet.additive];
 
 watchEffect(() => {
   // frontGeometry の更新
-  const polygons = props.polygonEditorValue.polygons;
+  const polygons = props.outsidePaint.polygons;
   const transformedPolygons = polygons.map(({ id, vertices }) => ({
     id,
     polygon: [ringToMeters(vertices)],
@@ -70,7 +71,7 @@ watchEffect(() => {
 
   const builder = new GeometryBuilder();
   for (const { id, polygon } of disjoint) {
-    const color = hexToRgb(polygons.find(v => v.id === id)?.color ?? props.state.baseColor);
+    const color = hexToRgb(polygons.find(v => v.id === id)?.color ?? props.state.outsideColor);
     builder.addPolygon(polygon, { z, color });
   }
   builder.apply(frontGeometry);
@@ -79,7 +80,7 @@ watchEffect(() => {
 watchEffect(() => {
   // backGeometry の更新
   const w = props.state.doorWidth;
-  const polygons = props.polygonEditorValue.polygons;
+  const polygons = props.insidePaint.polygons;
   const transformedPolygons = polygons.map(({ id, vertices }) => ({
     id,
     polygon: [ringToMeters(vertices.map(v => ({ x: w - v.x, y: v.y })))],
@@ -98,7 +99,7 @@ watchEffect(() => {
 
   const builder = new GeometryBuilder();
   for (const { id, polygon } of disjoint) {
-    const color = hexToRgb(polygons.find(v => v.id === id)?.color ?? props.state.baseColor);
+    const color = hexToRgb(polygons.find(v => v.id === id)?.color ?? props.state.insideColor);
     builder.addPolygon(polygon, { z, color, flip: true });
   }
   builder.apply(backGeometry);
@@ -121,7 +122,7 @@ watchEffect(() => {
     path.map(posToMeters),
     {
       zRange: [z1, z2],
-      color: hexToRgb(props.state.baseColor),
+      color: hexToRgb(props.state.outsideColor),
     },
   );
   builder.apply(sideGeometry);
