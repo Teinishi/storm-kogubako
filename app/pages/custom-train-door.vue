@@ -254,7 +254,7 @@ watch(windowPolygon, () => {
                 <UInputNumber
                   v-model="state.windowCornerDivisions"
                   :step="1"
-                  :min="0"
+                  :min="1"
                   class="w-full"
                 />
               </UFormField>

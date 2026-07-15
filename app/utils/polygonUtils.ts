@@ -38,13 +38,31 @@ function polygonWindingDirection(polygon: readonly Vec2[]) {
 // 角丸矩形のポリゴンを生成
 export function createRoundedRectPolygon(
   { x, y, width, height }: Rect,
-  radius: number,
+  radius: number | Vec2,
   segments: number,
 ): Vec2[] {
-  const r = Math.max(0, Math.min(radius, width / 2, height / 2));
+  let rx: number, ry: number;
+  if (typeof radius === 'number') {
+    rx = radius;
+    ry = radius;
+  }
+  else {
+    rx = radius.x;
+    ry = radius.y;
+  }
+
+  const rxCapped = rx >= width / 2;
+  const ryCapped = ry >= height / 2;
+  if (rxCapped) {
+    rx = width / 2;
+  }
+  if (ryCapped) {
+    ry = height / 2;
+  }
+
   const s = Math.max(1, Math.floor(segments));
 
-  if (r === 0) {
+  if (rx === 0 || ry === 0) {
     return [
       { x, y },
       { x: x + width, y },
@@ -66,16 +84,16 @@ export function createRoundedRectPolygon(
     for (let i = begin; i <= s; i++) {
       const a = startAngle + (endAngle - startAngle) * (i / s);
       points.push({
-        x: cx + Math.cos(a) * r,
-        y: cy + Math.sin(a) * r,
+        x: cx + Math.cos(a) * rx,
+        y: cy + Math.sin(a) * ry,
       });
     }
   }
 
-  addArc(x + width - r, y + r, -Math.PI / 2, 0, true);
-  addArc(x + width - r, y + height - r, 0, Math.PI / 2, true);
-  addArc(x + r, y + height - r, Math.PI / 2, Math.PI, true);
-  addArc(x + r, y + r, Math.PI, Math.PI * 1.5, true);
+  addArc(x + width - rx, y + ry, -Math.PI / 2, 0, !rxCapped);
+  addArc(x + width - rx, y + height - ry, 0, Math.PI / 2, !ryCapped);
+  addArc(x + rx, y + height - ry, Math.PI / 2, Math.PI, !rxCapped);
+  addArc(x + rx, y + ry, Math.PI, Math.PI * 1.5, !ryCapped);
 
   return points;
 }
