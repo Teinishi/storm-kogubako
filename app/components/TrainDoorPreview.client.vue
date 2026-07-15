@@ -3,10 +3,10 @@ import polygonClipping from 'polygon-clipping';
 import { BufferGeometry } from 'three';
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
 import { type Vec2, type Vec3, hexToRgb, lerp } from '~/utils/utils';
-import { polygonToGeom, rectToGeom, polygonsToDisjointTriangles, triangulateGeometry } from '~/utils/polygonUtils';
+import { polygonToGeom, rectToGeom, polygonsToDisjointTriangles, triangulate } from '~/utils/polygonUtils';
 import type { PolygonEditorValue } from '~/utils/polygonEditorCore';
-import { updateGeometry, updateExtrudedSideGeometry } from '~/utils/polygonRenderUtils.client';
-import { GeometryBuilder } from '~/utils/geometryBuilder';
+import { updateGeometry } from '~/utils/polygonRenderUtils.client';
+import { GeometryBuilder } from '~/utils/geometryBuilder.client';
 import type { TrainDoorState } from '~/pages/custom-train-door.vue';
 
 const WINDOW_FRAME_WIDTH = 0.02;
@@ -43,11 +43,7 @@ const frontGeometry = new BufferGeometry();
 const backGeometry = new BufferGeometry();
 const sideGeometry = new BufferGeometry();
 const rubberGeometry = new BufferGeometry();
-const windowGeometry1 = new BufferGeometry();
-const windowGeometry2 = new BufferGeometry();
-const windowGeometry3 = new BufferGeometry();
-const windowGeometry4 = new BufferGeometry();
-const windowGeometry5 = new BufferGeometry();
+const windowGeometry = new BufferGeometry();
 const materialSet = createStormworksMaterials();
 const materials = [materialSet.opaque, materialSet.glass, materialSet.additive];
 
@@ -77,7 +73,7 @@ watchEffect(() => {
   const rectGeom = rectToGeom(doorRect.value);
   const windowHole = polygonToGeom(offsetPolygon(props.windowHole, WINDOW_FRAME_WIDTH / 0.25));
   const baseGeom = polygonClipping.difference(rectGeom, windowHole);
-  const { vertices, indices } = triangulateGeometry(baseGeom);
+  const { vertices, indices } = triangulate(baseGeom);
   updateGeometry(
     backGeometry,
     [{
@@ -97,21 +93,22 @@ watchEffect(() => {
   const { front: z1, back: z2 } = doorZ.value;
   const rect = doorRect.value;
 
-  updateExtrudedSideGeometry(
-    sideGeometry,
-    [[[
-      [rect.x, rect.y],
-      [rect.x + rect.width, rect.y],
-      [rect.x + rect.width, rect.y + rect.height],
-      [rect.x, rect.y + rect.height],
-    ]]],
+  const path = [
+    { x: rect.x, y: rect.y },
+    { x: rect.x + rect.width, y: rect.y },
+    { x: rect.x + rect.width, y: rect.y + rect.height },
+    { x: rect.x, y: rect.y + rect.height },
+  ];
+
+  const builder = new GeometryBuilder();
+  builder.addExtrudedSide(
+    path.map(coordinateConversion),
     {
-      noClose: true,
-      z: [z1, z2],
+      zRange: [z1, z2],
       color: hexToRgb(props.state.baseColor),
-      coordinateConversion,
     },
   );
+  builder.apply(sideGeometry);
 });
 
 watchEffect(() => {
@@ -146,67 +143,32 @@ watchEffect(() => {
 watchEffect(() => {
   // windowGeometry の更新
   const color = hexToRgb(WINDOW_FRAME_COLOR);
-  const innerGeom = polygonToGeom(props.windowHole);
-  const outerGeom = polygonToGeom(offsetPolygon(props.windowHole, WINDOW_FRAME_WIDTH / 0.25));
-  const frameGeom = polygonClipping.difference(outerGeom, innerGeom);
   const { front: z1, back: z2 } = doorZ.value;
+  const innerRing = props.windowHole.map(coordinateConversion);
+  const outerRing = offsetPolygon(innerRing, WINDOW_FRAME_WIDTH);
 
-  updateGeometry(
-    windowGeometry1,
-    [{
-      color,
-      ...triangulateGeometry(frameGeom),
-    }],
-    { coordinateConversion: p => coordinateConversion(p, z1) },
+  const builder = new GeometryBuilder();
+  builder.addPolygon(
+    outerRing,
+    { holes: [innerRing], z: z1, color },
   );
-
-  updateExtrudedSideGeometry(
-    windowGeometry2,
-    [innerGeom],
-    {
-      z: [z1, z2],
-      color,
-      inside: true,
-      coordinateConversion,
-    },
+  builder.addPolygon(
+    outerRing,
+    { holes: [innerRing], z: z2, color, flip: true },
   );
-
-  updateGeometry(
-    windowGeometry3,
-    [{
-      color,
-      ...triangulateGeometry(frameGeom),
-    }],
-    {
-      coordinateConversion: p => coordinateConversion(p, z2),
-      flip: true,
-    },
+  builder.addExtrudedSide(
+    innerRing,
+    { close: true, zRange: [z2, z1], color },
   );
-
-  updateGeometry(
-    windowGeometry4,
-    [{
-      color,
-      ...triangulateGeometry([innerGeom]),
-    }],
-    {
-      coordinateConversion: p => coordinateConversion(p, z1),
-      materialIndex: 1,
-    },
+  builder.addPolygon(
+    innerRing,
+    { z: z1, materialIndex: 1 },
   );
-
-  updateGeometry(
-    windowGeometry5,
-    [{
-      color,
-      ...triangulateGeometry([innerGeom]),
-    }],
-    {
-      coordinateConversion: p => coordinateConversion(p, z1 - 0.02),
-      flip: true,
-      materialIndex: 1,
-    },
+  builder.addPolygon(
+    innerRing,
+    { z: z1 - 0.02, materialIndex: 1, flip: true },
   );
+  builder.apply(windowGeometry);
 });
 </script>
 
@@ -229,23 +191,7 @@ watchEffect(() => {
       :material="materials"
     />
     <TresMesh
-      :geometry="windowGeometry1"
-      :material="materials"
-    />
-    <TresMesh
-      :geometry="windowGeometry2"
-      :material="materials"
-    />
-    <TresMesh
-      :geometry="windowGeometry3"
-      :material="materials"
-    />
-    <TresMesh
-      :geometry="windowGeometry4"
-      :material="materials"
-    />
-    <TresMesh
-      :geometry="windowGeometry5"
+      :geometry="windowGeometry"
       :material="materials"
     />
   </MeshViewerCanvas>

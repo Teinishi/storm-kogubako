@@ -178,26 +178,26 @@ export function eliminatePolygonOverlap<T>(
   polygons: readonly { id: T; vertices: Vec2[] }[],
   base?: { geom: polygonClipping.Geom; id: T },
 ) {
-  const disjointPolygons: { id: T; geom: polygonClipping.MultiPolygon }[] = [];
+  const disjointPolygons: { id: T; multiPolygon: polygonClipping.MultiPolygon }[] = [];
   let mask: polygonClipping.MultiPolygon = [];
 
   for (let i = polygons.length - 1; 0 <= i; i--) {
     const { id, vertices } = polygons[i]!;
 
     const polygon = polygonToGeom(vertices);
-    let geom = polygonClipping.difference(polygon, mask);
+    let multiPolygon = polygonClipping.difference(polygon, mask);
     if (base) {
-      geom = polygonClipping.intersection(geom, base.geom);
+      multiPolygon = polygonClipping.intersection(multiPolygon, base.geom);
     }
 
-    disjointPolygons.push({ id, geom });
+    disjointPolygons.push({ id, multiPolygon });
     mask = polygonClipping.union(mask, polygon);
   }
 
   if (base) {
     disjointPolygons.push({
       id: base.id,
-      geom: polygonClipping.difference(base.geom, mask),
+      multiPolygon: polygonClipping.difference(base.geom, mask),
     });
   }
 
@@ -205,11 +205,11 @@ export function eliminatePolygonOverlap<T>(
 }
 
 // ポリゴンを三角化
-export function triangulateGeometry(geom: polygonClipping.MultiPolygon) {
+export function triangulate(multiPolygon: polygonClipping.MultiPolygon) {
   let vertices: Vec2[] = [];
   let indices: number[] = [];
 
-  for (const polygon of geom) {
+  for (const polygon of multiPolygon) {
     const offset = vertices.length;
 
     const localData = earcut.flatten(polygon);
@@ -232,6 +232,6 @@ export function polygonsToDisjointTriangles<T>(
   base?: { geom: polygonClipping.Geom; id: T },
 ) {
   const geometries = eliminatePolygonOverlap(polygons, base);
-  const triangulated = geometries.map(({ id, geom }) => ({ id, ...triangulateGeometry(geom) }));
+  const triangulated = geometries.map(({ id, multiPolygon: geom }) => ({ id, ...triangulate(geom) }));
   return triangulated;
 }
