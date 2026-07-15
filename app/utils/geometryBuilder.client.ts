@@ -66,6 +66,7 @@ interface AddFaceOptions {
 
 interface AddPolygonOptions extends AddFaceOptions {
   z?: number;
+  refine?: boolean;
 }
 
 interface AddExtrudedSideOptions extends AddFaceOptions {
@@ -174,6 +175,9 @@ export class GeometryBuilder {
 
     const data = earcut.flatten(polygon.map(ring => vec2RingToTuple(ring, z)));
     const indices = earcut.default(data.vertices, data.holes, data.dimensions);
+    if (options?.refine) {
+      earcut.refine(indices, data.vertices, data.dimensions);
+    }
 
     this.addCoplanarTriangles(data.vertices, indices, options);
   }
@@ -204,6 +208,7 @@ export class GeometryBuilder {
   }
 
   apply(geometry: BufferGeometry) {
+    geometry.clearGroups();
     geometry.setAttribute('position', new BufferAttribute(new Float32Array(this.positions), 3));
     geometry.setAttribute('normal', new BufferAttribute(new Float32Array(this.normals), 3));
     geometry.setAttribute('color', new BufferAttribute(new Float32Array(this.colors), 3));
