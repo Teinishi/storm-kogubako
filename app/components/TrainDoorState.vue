@@ -14,7 +14,7 @@ const state = defineModel<TrainDoorState>({ required: true });
 
 <template>
   <div class="grid lg:grid-cols-2 gap-4">
-    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+    <FormCard>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
         <UFormField :label="t('door_width')">
           <div class="flex items-center gap-2">
@@ -86,9 +86,9 @@ const state = defineModel<TrainDoorState>({ required: true });
           :label="t('rubber_color')"
         />
       </div>
-    </div>
+    </FormCard>
 
-    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+    <FormCard>
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
         <UFormField :label="t('window_x_offset')">
           <UInputNumber
@@ -147,7 +147,7 @@ const state = defineModel<TrainDoorState>({ required: true });
           />
         </UFormField>
       </div>
-    </div>
+    </FormCard>
   </div>
 </template>
 

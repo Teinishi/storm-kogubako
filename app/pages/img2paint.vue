@@ -378,7 +378,7 @@ const saveVehicleXml = () => {
 
       <div class="grow flex flex-col px-4 pt-0 pb-18 sm:pb-4 gap-4 overflow-y-auto">
         <template v-if="!baseImage">
-          <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+          <FormCard>
             <UFileUpload
               :label="t('pick_image_file')"
               :description="t('pick_image_file_description')"
@@ -396,14 +396,14 @@ const saveVehicleXml = () => {
               :title="t('no_files')"
               :description="t('no_files_description')"
             />
-          </div>
+          </FormCard>
         </template>
 
         <div
           v-show="baseImage"
           class="flex flex-col gap-4"
         >
-          <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+          <FormCard>
             <h2 class="font-bold text-lg">
               {{ t('image_file') }}
             </h2>
@@ -437,7 +437,7 @@ const saveVehicleXml = () => {
               :description="t('image_size_mismatch2')"
               icon="i-lucide-info"
             />
-          </div>
+          </FormCard>
 
           <UAccordion
             v-model="detailCollapsing"
@@ -473,10 +473,7 @@ const saveVehicleXml = () => {
                   />
                 </template>
 
-                <div
-                  v-show="marginExists"
-                  class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4"
-                >
+                <FormCard v-show="marginExists">
                   <h2 class="font-bold text-lg">
                     {{ t('background') }}
                   </h2>
@@ -486,7 +483,7 @@ const saveVehicleXml = () => {
                   <div class="text-xs text-gray-500">
                     {{ t('background_description') }}
                   </div>
-                </div>
+                </FormCard>
               </div>
             </template>
           </UAccordion>

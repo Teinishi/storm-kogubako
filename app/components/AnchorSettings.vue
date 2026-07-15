@@ -32,11 +32,7 @@ const reset = () => {
 </script>
 
 <template>
-  <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
-    <h2 class="font-bold text-lg">
-      {{ props.label }}
-    </h2>
-
+  <FormCard :title="props.label">
     <div class="grid grid-cols-2 gap-4">
       <AnchorPositionSelect
         v-model="modelValue.anchorPosition"
@@ -70,7 +66,7 @@ const reset = () => {
         @click="reset"
       />
     </div>
-  </div>
+  </FormCard>
 </template>
 
 <i18n lang="json">

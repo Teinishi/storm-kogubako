@@ -136,7 +136,7 @@ const formatFileSize = (size: number) => {
       <AppTitle />
 
       <div class="grow flex flex-col px-4 pt-0 pb-18 sm:pb-4 gap-4 overflow-y-auto">
-        <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+        <FormCard>
           <UFileUpload
             v-model="fileUploadModel"
             :label="t('drop_files')"
@@ -295,7 +295,7 @@ const formatFileSize = (size: number) => {
               </div>
             </div>
           </div>
-        </div>
+        </FormCard>
       </div>
     </div>
 

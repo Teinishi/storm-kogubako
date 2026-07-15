@@ -113,7 +113,7 @@ watch(modelValue, (newValue, oldValue) => {
 </script>
 
 <template>
-  <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+  <FormCard>
     <h2 class="font-bold text-lg">
       {{ props.label }}
     </h2>
@@ -229,7 +229,7 @@ watch(modelValue, (newValue, oldValue) => {
         </UFormField>
       </div>
     </div>
-  </div>
+  </FormCard>
 </template>
 
 <i18n lang="json">

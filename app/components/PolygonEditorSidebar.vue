@@ -125,7 +125,7 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
 
 <template>
   <div class="space-y-4">
-    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+    <FormCard>
       <div class="flex">
         <UTooltip :text="t('undo')">
           <UButton
@@ -192,7 +192,7 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
           />
         </UFormField>
       </div>
-    </div>
+    </FormCard>
 
     <UAlert
       v-if="draftPolygon"
@@ -206,7 +206,7 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
       variant="subtle"
     />
 
-    <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+    <FormCard>
       <div class="mb-3 flex items-center justify-between gap-2">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
           {{ t('polygon_list') }}
@@ -250,12 +250,9 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
           </template>
         </ReorderableList>
       </div>
-    </div>
+    </FormCard>
 
-    <div
-      v-if="selectedPolygon"
-      class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4"
-    >
+    <FormCard v-if="selectedPolygon">
       <div class="mb-3 flex items-center justify-between gap-2">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-gray-100">
           {{ t('selected_polygon') }}
@@ -362,7 +359,7 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
           </div>
         </div>
       </div>
-    </div>
+    </FormCard>
   </div>
 </template>
 
