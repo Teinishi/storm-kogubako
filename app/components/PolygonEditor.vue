@@ -52,7 +52,7 @@ defineExpose({ renderCanvas });
   <div class="flex flex-col lg:flex-row gap-4">
     <PolygonEditorCanvas
       ref="canvas"
-      class="min-h-80 max-h-[80vh] lg:flex-1"
+      class="min-h-80 max-h-[80vh] lg:max-h-none lg:flex-1"
       :render-hooks="renderHooks"
     />
     <PolygonEditorSidebar
