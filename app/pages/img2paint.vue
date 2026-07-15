@@ -374,7 +374,7 @@ const saveVehicleXml = () => {
 <template>
   <div class="h-full grid sm:grid-cols-[24rem_1fr]">
     <div class="h-screen flex flex-col">
-      <AppTitle :title="gt('img2paint')" />
+      <AppTitle />
 
       <div class="grow flex flex-col px-4 pt-0 pb-18 sm:pb-4 gap-4 overflow-y-auto">
         <template v-if="!baseImage">

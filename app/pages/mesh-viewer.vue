@@ -133,7 +133,7 @@ const formatFileSize = (size: number) => {
 <template>
   <div class="h-full grid sm:grid-cols-[24rem_1fr]">
     <div class="min-w-0 h-screen flex flex-col">
-      <AppTitle :title="gt('mesh_viewer')" />
+      <AppTitle />
 
       <div class="grow flex flex-col px-4 pt-0 pb-18 sm:pb-4 gap-4 overflow-y-auto">
         <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">

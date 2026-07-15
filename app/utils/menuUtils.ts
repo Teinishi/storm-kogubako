@@ -1,3 +1,5 @@
+import TrainDoorIcon from '~/components/icons/TrainDoorIcon.vue';
+
 export const WEB_TOOLS = [
   {
     key: 'img2paint',
@@ -12,7 +14,7 @@ export const WEB_TOOLS = [
   {
     key: 'custom_train_door',
     to: '/custom-train-door',
-    icon: '',
+    icon: TrainDoorIcon,
   },
 ];
 

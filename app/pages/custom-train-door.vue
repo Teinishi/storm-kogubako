@@ -44,7 +44,7 @@ const {
 <template>
   <div class="h-full grid sm:grid-cols-[7fr_5fr]">
     <div class="h-screen flex flex-col">
-      <AppTitle :title="gt('custom_train_door')" />
+      <AppTitle />
 
       <div class="grow px-4 pt-0 pb-18 sm:pb-4 min-h-0">
         <UTabs
