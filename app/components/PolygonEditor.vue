@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { PolygonEditorValue, PolygonEditorGrid } from '../utils/polygonEditorCore';
 import { usePolygonEditor } from '~/composables/usePolygonEditor';
-import { providePolygonEditor } from '~/composables/useEditorContext';
+import { providePolygonEditor } from '~/composables/usePolygonEditorContext';
 import type { RenderHooks } from '~/composables/usePolygonEditorCanvas';
 
 const props = withDefaults(defineProps<{

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { usePolygonEditorContext } from '~/composables/useEditorContext';
+import { usePolygonEditorContext } from '~/composables/usePolygonEditorContext';
 
 const { t } = useI18n({ useScope: 'local' });
 
