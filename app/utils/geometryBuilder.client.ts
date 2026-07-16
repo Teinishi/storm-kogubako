@@ -1,7 +1,6 @@
-import type { BufferGeometry } from 'three';
-import { BufferAttribute } from 'three';
-import { type Vec3, type Color, WHITE, type Vec2 } from './utils';
+import { type BufferGeometry, BufferAttribute } from 'three';
 import * as earcut from 'earcut';
+import { type Vec3, type Color, WHITE, type Vec2 } from './utils';
 import { createMeshFile } from './meshWriter';
 
 const DEFAULT_OPAQUE_COLOR = WHITE;

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { parseMeshData, type MeshData } from 'sw-mesh-viewer';
+import { parseMeshData, type MeshData } from 'sw-mesh-viewer/parser';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 const { t } = useI18n({ useScope: 'local' });

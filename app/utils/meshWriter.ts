@@ -1,4 +1,4 @@
-import type { MeshVec3, MeshColor4, MeshVertex, SubMesh, MeshFile } from 'sw-mesh-viewer';
+import type { MeshVec3, MeshColor4, MeshVertex, SubMesh, MeshFile } from 'sw-mesh-viewer/parser';
 
 export function createMeshFile(data: MeshFile) {
   const writer = new BinaryWriter();

@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from '@tresjs/cientos';
 import { TresCanvas } from '@tresjs/core';
-import type { MeshData } from 'sw-mesh-viewer';
+import type { MeshData } from 'sw-mesh-viewer/parser';
 import { createStormworksLightGroup, type StormworksUniforms } from 'sw-mesh-viewer/viewer';
 import { SwMeshPrimitive } from 'sw-mesh-viewer/vue';
 import { markRaw } from 'vue';
