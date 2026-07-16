@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useCustomTrainDoor } from '~/composables/useCustomTrainDoor';
+import { saveMesh } from '~/utils/customTrainDoor.client';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 const { t } = useI18n({ useScope: 'local' });
@@ -39,6 +40,10 @@ const {
   () => outsideEditor.value?.renderCanvas(),
   () => insideEditor.value?.renderCanvas(),
 );
+
+function saveMeshClicked() {
+  saveMesh(state, outsidePolygonEditorValue.value, insidePolygonEditorValue.value);
+}
 </script>
 
 <template>
@@ -55,6 +60,15 @@ const {
         >
           <template #settings>
             <TrainDoorState v-model="state" />
+            <div class="mt-4 flex">
+              <UButton
+                block
+                size="xl"
+                color="primary"
+                :label="t('save_mesh')"
+                @click="saveMeshClicked"
+              />
+            </div>
           </template>
 
           <template #outside>
@@ -100,13 +114,15 @@ const {
     "settings": "Settings",
     "outside_paint": "Outside Paint",
     "inside_paint": "Inside Paint",
-    "preview": "Preview"
+    "preview": "Preview",
+    "save_mesh": "Save mesh"
   },
   "ja": {
     "settings": "設定",
     "outside_paint": "外側ペイント",
     "inside_paint": "内側ペイント",
-    "preview": "プレビュー"
+    "preview": "プレビュー",
+    "save_mesh": "mesh を保存"
   }
 }
 </i18n>

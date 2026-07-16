@@ -2,6 +2,7 @@ import type { BufferGeometry } from 'three';
 import { BufferAttribute } from 'three';
 import { type Vec3, type Color, WHITE, type Vec2 } from './utils';
 import * as earcut from 'earcut';
+import { createMeshFile } from './meshWriter';
 
 const DEFAULT_OPAQUE_COLOR = WHITE;
 const DEFAULT_GLASS_COLOR = {
@@ -54,7 +55,8 @@ function vec2RingToTuple(ring: readonly Vec2[], z?: number) {
 }
 
 interface GeometryGroup {
-  end: number;
+  start: number;
+  length: number;
   materialIndex: number;
 }
 
@@ -66,7 +68,6 @@ interface AddFaceOptions {
 
 interface AddPolygonOptions extends AddFaceOptions {
   z?: number;
-  refine?: boolean;
 }
 
 interface AddExtrudedSideOptions extends AddFaceOptions {
@@ -80,6 +81,7 @@ export class GeometryBuilder {
   private readonly colors: number[] = [];
   private readonly indices: number[] = [];
   private readonly groups: GeometryGroup[] = [];
+  refine = false;
 
   private addCoplanarTriangles(flatVertices: readonly number[], indices: readonly number[], options?: AddFaceOptions) {
     if (indices.length < 3) {
@@ -123,6 +125,7 @@ export class GeometryBuilder {
       this.colors.push(red, green, blue);
     }
 
+    const groupStart = this.indices.length;
     for (let i = 0; i + 2 < indices.length; i += 3) {
       const tri = indices.slice(i, i + 3);
       if (options?.flip) {
@@ -135,10 +138,14 @@ export class GeometryBuilder {
 
     const prevGroup = this.groups[this.groups.length - 1];
     if (prevGroup?.materialIndex === materialIndex) {
-      prevGroup.end = this.indices.length;
+      prevGroup.length = this.indices.length - prevGroup.start;
     }
     else {
-      this.groups.push({ end: this.indices.length, materialIndex });
+      this.groups.push({
+        start: groupStart,
+        length: this.indices.length - groupStart,
+        materialIndex,
+      });
     }
   }
 
@@ -175,7 +182,7 @@ export class GeometryBuilder {
 
     const data = earcut.flatten(polygon.map(ring => vec2RingToTuple(ring, z)));
     const indices = earcut.default(data.vertices, data.holes, data.dimensions);
-    if (options?.refine) {
+    if (this.refine) {
       earcut.refine(indices, data.vertices, data.dimensions);
     }
 
@@ -207,16 +214,105 @@ export class GeometryBuilder {
     }
   }
 
+  // Three.js の BufferGeometry に適用
   apply(geometry: BufferGeometry) {
     geometry.clearGroups();
     geometry.setAttribute('position', new BufferAttribute(new Float32Array(this.positions), 3));
     geometry.setAttribute('normal', new BufferAttribute(new Float32Array(this.normals), 3));
     geometry.setAttribute('color', new BufferAttribute(new Float32Array(this.colors), 3));
     geometry.setIndex(this.indices);
-    let start = 0;
-    for (const group of this.groups) {
-      geometry.addGroup(start, group.end - start, group.materialIndex);
-      start = group.end;
+    for (const { start, length, materialIndex } of this.groups) {
+      geometry.addGroup(start, length, materialIndex);
     }
+  }
+
+  createMeshFile() {
+    const { positions, colors, normals, indices } = this;
+    const vertexCount = positions.length / 3;
+    if (!Number.isInteger(vertexCount)) {
+      throw new Error('GeometryBuilder.positions must have a length multiples of 3.');
+    }
+    if (vertexCount !== colors.length / 3) {
+      throw new Error('Mismatch of size between positions and colors.');
+    }
+    if (vertexCount !== normals.length / 3) {
+      throw new Error('Mismatch of size between positions and normals.');
+    }
+
+    const vertices = [];
+    for (let i = 0; i < vertexCount; i++) {
+      vertices.push({
+        position: {
+          x: positions[3 * i]!,
+          y: positions[3 * i + 1]!,
+          z: positions[3 * i + 2]!,
+        },
+        color: {
+          r: Math.round(colors[3 * i]! * 255),
+          g: Math.round(colors[3 * i + 1]! * 255),
+          b: Math.round(colors[3 * i + 2]! * 255),
+          a: 255,
+        },
+        normal: {
+          x: normals[3 * i]!,
+          y: normals[3 * i + 1]!,
+          z: normals[3 * i + 2]!,
+        },
+      });
+    }
+
+    const flippedIndices = indices.map((v, i, arr) => {
+      if (i % 3 === 1) return arr[i + 1]!;
+      if (i % 3 === 2) return arr[i - 1]!;
+      return v;
+    });
+
+    const submeshes = this.groups.map(({ start, length, materialIndex }, i) => {
+      let boundsMin, boundsMax;
+      for (const j of flippedIndices.slice(start, start + length)) {
+        if (j < 0 || vertexCount <= j) continue;
+        const x = positions[3 * j]!;
+        const y = positions[3 * j + 1]!;
+        const z = positions[3 * j + 2]!;
+
+        if (!boundsMin) {
+          boundsMin = { x, y, z };
+        }
+        else {
+          boundsMin.x = Math.min(boundsMin.x, x);
+          boundsMin.y = Math.min(boundsMin.y, y);
+          boundsMin.z = Math.min(boundsMin.z, z);
+        }
+
+        if (!boundsMax) {
+          boundsMax = { x, y, z };
+        }
+        else {
+          boundsMax.x = Math.max(boundsMax.x, x);
+          boundsMax.y = Math.max(boundsMax.y, y);
+          boundsMax.z = Math.max(boundsMax.z, z);
+        }
+      }
+
+      if (!boundsMin || !boundsMax) return null;
+
+      return {
+        indexBufferStart: start,
+        indexBufferLength: length,
+        shaderId: materialIndex,
+        boundsMin,
+        boundsMax,
+        name: `material-${i}`,
+      };
+    }).filter(v => v !== null);
+
+    const data = {
+      kind: 'mesh' as const,
+      vertices,
+      indices: flippedIndices,
+      submeshes,
+    };
+
+    return createMeshFile(data);
   }
 }

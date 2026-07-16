@@ -18,6 +18,31 @@ export function rectToPolygon(rect: Rect): Vec2[] {
   ];
 }
 
+export function getBoundingBox(vertices: Vec2[]) {
+  let boundsMin, boundsMax;
+  for (const { x, y } of vertices) {
+    if (!boundsMin) {
+      boundsMin = { x, y } satisfies Vec2;
+    }
+    else {
+      boundsMin.x = Math.min(boundsMin.x, x);
+      boundsMin.y = Math.min(boundsMin.y, y);
+    }
+
+    if (!boundsMax) {
+      boundsMax = { x, y } satisfies Vec2;
+    }
+    else {
+      boundsMax.x = Math.max(boundsMax.x, x);
+      boundsMax.y = Math.max(boundsMax.y, y);
+    }
+  }
+
+  if (!boundsMin || !boundsMax) return null;
+
+  return { boundsMin, boundsMax };
+}
+
 // 向きを判定
 function polygonWindingDirection(polygon: readonly Vec2[]) {
   const n = polygon.length;

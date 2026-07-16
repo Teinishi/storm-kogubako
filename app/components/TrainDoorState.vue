@@ -14,7 +14,7 @@ const state = defineModel<TrainDoorState>({ required: true });
 
 <template>
   <div class="grid lg:grid-cols-2 gap-4">
-    <FormCard>
+    <FormCard :title="t('door_settings')">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
         <UFormField :label="t('door_width')">
           <div class="flex items-center gap-2">
@@ -88,7 +88,7 @@ const state = defineModel<TrainDoorState>({ required: true });
       </div>
     </FormCard>
 
-    <FormCard>
+    <FormCard :title="t('window_settings')">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
         <UFormField :label="t('window_x_offset')">
           <UInputNumber
@@ -155,14 +155,16 @@ const state = defineModel<TrainDoorState>({ required: true });
 {
   "en": {
     "blocks": "Blocks",
-    "door_width": "Door Width",
-    "door_height": "Door Height",
-    "door_thickness": "Door Thickness",
-    "door_z_offset": "Door Z Offset",
+    "door_settings": "Door Settings",
+    "door_width": "Width",
+    "door_height": "Height",
+    "door_thickness": "Thickness",
+    "door_z_offset": "Z Offset",
     "outside_color": "Outside Base Color",
     "inside_color": "Inside Base Color",
     "rubber_thickness": "Rubber Thickness",
     "rubber_color": "Rubber Color",
+    "window_settings": "Window Settings",
     "window_x_offset": "Window X Offset",
     "window_y_offset": "Window Y Offset",
     "window_width": "Window Width",
@@ -172,20 +174,22 @@ const state = defineModel<TrainDoorState>({ required: true });
   },
   "ja": {
     "blocks": "ブロック",
-    "door_width": "ドア幅",
-    "door_height": "ドア高さ",
-    "door_thickness": "ドア厚み",
-    "door_z_offset": "ドアZ",
+    "door_settings": "ドア設定",
+    "door_width": "幅",
+    "door_height": "高さ",
+    "door_thickness": "厚み",
+    "door_z_offset": "Z位置",
     "outside_color": "外側ベースカラー",
     "inside_color": "内側ベースカラー",
     "rubber_thickness": "戸先ゴム厚み",
     "rubber_color": "戸先ゴムカラー",
-    "window_x_offset": "窓X",
-    "window_y_offset": "窓Y",
-    "window_width": "窓幅",
-    "window_height": "窓高さ",
-    "window_corner_radius": "窓角丸",
-    "window_corner_divisions": "窓角分割数"
+    "window_settings": "窓設定",
+    "window_x_offset": "X位置",
+    "window_y_offset": "Y位置",
+    "window_width": "幅",
+    "window_height": "高さ",
+    "window_corner_radius": "角丸",
+    "window_corner_divisions": "角分割数"
   }
 }
 </i18n>
