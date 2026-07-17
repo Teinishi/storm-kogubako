@@ -29,6 +29,7 @@ export default defineNuxtConfig({
       include: [
         '@vue/devtools-core',
         '@vue/devtools-kit',
+        'sw-mesh-viewer/parser',
         'three',
       ],
     },

@@ -1,4 +1,4 @@
-import { GeometryBuilder } from './geometryBuilder.client';
+import { GeometryBuilder, Orientation } from './geometryBuilder.client';
 import { eliminatePolygonOverlap } from './polygonUtils';
 import { hexToRgb } from './utils';
 
@@ -201,6 +201,7 @@ export function saveMesh(
   buildInsideGeometry(builder, state, insidePaint);
   buildSideGeometry(builder, state);
   buildWindowGeometry(builder, state);
+  builder.transform(Orientation.RotateY90);
 
   saveFile(builder.createMeshFile(), 'train_door.mesh');
 }

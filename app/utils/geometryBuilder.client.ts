@@ -53,6 +53,72 @@ function vec2RingToTuple(ring: readonly Vec2[], z?: number) {
   return ring.map(p => z === undefined ? [p.x, p.y] : [p.x, p.y, z]);
 }
 
+type Axis = 'x' | 'y' | 'z';
+
+interface AxisMapping {
+  axis: Axis;
+  sign: 1 | -1;
+}
+
+export class Orientation {
+  constructor(
+    public readonly x: AxisMapping,
+    public readonly y: AxisMapping,
+    public readonly z: AxisMapping,
+  ) {}
+
+  static readonly Identity = new Orientation(
+    { axis: 'x', sign: 1 },
+    { axis: 'y', sign: 1 },
+    { axis: 'z', sign: 1 },
+  );
+
+  static readonly RotateY90 = new Orientation(
+    { axis: 'z', sign: 1 },
+    { axis: 'y', sign: 1 },
+    { axis: 'x', sign: -1 },
+  );
+
+  static readonly RotateY180 = new Orientation(
+    { axis: 'x', sign: -1 },
+    { axis: 'y', sign: 1 },
+    { axis: 'z', sign: -1 },
+  );
+
+  static readonly RotateY270 = new Orientation(
+    { axis: 'z', sign: -1 },
+    { axis: 'y', sign: 1 },
+    { axis: 'x', sign: 1 },
+  );
+
+  static readonly FlipX = new Orientation(
+    { axis: 'x', sign: -1 },
+    { axis: 'y', sign: 1 },
+    { axis: 'z', sign: 1 },
+  );
+
+  static readonly FlipY = new Orientation(
+    { axis: 'x', sign: 1 },
+    { axis: 'y', sign: -1 },
+    { axis: 'z', sign: 1 },
+  );
+
+  static readonly FlipZ = new Orientation(
+    { axis: 'x', sign: 1 },
+    { axis: 'y', sign: 1 },
+    { axis: 'z', sign: -1 },
+  );
+
+  transformPosition(src: Vec3): Vec3 {
+    const get = (m: AxisMapping) => src[m.axis] * m.sign;
+    return {
+      x: get(this.x),
+      y: get(this.y),
+      z: get(this.z),
+    };
+  }
+}
+
 interface GeometryGroup {
   start: number;
   length: number;
@@ -210,6 +276,24 @@ export class GeometryBuilder {
       ];
 
       this.addFace(quad, options);
+    }
+  }
+
+  transform(orientation: Orientation) {
+    const { positions, normals } = this;
+
+    for (let i = 0; 3 * i + 2 < positions.length; i++) {
+      const { x, y, z } = orientation.transformPosition(getVertexFromFlat(positions, i)!);
+      positions[3 * i] = x;
+      positions[3 * i + 1] = y;
+      positions[3 * i + 2] = z;
+    }
+
+    for (let i = 0; 3 * i + 2 < normals.length; i++) {
+      const { x, y, z } = orientation.transformPosition(getVertexFromFlat(normals, i)!);
+      normals[3 * i] = x;
+      normals[3 * i + 1] = y;
+      normals[3 * i + 2] = z;
     }
   }
 
