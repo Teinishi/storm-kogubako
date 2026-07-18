@@ -9,5 +9,7 @@
   "other_tools": "その他のツール",
   "blender_mesh_io": "Blender メッシュインポート・エクスポート",
   "blender_mesh_io_description": ".mesh ファイルと .phys ファイルを Blender 上で直接インポート・エクスポートするアドオン",
+  "saving_file": "ファイルを保存しています",
+  "saving_file_message": "ダウンロードフォルダをご確認ください",
   "stormskey": "すとーむすきー"
 }

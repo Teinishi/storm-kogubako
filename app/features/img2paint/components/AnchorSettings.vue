@@ -1,27 +1,14 @@
 <script setup lang="ts">
-import type { AnchorPosition } from './AnchorPositionSelect.vue';
 import AnchorPositionSelect from './AnchorPositionSelect.vue';
+import type { AnchorState } from '../models/AnchorState.js';
 
-export interface AnchorState {
-  anchorPosition: AnchorPosition;
-  offsetX: number;
-  offsetY: number;
-}
+const { t } = useI18n({ useScope: 'local' });
 
-const { t } = useI18n({
-  useScope: 'local',
-});
+const props = defineProps<{
+  label: string;
+  anchorDisabled?: boolean;
+}>();
 
-const props = defineProps({
-  label: {
-    type: String,
-    required: true,
-  },
-  anchorDisabled: {
-    type: Boolean,
-    default: false,
-  },
-});
 const modelValue = defineModel<AnchorState>({ required: true });
 
 const isOffsetZero = computed(() => modelValue.value.offsetX === 0 && modelValue.value.offsetY === 0);

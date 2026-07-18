@@ -1,17 +1,6 @@
 <script setup lang="ts">
-const POSITIONS = [
-  { value: 'top-left', icon: 'i-heroicons-arrow-up-left' },
-  { value: 'top-center', icon: 'i-heroicons-arrow-up' },
-  { value: 'top-right', icon: 'i-heroicons-arrow-up-right' },
-  { value: 'mid-left', icon: 'i-heroicons-arrow-left' },
-  { value: 'center', icon: 'i-heroicons-plus' },
-  { value: 'mid-right', icon: 'i-heroicons-arrow-right' },
-  { value: 'bottom-left', icon: 'i-heroicons-arrow-down-left' },
-  { value: 'bottom-center', icon: 'i-heroicons-arrow-down' },
-  { value: 'bottom-right', icon: 'i-heroicons-arrow-down-right' },
-] as const;
-
-export type AnchorPosition = typeof POSITIONS[number]['value'];
+import type { AnchorPosition } from '../models/AnchorState';
+import { ANCHOR_POSITIONS } from '../models/AnchorState';
 
 const { t } = useI18n({ useScope: 'local' });
 
@@ -34,7 +23,7 @@ function onClick(newValue: AnchorPosition) {
 
     <div class="grow p-2 bg-default rounded-lg ring ring-inset ring-accented border-0 border-gray-200 dark:border-gray-700 w-full grid grid-cols-[repeat(3,auto)] justify-between content-between gap-2">
       <UButton
-        v-for="pos in POSITIONS"
+        v-for="pos in ANCHOR_POSITIONS"
         :key="pos.value"
         :icon="pos.icon"
         :color="modelValue === pos.value ? 'primary' : 'neutral'"

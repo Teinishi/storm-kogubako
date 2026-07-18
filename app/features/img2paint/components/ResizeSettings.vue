@@ -1,34 +1,16 @@
 <script setup lang="ts">
-export interface ResizeState {
-  sizeType: 'block' | 'pixel' | 'percent';
-  keepAspect: boolean;
-  sizePriority: 'width' | 'height';
-  widthPixels: number;
-  heightPixels: number;
-  resizeAlgo: 'pixelated' | 'smooth';
-}
+import type { ResizeState } from '../models/ResizeState';
 
-const { t } = useI18n({
-  useScope: 'local',
+const { t } = useI18n({ useScope: 'local' });
+
+const props = withDefaults(defineProps<{
+  label: string;
+  roundDigit?: number;
+  imageSize: { width: number; height: number };
+}>(), {
+  roundDigit: 3,
 });
 
-const props = defineProps({
-  label: {
-    type: String,
-    required: true,
-  },
-  roundDigit: {
-    type: Number,
-    default: 3,
-  },
-  imageSize: {
-    type: Object as () => { width: number; height: number },
-    required: true,
-  },
-  sizeBlocks: {
-    type: Object as () => { width: number; height: number },
-  },
-});
 const modelValue = defineModel<ResizeState>({ required: true });
 
 const sizeUnitLabel = computed(() => t(`size_type_unit_${modelValue.value.sizeType}`));
