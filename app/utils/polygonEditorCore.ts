@@ -1,5 +1,3 @@
-import type { Vec2 } from '~/utils/utils';
-
 export interface PolygonEditorPolygon {
   id: number;
   color: string;

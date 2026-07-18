@@ -1,5 +1,4 @@
 import type { Ref } from 'vue';
-import type { Vec2, Rect } from '~/utils/utils';
 import {
   findHitEdge as findHitEdgeInPolygons,
   findHitPolygon as findHitPolygonInPolygons,

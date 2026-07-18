@@ -1,5 +1,4 @@
 import polygonClipping from 'polygon-clipping';
-import type { Vec2, Rect } from '~/utils/utils';
 
 function forPolygonClipping(polygon: Vec2[][]): polygonClipping.Polygon {
   return polygon.map(ring => ring.map(v => [v.x, v.y]));

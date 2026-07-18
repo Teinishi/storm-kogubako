@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { round } from '~/utils/utils';
-
 export type ResizeSettings = {
   sizeType: 'block' | 'pixel' | 'percent';
   keepAspect: boolean;

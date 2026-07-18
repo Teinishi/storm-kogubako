@@ -12,11 +12,6 @@ definePageMeta({ layout: 'app' });
 
 const GRID_LINE_WIDTH = 2;
 
-const replaceExtension = (filename: string, ext: string) => {
-  ext = ext.startsWith('.') ? ext : `.${ext}`;
-  return filename.replace(/\.[^/\\.]+$/, '') + ext;
-};
-
 const getImageSize = (img: HTMLImageElement | HTMLCanvasElement | null) => {
   if (!img) return null;
   const { width, height } = img;

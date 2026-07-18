@@ -1,5 +1,3 @@
-import type { Vec2 } from '~/utils/utils';
-
 // ポリゴンを Canvas に書く
 export function polygonOnCanvas(ctx: CanvasRenderingContext2D, polygon: readonly Vec2[], coordinateConversion?: (point: Vec2) => Vec2) {
   polygon.forEach((point, i) => {

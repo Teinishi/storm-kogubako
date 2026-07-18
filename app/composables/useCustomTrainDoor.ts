@@ -1,5 +1,4 @@
 import { reactive, type Reactive } from 'vue';
-import type { Vec2 } from '~/utils/utils';
 import { getBoundingBox } from '~/utils/polygonUtils';
 import type { RenderHooks } from '~/composables/usePolygonEditorCanvas';
 

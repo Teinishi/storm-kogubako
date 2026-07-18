@@ -1,5 +1,4 @@
 import type { DeepReadonly, Ref } from 'vue';
-import type { Vec2 } from '~/utils/utils';
 import { snapPointWithGrid, type PolygonEditorGrid, type PolygonEditorValue } from '~/utils/polygonEditorCore';
 import { HANDLE_HIT_THRESHOLD_PX } from '~/utils/polygonEditorCore';
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { BufferGeometry } from 'three';
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
-import type { Vec2 } from '~/utils/utils';
 import type { PolygonEditorValue } from '~/utils/polygonEditorCore';
 import { GeometryBuilder } from '~/utils/geometryBuilder.client';
 import type { TrainDoorState } from '~/composables/useCustomTrainDoor';
