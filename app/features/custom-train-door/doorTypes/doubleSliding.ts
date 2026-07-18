@@ -86,6 +86,7 @@ export function buildGeometry(
   state: Readonly<TrainDoorState>,
   outsidePaint: Readonly<PolygonEditorValue>,
   insidePaint: Readonly<PolygonEditorValue>,
+  builderOptions?: Readonly<GeometryBuilderOptions>,
 ) {
   const doorSize = { x: state.doorWidth, y: state.doorHeight };
   const frontZ = state.doorThickness / 2 + state.doorZOffset;
@@ -98,8 +99,8 @@ export function buildGeometry(
   const baseRects = getBaseRects(state);
   const windowRings = getWindowRings(state);
 
-  const leftBuilder = new GeometryBuilder();
-  const rightBuilder = new GeometryBuilder();
+  const leftBuilder = new GeometryBuilder(builderOptions);
+  const rightBuilder = new GeometryBuilder(builderOptions);
 
   buildSlidingDoorGeometry(leftBuilder, {
     baseRect: baseRects.left,
@@ -116,7 +117,7 @@ export function buildGeometry(
     windowRings: [windowRings.left],
   });
 
-  buildSlidingDoorGeometry(leftBuilder, {
+  buildSlidingDoorGeometry(rightBuilder, {
     baseRect: baseRects.right,
     outsidePaint,
     insidePaint,

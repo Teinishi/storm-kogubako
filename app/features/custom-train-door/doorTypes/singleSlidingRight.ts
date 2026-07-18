@@ -74,8 +74,9 @@ export function buildGeometry(
   state: Readonly<TrainDoorState>,
   outsidePaint: Readonly<PolygonEditorValue>,
   insidePaint: Readonly<PolygonEditorValue>,
+  builderOptions?: Readonly<GeometryBuilderOptions>,
 ) {
-  const builder = new GeometryBuilder();
+  const builder = new GeometryBuilder(builderOptions);
 
   buildSlidingDoorGeometry(builder, {
     baseRect: getBaseRect(state),

@@ -124,6 +124,10 @@ interface GeometryGroup {
   materialIndex: number;
 }
 
+export interface GeometryBuilderOptions {
+  refine?: boolean;
+}
+
 export interface AddFaceOptions {
   materialIndex?: number;
   color?: Color;
@@ -145,7 +149,11 @@ export class GeometryBuilder {
   private readonly colors: number[] = [];
   private readonly indices: number[] = [];
   private readonly groups: GeometryGroup[] = [];
-  refine = false;
+  refine: boolean;
+
+  constructor(options?: Readonly<GeometryBuilderOptions>) {
+    this.refine = options?.refine ?? false;
+  }
 
   private addCoplanarTriangles(flatVertices: readonly number[], indices: readonly number[], options?: AddFaceOptions) {
     if (indices.length < 3) {
@@ -327,7 +335,7 @@ export class GeometryBuilder {
         position: {
           x: positions[3 * i]!,
           y: positions[3 * i + 1]!,
-          z: positions[3 * i + 2]!,
+          z: -positions[3 * i + 2]!,
         },
         color: {
           r: Math.round(colors[3 * i]! * 255),
@@ -338,20 +346,14 @@ export class GeometryBuilder {
         normal: {
           x: normals[3 * i]!,
           y: normals[3 * i + 1]!,
-          z: normals[3 * i + 2]!,
+          z: -normals[3 * i + 2]!,
         },
       });
     }
 
-    const flippedIndices = indices.map((v, i, arr) => {
-      if (i % 3 === 1) return arr[i + 1]!;
-      if (i % 3 === 2) return arr[i - 1]!;
-      return v;
-    });
-
     const submeshes = this.groups.map(({ start, length, materialIndex }, i) => {
       let boundsMin, boundsMax;
-      for (const j of flippedIndices.slice(start, start + length)) {
+      for (const j of indices.slice(start, start + length)) {
         if (j < 0 || vertexCount <= j) continue;
         const x = positions[3 * j]!;
         const y = positions[3 * j + 1]!;
@@ -391,7 +393,7 @@ export class GeometryBuilder {
     const data = {
       kind: 'mesh' as const,
       vertices,
-      indices: flippedIndices,
+      indices,
       submeshes,
     };
 

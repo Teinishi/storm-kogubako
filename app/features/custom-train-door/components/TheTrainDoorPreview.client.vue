@@ -3,11 +3,10 @@ import { BufferGeometry } from 'three';
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
 import type { TrainDoorState } from '../types/TrainDoorState';
 import type { PolygonEditorValue } from '~/features/polygon-editor/types/modelValue';
-import { buildGeometry } from '../doorTypes';
+import { buildDoorGeometry } from '../doorTypes';
 
 const props = defineProps<{
   state: TrainDoorState;
-  windowHole: Vec2[];
   outsidePaint: PolygonEditorValue;
   insidePaint: PolygonEditorValue;
 }>();
@@ -17,7 +16,7 @@ const materialSet = createStormworksMaterials();
 const materials = [materialSet.opaque, materialSet.glass, materialSet.additive];
 
 watchEffect(() => {
-  const objects = buildGeometry(props.state, props.outsidePaint, props.insidePaint);
+  const objects = buildDoorGeometry(props.state, props.outsidePaint, props.insidePaint);
   geometries.value = objects.map(({ id, builder }) => {
     const geometry = new BufferGeometry();
     builder.apply(geometry);

@@ -3,7 +3,7 @@ import PolygonEditor from '~/features/polygon-editor/components/PolygonEditor.vu
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import { useCustomTrainDoor } from '../composables/useCustomTrainDoor';
-import { saveMesh } from '../utils/customTrainDoor.client';
+import { saveMesh } from '../utils/saveMesh';
 
 const { t } = useI18n({ useScope: 'local' });
 
@@ -30,15 +30,11 @@ const insideEditor = useTemplateRef('insideEditor');
 
 const {
   state,
-  windowPolygon,
   outsidePolygonEditorValue,
   insidePolygonEditorValue,
   outsideEditorProps,
   insideEditorProps,
-} = useCustomTrainDoor(
-  () => outsideEditor.value?.renderCanvas(),
-  () => insideEditor.value?.renderCanvas(),
-);
+} = useCustomTrainDoor();
 
 function saveMeshClicked() {
   saveMesh(state, outsidePolygonEditorValue.value, insidePolygonEditorValue.value);
@@ -98,7 +94,6 @@ function saveMeshClicked() {
       <ClientOnly>
         <TheTrainDoorPreviewClient
           :state="state"
-          :window-hole="windowPolygon"
           :outside-paint="outsidePolygonEditorValue"
           :inside-paint="insidePolygonEditorValue"
         />

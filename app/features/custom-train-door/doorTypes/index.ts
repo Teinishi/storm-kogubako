@@ -28,19 +28,20 @@ export function createRenderHooks(state: TrainDoorState): RenderHooksSet {
   }
 }
 
-export function buildGeometry(
+export function buildDoorGeometry(
   state: Readonly<TrainDoorState>,
   outsidePaint: Readonly<PolygonEditorValue>,
   insidePaint: Readonly<PolygonEditorValue>,
+  builderOptions?: Readonly<GeometryBuilderOptions>,
 ) {
   const { doorType } = state;
   switch (doorType) {
     case 'double_sliding':
-      return doubleSliding.buildGeometry(state, outsidePaint, insidePaint);
+      return doubleSliding.buildGeometry(state, outsidePaint, insidePaint, builderOptions);
     case 'single_sliding_left':
-      return singleSlidingLeft.buildGeometry(state, outsidePaint, insidePaint);
+      return singleSlidingLeft.buildGeometry(state, outsidePaint, insidePaint, builderOptions);
     case 'single_sliding_right':
-      return singleSlidingRight.buildGeometry(state, outsidePaint, insidePaint);
+      return singleSlidingRight.buildGeometry(state, outsidePaint, insidePaint, builderOptions);
     default:
       assertNever(doorType);
   }
