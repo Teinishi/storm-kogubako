@@ -16,7 +16,6 @@ import type { ReadonlyPolygon } from '../types/modelValue';
 export type UsePolygonCanvasOptions = {
   canvasRef: Ref<HTMLCanvasElement | null>;
   editor: PolygonEditor;
-  renderHooks?: RenderHooks;
 };
 
 export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
@@ -255,7 +254,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     ctx.restore();
   }
 
-  function renderCanvas() {
+  function renderCanvas(renderHooks?: RenderHooks) {
     const canvas = canvasRef.value;
     if (!canvas) return;
 
@@ -302,8 +301,8 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       },
     };
 
-    if (options?.renderHooks?.onBeforeRenderPolygons) {
-      options.renderHooks.onBeforeRenderPolygons(renderHookArgs);
+    if (renderHooks?.onBeforeRenderPolygons) {
+      renderHooks.onBeforeRenderPolygons(renderHookArgs);
     }
 
     renderGrid(ctx, transform);
@@ -319,8 +318,8 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       });
     }
 
-    if (options?.renderHooks?.onBeforeRenderSelection) {
-      options.renderHooks.onBeforeRenderSelection(renderHookArgs);
+    if (renderHooks?.onBeforeRenderSelection) {
+      renderHooks.onBeforeRenderSelection(renderHookArgs);
     }
 
     if (selectedPolygonItem) {
@@ -347,8 +346,8 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       });
     }
 
-    if (options?.renderHooks?.onAfterRender) {
-      options.renderHooks.onAfterRender(renderHookArgs);
+    if (renderHooks?.onAfterRender) {
+      renderHooks.onAfterRender(renderHookArgs);
     }
   }
 

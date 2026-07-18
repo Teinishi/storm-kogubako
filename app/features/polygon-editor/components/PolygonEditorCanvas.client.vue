@@ -52,10 +52,15 @@ const {
 } = usePolygonEditorCanvas({
   canvasRef,
   editor,
-  renderHooks: props.renderHooks,
 });
 
-defineExpose({ renderCanvas });
+function renderCanvasWithHooks() {
+  renderCanvas(props.renderHooks);
+}
+
+defineExpose({
+  renderCanvas: renderCanvasWithHooks,
+});
 
 function handleCanvasPointerDown(event: PointerEvent) {
   if (editingLocked.value) return;
@@ -148,7 +153,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
     const target = event.currentTarget as HTMLCanvasElement | null;
     target?.setPointerCapture(event.pointerId);
     event.preventDefault();
-    renderCanvas();
+    renderCanvasWithHooks();
     return;
   }
 
@@ -183,7 +188,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
 function handleCanvasPointerMove(event: PointerEvent) {
   if (mode.value === 'drawRectangle' && draftRectangle.value) {
     draftRectangle.value.current = clampToLogicalBounds(canvasToWorld(event.clientX, event.clientY), logicalBounds.value);
-    renderCanvas();
+    renderCanvasWithHooks();
     return;
   }
 
@@ -193,7 +198,7 @@ function handleCanvasPointerMove(event: PointerEvent) {
   if (!polygon) return;
 
   updateVertexCoordinateWithoutCommit(dragState.value.polygonId, dragState.value.vertexIndex, canvasToWorld(event.clientX, event.clientY));
-  renderCanvas();
+  renderCanvasWithHooks();
 }
 
 function handleCanvasPointerUp(event: PointerEvent) {
@@ -284,10 +289,10 @@ function focusSurface() {
 }
 
 onMounted(() => {
-  renderCanvas();
+  renderCanvasWithHooks();
 });
 
-useResizeObserver(surfaceRef, renderCanvas);
+useResizeObserver(surfaceRef, renderCanvasWithHooks);
 </script>
 
 <template>

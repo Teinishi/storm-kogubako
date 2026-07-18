@@ -14,7 +14,7 @@ export interface ReadonlyPolygon {
   readonly vertices: readonly Readonly<Vec2>[];
 }
 
-export function clonePolygon(polygon: PolygonEditorPolygon): PolygonEditorPolygon {
+export function clonePolygon(polygon: Readonly<PolygonEditorPolygon>): PolygonEditorPolygon {
   return {
     id: polygon.id,
     color: polygon.color,
@@ -22,10 +22,21 @@ export function clonePolygon(polygon: PolygonEditorPolygon): PolygonEditorPolygo
   };
 }
 
-export function clonePolygonEditorValue(value: PolygonEditorValue): PolygonEditorValue {
+export function clonePolygonEditorValue(value: Readonly<PolygonEditorValue>): PolygonEditorValue {
   return { polygons: value.polygons.map(clonePolygon) };
 }
 
 export function createDefaultPolygonEditorValue(): PolygonEditorValue {
   return { polygons: [] };
+}
+
+export function transformPolygons(
+  polygons: readonly Readonly<PolygonEditorPolygon>[],
+  coordinateConversion: (p: Vec2) => Vec2,
+): PolygonEditorPolygon[] {
+  return polygons.map(({ id, color, vertices }) => ({
+    id,
+    color,
+    vertices: vertices.map(coordinateConversion),
+  }));
 }

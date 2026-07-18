@@ -1,6 +1,6 @@
 import polygonClipping from 'polygon-clipping';
 
-function forPolygonClipping(polygon: Vec2[][]): polygonClipping.Polygon {
+function forPolygonClipping(polygon: readonly (readonly Readonly<Vec2>[])[]): polygonClipping.Polygon {
   return polygon.map(ring => ring.map(v => [v.x, v.y]));
 }
 
@@ -8,38 +8,14 @@ function toVec2Polygon(polygon: polygonClipping.Polygon): Vec2[][] {
   return polygon.map(ring => ring.map(v => ({ x: v[0], y: v[1] })));
 }
 
-export function rectToPolygon(rect: Rect): Vec2[] {
+export function rectToRing(rect: Readonly<Rect>): Vec2[] {
+  const { x, y, width, height } = normalizeRect(rect);
   return [
-    { x: rect.x, y: rect.y },
-    { x: rect.x + rect.width, y: rect.y },
-    { x: rect.x + rect.width, y: rect.y + rect.height },
-    { x: rect.x, y: rect.y + rect.height },
+    { x, y },
+    { x: x + width, y },
+    { x: x + width, y: y + height },
+    { x, y: y + height },
   ];
-}
-
-export function getBoundingBox(vertices: Vec2[]) {
-  let boundsMin, boundsMax;
-  for (const { x, y } of vertices) {
-    if (!boundsMin) {
-      boundsMin = { x, y } satisfies Vec2;
-    }
-    else {
-      boundsMin.x = Math.min(boundsMin.x, x);
-      boundsMin.y = Math.min(boundsMin.y, y);
-    }
-
-    if (!boundsMax) {
-      boundsMax = { x, y } satisfies Vec2;
-    }
-    else {
-      boundsMax.x = Math.max(boundsMax.x, x);
-      boundsMax.y = Math.max(boundsMax.y, y);
-    }
-  }
-
-  if (!boundsMin || !boundsMax) return null;
-
-  return { boundsMin, boundsMax };
 }
 
 // 向きを判定
@@ -61,10 +37,12 @@ function polygonWindingDirection(polygon: readonly Vec2[]) {
 
 // 角丸矩形のポリゴンを生成
 export function createRoundedRectPolygon(
-  { x, y, width, height }: Rect,
-  radius: number | Vec2,
+  rect: Readonly<Rect>,
+  radius: number | Readonly<Vec2>,
   segments: number,
 ): Vec2[] {
+  const { x, y, width, height } = normalizeRect(rect);
+
   let rx: number, ry: number;
   if (typeof radius === 'number') {
     rx = radius;
@@ -225,10 +203,10 @@ interface PolygonWithId<T> {
 
 // 重なったポリゴンの重なりを排除
 export function eliminatePolygonOverlap<T>(
-  polygons: readonly PolygonWithId<T>[],
+  polygons: readonly Readonly<PolygonWithId<T>>[],
   options?: {
-    base?: PolygonWithId<T>;
-    holes?: readonly Vec2[][];
+    base?: Readonly<PolygonWithId<T>>;
+    holes?: readonly (readonly Vec2[])[];
   },
 ) {
   const base = options?.base;

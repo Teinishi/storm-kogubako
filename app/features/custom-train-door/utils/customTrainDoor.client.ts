@@ -68,7 +68,7 @@ export function buildOutsideGeometry(
 
   const doorRect = getDoorRect(state);
   const windowHole = getWindowPolygon(state);
-  const rectRing = ringToMeters(state, rectToPolygon(doorRect));
+  const rectRing = ringToMeters(state, rectToRing(doorRect));
   const holeRing = ringToMeters(state, offsetPolygon(windowHole, WINDOW_FRAME_WIDTH / 0.25));
   const z = getDoorZ(state).front;
 
@@ -101,7 +101,7 @@ export function buildInsideGeometry(
 
   const doorRect = getDoorRect(state);
   const windowHole = getWindowPolygon(state);
-  const rectRing = ringToMeters(state, rectToPolygon(doorRect));
+  const rectRing = ringToMeters(state, rectToRing(doorRect));
   const holeRing = offsetPolygon(ringToMeters(state, windowHole), WINDOW_FRAME_WIDTH);
   const z = getDoorZ(state).back;
 

@@ -124,17 +124,17 @@ interface GeometryGroup {
   materialIndex: number;
 }
 
-interface AddFaceOptions {
+export interface AddFaceOptions {
   materialIndex?: number;
   color?: Color;
   flip?: boolean;
 }
 
-interface AddPolygonOptions extends AddFaceOptions {
+export interface AddPolygonOptions extends AddFaceOptions {
   z?: number;
 }
 
-interface AddExtrudedSideOptions extends AddFaceOptions {
+export interface AddExtrudedSideOptions extends AddFaceOptions {
   close?: boolean;
   zRange: [number, number];
 }
