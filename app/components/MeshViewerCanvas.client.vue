@@ -85,6 +85,7 @@ const createObjectUniforms = (item: MeshViewerCanvasItem): StormworksUniforms =>
       :mouse-buttons="orbitMouseButtons"
     />
     <primitive :object="lights" />
+    <!-- @vue-expect-error -->
     <TresGroup
       v-for="item in items ?? []"
       :key="item.id"

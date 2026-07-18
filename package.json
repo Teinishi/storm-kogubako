@@ -9,7 +9,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "typecheck": "nuxt typecheck"
   },
   "dependencies": {
     "@nuxt/ui": "^4.2.1",
@@ -29,8 +30,9 @@
     "@iconify-json/lucide": "^1.2.80",
     "@nuxt/eslint": "^1.12.1",
     "@types/earcut": "^3.0.0",
-    "@types/three": "^0.185.0",
+    "@types/three": "^0.185.1",
     "eslint": "^10.6.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vue-tsc": "^3.3.7"
   }
 }
