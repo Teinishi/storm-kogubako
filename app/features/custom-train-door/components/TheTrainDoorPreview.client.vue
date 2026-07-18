@@ -3,8 +3,8 @@ import { BufferGeometry } from 'three';
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
 import type { PolygonEditorValue } from '~/utils/polygonEditorCore';
 import { GeometryBuilder } from '~/utils/geometryBuilder.client';
-import type { TrainDoorState } from '~/composables/useCustomTrainDoor';
-import { buildOutsideGeometry, buildInsideGeometry, buildSideGeometry, buildWindowGeometry } from '~/utils/customTrainDoor.client';
+import type { TrainDoorState } from '../models/TrainDoorState';
+import { buildOutsideGeometry, buildInsideGeometry, buildSideGeometry, buildWindowGeometry } from '../utils/customTrainDoor.client';
 
 const props = defineProps<{
   state: TrainDoorState;

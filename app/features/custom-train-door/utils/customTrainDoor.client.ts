@@ -1,5 +1,4 @@
-import { GeometryBuilder, Orientation } from './geometryBuilder.client';
-import { eliminatePolygonOverlap } from './polygonUtils';
+import type { TrainDoorState } from '../models/TrainDoorState';
 
 const WINDOW_FRAME_WIDTH = 0.02;
 const WINDOW_FRAME_COLOR = '#545454';
