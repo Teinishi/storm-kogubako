@@ -27,7 +27,7 @@ export function createDefaultTrainDoorState(): TrainDoorState {
     doorZOffset: 0,
     outsideColor: '#c2c3c7',
     insideColor: '#c2c3c7',
-    rubberThickness: 0.03,
+    rubberThickness: 0.02,
     rubberColor: '#545454',
     windowXOffset: 0,
     windowYOffset: 0.125,

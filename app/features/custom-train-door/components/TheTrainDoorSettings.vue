@@ -101,6 +101,7 @@ const state = defineModel<TrainDoorState>({ required: true });
             v-model="state.rubberThickness"
             :step="0.01"
             :min="0"
+            :max="0.1"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
           />
@@ -168,6 +169,7 @@ const state = defineModel<TrainDoorState>({ required: true });
             v-model="state.windowCornerDivisions"
             :step="1"
             :min="1"
+            :max="5"
             class="w-full"
           />
         </UFormField>

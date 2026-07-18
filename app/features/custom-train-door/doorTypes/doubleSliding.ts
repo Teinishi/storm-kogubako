@@ -30,8 +30,21 @@ function getBaseRects(state: Readonly<TrainDoorState>) {
 
 function getWindowRings(state: Readonly<TrainDoorState>, flip?: boolean) {
   const rects = getBaseRects(state);
-  const left = getSingleWindowPolygon(rects.left, state, flip);
-  const right = getSingleWindowPolygon(rects.right, state, flip);
+
+  const options = {
+    windowSize: { x: state.windowWidth / 0.25, y: state.windowHeight / 0.25 },
+    offset: { x: state.windowXOffset / 0.25, y: state.windowYOffset / 0.25 },
+    radius: state.windowCornerRadius / 0.25,
+    segments: state.windowCornerDivisions,
+    flip,
+    flipWidth: state.doorWidth,
+  };
+
+  const left = getSingleWindowPolygon(rects.left, options);
+
+  options.offset.x *= -1;
+  const right = getSingleWindowPolygon(rects.right, options);
+
   return { left, right };
 }
 

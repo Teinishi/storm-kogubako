@@ -18,7 +18,16 @@ function getBaseRect(state: Readonly<TrainDoorState>): Rect {
 }
 
 function getWindowRings(state: Readonly<TrainDoorState>, flip?: boolean) {
-  return getSingleWindowPolygon(getBaseRect(state), state, flip);
+  const options = {
+    windowSize: { x: state.windowWidth / 0.25, y: state.windowHeight / 0.25 },
+    offset: { x: state.windowXOffset / 0.25, y: state.windowYOffset / 0.25 },
+    radius: state.windowCornerRadius / 0.25,
+    segments: state.windowCornerDivisions,
+    flip,
+    flipWidth: state.doorWidth,
+  };
+
+  return getSingleWindowPolygon(getBaseRect(state), options);
 }
 
 function createRenderHook(state: Reactive<TrainDoorState>, isInside: boolean): RenderHooks {

@@ -1,5 +1,4 @@
 import type { RenderHookArgs } from '~/features/polygon-editor/types/render';
-import type { TrainDoorState } from '../types/TrainDoorState';
 import { drawWindows } from '../utils/renderHook.client';
 
 const FRAME_WIDTH = 0.02;
@@ -10,34 +9,38 @@ export interface WindowRingSet {
   outerRing: Vec2[];
 }
 
-export function getSingleWindowRect(baseRect: Readonly<Rect>, state: Readonly<TrainDoorState>): Rect {
-  const windowWidth = state.windowWidth / 0.25;
-  const windowHeight = state.windowHeight / 0.25;
-
-  const x = baseRect.x + (baseRect.width - windowWidth) / 2 + state.windowXOffset;
-  const y = baseRect.y + baseRect.height - state.windowYOffset / 0.25;
-
+export function getSingleWindowRect(baseRect: Readonly<Rect>, windowSize: Vec2, offset: Vec2): Rect {
+  const x = baseRect.x + (baseRect.width - windowSize.x) / 2 + offset.x;
+  const y = baseRect.y + baseRect.height - offset.y;
   return {
     x,
     y,
-    width: windowWidth,
-    height: -windowHeight,
+    width: windowSize.x,
+    height: -windowSize.y,
   };
 }
 
-export function getSingleWindowPolygon(baseRect: Readonly<Rect>, state: Readonly<TrainDoorState>, flip?: boolean) {
-  const radius = state.windowCornerRadius / 0.25;
-  const segments = state.windowCornerDivisions;
+export interface GetSingleWindowPolygonOptions {
+  windowSize: Vec2;
+  offset: Vec2;
+  radius?: number;
+  segments?: number;
+  flip?: boolean;
+  flipWidth?: number;
+}
 
-  const innerRing = createRoundedRectPolygon(getSingleWindowRect(baseRect, state), radius, segments);
+export function getSingleWindowPolygon(baseRect: Readonly<Rect>, options: Readonly<GetSingleWindowPolygonOptions>) {
+  const rect = getSingleWindowRect(baseRect, options.windowSize, options.offset);
+  const innerRing = createRoundedRectPolygon(rect, options.radius ?? 0, options.segments ?? 1);
   const outerRing = offsetPolygon(innerRing, FRAME_WIDTH / 0.25);
 
-  if (flip) {
+  if (options.flip) {
+    const w = options.flipWidth ?? 0;
     innerRing.forEach(({ x }, i, arr) => {
-      arr[i]!.x = state.doorWidth - x;
+      arr[i]!.x = w - x;
     });
     outerRing.forEach(({ x }, i, arr) => {
-      arr[i]!.x = state.doorWidth - x;
+      arr[i]!.x = w - x;
     });
   }
 
