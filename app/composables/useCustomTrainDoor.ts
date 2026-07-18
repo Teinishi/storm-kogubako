@@ -4,6 +4,7 @@ import { getBoundingBox } from '~/utils/polygonUtils';
 import type { RenderHooks } from '~/composables/usePolygonEditorCanvas';
 
 export interface TrainDoorState {
+  doorType: 'double_sliding' | 'single_sliding_left' | 'single_sliding_right';
   doorWidth: number;
   doorHeight: number;
   doorThickness: number;
@@ -25,12 +26,13 @@ export function useCustomTrainDoor(
   renderInsideEditor: () => void,
 ) {
   const state = reactive<TrainDoorState>({
-    doorWidth: 3,
+    doorType: 'double_sliding',
+    doorWidth: 6,
     doorHeight: 8,
     doorThickness: 0.1,
     doorZOffset: 0,
-    outsideColor: '#c0c7cf',
-    insideColor: '#c0c7cf',
+    outsideColor: '#c2c3c7',
+    insideColor: '#c2c3c7',
     rubberThickness: 0.03,
     rubberColor: '#545454',
     windowXOffset: 0,

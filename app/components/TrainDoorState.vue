@@ -9,12 +9,37 @@ const FORMAT_OPTIONS_METER = {
 
 const { t } = useI18n({ useScope: 'local' });
 
+const doorTypeItems = computed(() => [
+  {
+    label: t('double_sliding'),
+    value: 'double_sliding',
+  },
+  {
+    label: t('single_sliding_left'),
+    value: 'single_sliding_left',
+  },
+  {
+    label: t('single_sliding_right'),
+    value: 'single_sliding_right',
+  },
+]);
+
 const state = defineModel<TrainDoorState>({ required: true });
 </script>
 
 <template>
   <div class="grid lg:grid-cols-2 gap-4">
     <FormCard :title="t('door_settings')">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+        <UFormField :label="t('door_type')">
+          <USelect
+            v-model="state.doorType"
+            :items="doorTypeItems"
+            class="w-full"
+          />
+        </UFormField>
+      </div>
+
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
         <UFormField :label="t('door_width')">
           <div class="flex items-center gap-2">
@@ -156,6 +181,10 @@ const state = defineModel<TrainDoorState>({ required: true });
   "en": {
     "blocks": "Blocks",
     "door_settings": "Door Settings",
+    "door_type": "Door Type",
+    "double_sliding": "Double Sliding",
+    "single_sliding_left": "Single Sliding (Left)",
+    "single_sliding_right": "Single Sliding (Right)",
     "door_width": "Width",
     "door_height": "Height",
     "door_thickness": "Thickness",
@@ -175,6 +204,10 @@ const state = defineModel<TrainDoorState>({ required: true });
   "ja": {
     "blocks": "ブロック",
     "door_settings": "ドア設定",
+    "door_type": "タイプ",
+    "double_sliding": "両開き",
+    "single_sliding_left": "片開き (左)",
+    "single_sliding_right": "片開き (右)",
     "door_width": "幅",
     "door_height": "高さ",
     "door_thickness": "厚み",
