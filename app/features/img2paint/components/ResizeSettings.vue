@@ -1,12 +1,12 @@
 <script setup lang="ts">
-export type ResizeSettings = {
+export interface ResizeState {
   sizeType: 'block' | 'pixel' | 'percent';
   keepAspect: boolean;
   sizePriority: 'width' | 'height';
   widthPixels: number;
   heightPixels: number;
   resizeAlgo: 'pixelated' | 'smooth';
-};
+}
 
 const { t } = useI18n({
   useScope: 'local',
@@ -29,7 +29,7 @@ const props = defineProps({
     type: Object as () => { width: number; height: number },
   },
 });
-const modelValue = defineModel<ResizeSettings>({ required: true });
+const modelValue = defineModel<ResizeState>({ required: true });
 
 const sizeUnitLabel = computed(() => t(`size_type_unit_${modelValue.value.sizeType}`));
 

@@ -13,17 +13,17 @@ const POSITIONS = [
 
 export type AnchorPosition = typeof POSITIONS[number]['value'];
 
-const { t } = useI18n({
-  useScope: 'local',
-});
+const { t } = useI18n({ useScope: 'local' });
 
-const props = defineProps({
-  disabled: {
-    type: Boolean,
-    default: false,
-  },
-});
-const value = defineModel<AnchorPosition>();
+const props = defineProps<{
+  disabled?: boolean;
+}>();
+
+const modelValue = defineModel<AnchorPosition>();
+
+function onClick(newValue: AnchorPosition) {
+  modelValue.value = newValue;
+}
 </script>
 
 <template>
@@ -37,13 +37,13 @@ const value = defineModel<AnchorPosition>();
         v-for="pos in POSITIONS"
         :key="pos.value"
         :icon="pos.icon"
-        :color="value === pos.value ? 'primary' : 'neutral'"
-        :variant="value === pos.value ? 'solid' : 'ghost'"
+        :color="modelValue === pos.value ? 'primary' : 'neutral'"
+        :variant="modelValue === pos.value ? 'solid' : 'ghost'"
         size="sm"
         square
         :disabled="props.disabled"
         class="transition-all duration-200"
-        @click="value = pos.value"
+        @click="onClick(pos.value)"
       />
     </div>
   </div>

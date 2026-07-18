@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import type { AnchorPosition } from './AnchorPositionSelect.vue';
+import AnchorPositionSelect from './AnchorPositionSelect.vue';
 
-export type AnchorSettings = {
+export interface AnchorState {
   anchorPosition: AnchorPosition;
   offsetX: number;
   offsetY: number;
-};
+}
 
 const { t } = useI18n({
   useScope: 'local',
@@ -21,7 +22,7 @@ const props = defineProps({
     default: false,
   },
 });
-const modelValue = defineModel<AnchorSettings>({ required: true });
+const modelValue = defineModel<AnchorState>({ required: true });
 
 const isOffsetZero = computed(() => modelValue.value.offsetX === 0 && modelValue.value.offsetY === 0);
 
