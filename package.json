@@ -10,7 +10,8 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "check": "npm run lint && npm run typecheck"
   },
   "dependencies": {
     "@nuxt/ui": "^4.2.1",
