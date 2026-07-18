@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PolygonEditor from '~/features/polygon-editor/components/PolygonEditor.vue';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import { useCustomTrainDoor } from '../composables/useCustomTrainDoor';

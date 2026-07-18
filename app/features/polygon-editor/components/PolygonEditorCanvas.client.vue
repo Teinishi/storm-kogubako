@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { usePolygonEditorContext } from '~/composables/usePolygonEditorContext';
-import { usePolygonEditorCanvas, type RenderHooks } from '~/composables/usePolygonEditorCanvas';
+import { usePolygonEditorContext } from '../composables/usePolygonEditorContext';
+import { usePolygonEditorCanvas } from '../composables/usePolygonEditorCanvas.client';
+import type { RenderHooks } from '../types/render';
+import { clampToLogicalBounds, isWithinLogicalBounds } from '../utils/bounds';
+import { getNextPolygonColor } from '../utils/color';
 
 const props = defineProps<{
   renderHooks?: RenderHooks;
@@ -99,7 +102,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
       polygonId: vertexHit.polygonId,
       vertexIndex: vertexHit.vertexIndex,
       pointerId: event.pointerId,
-      original: clonePoint(polygon.vertices[vertexHit.vertexIndex] ?? { x: 0, y: 0 }),
+      original: cloneVec2(polygon.vertices[vertexHit.vertexIndex] ?? { x: 0, y: 0 }),
     };
 
     const target = event.currentTarget as HTMLCanvasElement | null;

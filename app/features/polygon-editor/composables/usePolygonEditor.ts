@@ -1,6 +1,16 @@
 import type { DeepReadonly, Ref } from 'vue';
-import { snapPointWithGrid, type PolygonEditorGrid, type PolygonEditorValue } from '~/utils/polygonEditorCore';
-import { HANDLE_HIT_THRESHOLD_PX } from '~/utils/polygonEditorCore';
+import { clonePolygonEditorValue, type PolygonEditorPolygon, type PolygonEditorValue } from '../types/modelValue';
+import { snapPointWithGrid, type PolygonEditorGrid } from '../utils/grid';
+import { getNextPolygonColor } from '../utils/color';
+import { clampToLogicalBounds, clampVerticesToLogicalBounds } from '../utils/bounds';
+import { createRectangleVertices } from '../utils/poylgon';
+import { GRID_SCALE, HANDLE_HIT_THRESHOLD_PX, type HitEdge } from '../utils/pointer';
+
+export interface PolygonDraftRectangle {
+  start: Vec2;
+  current: Vec2;
+  color: string;
+}
 
 export type PolygonEditorMode = 'select' | 'drawPolygon' | 'drawRectangle';
 
@@ -129,7 +139,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     return {
       id: getNextPolygonId(),
       color,
-      vertices: clampVerticesToLogicalBounds(vertices.map(clonePoint), logicalBounds.value),
+      vertices: clampVerticesToLogicalBounds(vertices.map(cloneVec2), logicalBounds.value),
     } satisfies PolygonEditorPolygon;
   }
 
@@ -181,7 +191,6 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
   }
 
   // 編集アクション
-
   function duplicatePolygon(id: number) {
     if (editingLocked.value) return;
 
@@ -292,7 +301,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     if (dragState.value) {
       const polygon = editorState.value.polygons.find(item => item.id === dragState.value?.polygonId);
       if (polygon && polygon.vertices[dragState.value.vertexIndex]) {
-        polygon.vertices[dragState.value.vertexIndex] = clonePoint(dragState.value.original);
+        polygon.vertices[dragState.value.vertexIndex] = cloneVec2(dragState.value.original);
       }
     }
 
@@ -386,7 +395,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
 
     const polygon = editorState.value.polygons.find(item => item.id === dragState.value?.polygonId);
     if (polygon && polygon.vertices[dragState.value.vertexIndex]) {
-      polygon.vertices[dragState.value.vertexIndex] = clonePoint(dragState.value.original);
+      polygon.vertices[dragState.value.vertexIndex] = cloneVec2(dragState.value.original);
     }
 
     dragState.value = null;

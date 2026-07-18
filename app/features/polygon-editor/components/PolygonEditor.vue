@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import type { PolygonEditorValue, PolygonEditorGrid } from '../utils/polygonEditorCore';
-import { usePolygonEditor } from '~/composables/usePolygonEditor';
-import { providePolygonEditor } from '~/composables/usePolygonEditorContext';
-import type { RenderHooks } from '~/composables/usePolygonEditorCanvas';
+import PolygonEditorCanvas from './PolygonEditorCanvas.client.vue';
+import PolygonEditorSidebar from './PolygonEditorSidebar.vue';
+import { usePolygonEditor } from '../composables/usePolygonEditor';
+import { providePolygonEditor } from '../composables/usePolygonEditorContext';
+import type { PolygonEditorValue } from '../types/modelValue';
+import type { RenderHooks } from '../types/render';
+import type { PolygonEditorGrid } from '../utils/grid';
 
 const props = withDefaults(defineProps<{
   logicalBounds: { width: number; height: number };
@@ -50,11 +53,13 @@ defineExpose({ renderCanvas });
 
 <template>
   <div class="flex flex-col lg:flex-row gap-4">
-    <PolygonEditorCanvas
-      ref="canvas"
-      class="min-h-80 max-h-[80vh] lg:max-h-none lg:flex-1"
-      :render-hooks="renderHooks"
-    />
+    <ClientOnly>
+      <PolygonEditorCanvas
+        ref="canvas"
+        class="min-h-80 max-h-[80vh] lg:max-h-none lg:flex-1"
+        :render-hooks="renderHooks"
+      />
+    </ClientOnly>
     <PolygonEditorSidebar
       v-model:grid-enabled="gridEnabled"
       v-model:grid-minior-divisions="gridMiniorDivisions"

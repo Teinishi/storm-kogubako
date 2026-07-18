@@ -2,6 +2,8 @@ import { reactive, type Reactive } from 'vue';
 import { getWindowPolygon } from '../utils/customTrainDoor.client';
 import type { TrainDoorState } from '../models/TrainDoorState';
 import { createDefaultTrainDoorState } from '../models/TrainDoorState';
+import type { PolygonEditorValue } from '~/features/polygon-editor/types/modelValue';
+import type { RenderHooks } from '~/features/polygon-editor/types/render';
 
 export function useCustomTrainDoor(
   renderOutsideEditor: () => void,
@@ -81,13 +83,13 @@ function createRenderHooks(
         ctx.fillStyle = grad;
 
         ctx.beginPath();
-        polygonOnCanvas(ctx, hasSelection ? points : midRing, worldToCanvas);
+        drawPolygonOnCanvas(ctx, hasSelection ? points : midRing, worldToCanvas);
         ctx.fill();
 
         ctx.fillStyle = '#545454';
         ctx.beginPath();
-        polygonOnCanvas(ctx, points, worldToCanvas);
-        polygonOnCanvas(ctx, outerRing, worldToCanvas);
+        drawPolygonOnCanvas(ctx, points, worldToCanvas);
+        drawPolygonOnCanvas(ctx, outerRing, worldToCanvas);
         ctx.closePath();
         ctx.fill('evenodd');
       }

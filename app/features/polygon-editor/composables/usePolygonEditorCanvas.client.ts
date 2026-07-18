@@ -1,37 +1,17 @@
 import type { Ref } from 'vue';
+import type { PolygonEditor } from './usePolygonEditor';
+import type { CanvasMetrics, RenderHooks, ViewTransform } from '../types/render';
+import { worldToCanvas as worldToCanvasWithBounds, getViewTransform } from '../utils/coordinateConversion';
 import {
   findHitEdge as findHitEdgeInPolygons,
   findHitPolygon as findHitPolygonInPolygons,
   findHitVertex as findHitVertexInPolygons,
-  getViewTransform,
   GRID_SCALE,
   HANDLE_HIT_THRESHOLD_PX,
-  worldToCanvas as worldToCanvasWithBounds,
-} from '~/utils/polygonEditorCore';
-import type {
-  CanvasMetrics,
-  HitEdge,
-  HitVertex,
-  ReadonlyPolygon,
-  ViewTransform,
-} from '~/utils/polygonEditorCore';
-import { polygonOnCanvas } from '~/utils/polygonRenderUtils.client';
-import type { PolygonEditor } from './usePolygonEditor';
-
-export interface RenderHookArgs {
-  editor: PolygonEditor;
-  ctx: CanvasRenderingContext2D;
-  metrics: CanvasMetrics;
-  transform: ViewTransform;
-  worldToCanvas(point: Vec2): Vec2;
-  worldRectToCanvas(rect: Rect): Rect;
-}
-
-export interface RenderHooks {
-  onBeforeRenderPolygons?(args: RenderHookArgs): void;
-  onBeforeRenderSelection?(args: RenderHookArgs): void;
-  onAfterRender?(args: RenderHookArgs): void;
-}
+  type HitEdge,
+  type HitVertex,
+} from '../utils/pointer';
+import type { ReadonlyPolygon } from '../types/modelValue';
 
 export type UsePolygonCanvasOptions = {
   canvasRef: Ref<HTMLCanvasElement | null>;
@@ -208,7 +188,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     ctx.save();
     ctx.beginPath();
 
-    polygonOnCanvas(ctx, polygon.vertices, p => worldToCanvas(p, transform));
+    drawPolygonOnCanvas(ctx, polygon.vertices, p => worldToCanvas(p, transform));
 
     if (polygon.vertices.length >= 3) {
       ctx.closePath();
