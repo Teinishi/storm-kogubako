@@ -16,7 +16,7 @@ async function saveVehicleXml() {
 
   const { baseDrawData } = computedValues.value;
 
-  const { paintCanvas } = await import('../utils/canvas.client');
+  const { paintCanvas } = await import('../renderer/renderer.client');
 
   const baseCanvas = document.createElement('canvas');
   const glowCanvas = state.glowImage ? document.createElement('canvas') : undefined;

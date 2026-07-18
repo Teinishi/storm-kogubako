@@ -1,7 +1,7 @@
 import { reactive, type Reactive } from 'vue';
 import { getWindowPolygon } from '../utils/customTrainDoor.client';
-import type { TrainDoorState } from '../models/TrainDoorState';
-import { createDefaultTrainDoorState } from '../models/TrainDoorState';
+import type { TrainDoorState } from '../types/TrainDoorState';
+import { createDefaultTrainDoorState } from '../types/TrainDoorState';
 import type { PolygonEditorValue } from '~/features/polygon-editor/types/modelValue';
 import type { RenderHooks } from '~/features/polygon-editor/types/render';
 

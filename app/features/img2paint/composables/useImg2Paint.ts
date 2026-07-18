@@ -1,5 +1,5 @@
-import type { Img2PaintState } from '../models/Img2PaintState';
-import { createDefaultImg2PaintState } from '../models/Img2PaintState';
+import type { Img2PaintState } from '../types/Img2PaintState';
+import { createDefaultImg2PaintState } from '../types/Img2PaintState';
 import { getImageSize } from '../utils/image';
 import { getDrawData, getAnchorOffset } from '../utils/anchor';
 

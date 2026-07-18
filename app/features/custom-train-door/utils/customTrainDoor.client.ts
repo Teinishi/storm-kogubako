@@ -1,4 +1,5 @@
-import type { TrainDoorState } from '../models/TrainDoorState';
+import type { PolygonEditorValue } from '~/features/polygon-editor/types/modelValue';
+import type { TrainDoorState } from '../types/TrainDoorState';
 
 const WINDOW_FRAME_WIDTH = 0.02;
 const WINDOW_FRAME_COLOR = '#545454';

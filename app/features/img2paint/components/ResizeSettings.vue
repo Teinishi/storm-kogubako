@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ResizeState } from '../models/ResizeState';
+import type { ResizeState } from '../types/ResizeState';
 
 const { t } = useI18n({ useScope: 'local' });
 

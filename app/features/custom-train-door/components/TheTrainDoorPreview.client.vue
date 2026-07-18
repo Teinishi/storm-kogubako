@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { BufferGeometry } from 'three';
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
-import type { PolygonEditorValue } from '~/utils/polygonEditorCore';
 import { GeometryBuilder } from '~/utils/geometryBuilder.client';
-import type { TrainDoorState } from '../models/TrainDoorState';
+import type { TrainDoorState } from '../types/TrainDoorState';
 import { buildOutsideGeometry, buildInsideGeometry, buildSideGeometry, buildWindowGeometry } from '../utils/customTrainDoor.client';
+import type { PolygonEditorValue } from '~/features/polygon-editor/types/modelValue';
 
 const props = defineProps<{
   state: TrainDoorState;

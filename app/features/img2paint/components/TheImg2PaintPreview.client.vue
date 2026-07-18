@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Img2PaintState } from '../models/Img2PaintState';
+import type { Img2PaintState } from '../types/Img2PaintState';
 import type { DrawData } from '../utils/anchor';
-import { paintCanvas } from '../utils/canvas.client';
+import { paintCanvas } from '../renderer/renderer.client';
 
 const GRID_LINE_WIDTH = 2;
 
