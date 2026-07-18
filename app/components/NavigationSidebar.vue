@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui';
-import { WEB_TOOLS, OTHER_TOOLS } from '~/utils/menuUtils';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 const { t: t } = useI18n();

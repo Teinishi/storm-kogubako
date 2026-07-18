@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { Img2PaintState } from '../models/Img2PaintState';
-import type { DrawData } from '../utils/anchor';
 import AnchorSettings from './AnchorSettings.vue';
 import ResizeSettings from './ResizeSettings.vue';
+import type { Img2PaintState } from '../models/Img2PaintState';
+import type { DrawData } from '../utils/anchor';
+import { adjustAdditiveImage, convertAdditiveImage } from '../utils/imageProcessing';
 
 const { t } = useI18n({ useScope: 'local' });
 

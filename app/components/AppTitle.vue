@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { WEB_TOOLS } from '~/utils/menuUtils';
-
 const { t: gt } = useI18n({ useScope: 'global' });
 
 const route = useRoute();

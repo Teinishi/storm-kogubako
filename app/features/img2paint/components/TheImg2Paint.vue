@@ -2,6 +2,7 @@
 import { useImg2Paint } from '../composables/useImg2Paint';
 import TheImg2PaintSettings from './TheImg2PaintSettings.vue';
 import TheImg2PaintPreview from './TheImg2PaintPreview.client.vue';
+import { generatePaintableSignVehicle } from '../utils/generateVehicle';
 
 const { t } = useI18n({ useScope: 'local' });
 
