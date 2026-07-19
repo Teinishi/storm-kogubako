@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TheImg2Paint from '~/features/img2paint/components/TheImg2Paint.vue';
+import { TheImg2Paint } from '~/features/img2paint';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 

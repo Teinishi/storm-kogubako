@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import TheMeshViewer from '~/features/mesh-viewer/components/TheMeshViewer.vue';
+import { TheMeshViewer } from '~/features/mesh-viewer';
 
 const { t: gt } = useI18n({ useScope: 'global' });
 
