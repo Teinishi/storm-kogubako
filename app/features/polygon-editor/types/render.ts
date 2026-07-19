@@ -1,4 +1,4 @@
-import type { PolygonEditor } from '../composables/usePolygonEditor';
+import type { PolygonEditor } from '../composables';
 
 export interface CanvasMetrics {
   width: number;

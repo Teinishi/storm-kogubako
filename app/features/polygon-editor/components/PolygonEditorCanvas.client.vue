@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { usePolygonEditorContext } from '../composables/usePolygonEditorContext';
-import { usePolygonEditorCanvas } from '../composables/usePolygonEditorCanvas.client';
-import type { RenderHooks } from '../types/render';
-import { clampToLogicalBounds, isWithinLogicalBounds } from '../utils/bounds';
-import { getNextPolygonColor } from '../utils/color';
+import { usePolygonEditorContext, usePolygonEditorCanvas } from '../composables';
+import type { RenderHooks } from '../types';
+import { clampToLogicalBounds, isWithinLogicalBounds, getNextPolygonColor } from '../utils';
 
 const props = defineProps<{
   renderHooks?: RenderHooks;

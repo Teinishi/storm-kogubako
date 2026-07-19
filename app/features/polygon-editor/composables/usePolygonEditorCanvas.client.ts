@@ -1,17 +1,19 @@
 import type { Ref } from 'vue';
 import type { PolygonEditor } from './usePolygonEditor';
-import type { CanvasMetrics, RenderHooks, ViewTransform } from '../types/render';
-import { worldToCanvas as worldToCanvasWithBounds, getViewTransform } from '../utils/coordinateConversion';
+import type { CanvasMetrics, RenderHooks, ViewTransform, ReadonlyPolygon } from '../types';
+import type {
+  HitEdge,
+  HitVertex,
+} from '../utils';
 import {
+  worldToCanvas as worldToCanvasWithBounds,
+  getViewTransform,
   findHitEdge as findHitEdgeInPolygons,
   findHitPolygon as findHitPolygonInPolygons,
   findHitVertex as findHitVertexInPolygons,
   GRID_SCALE,
   HANDLE_HIT_THRESHOLD_PX,
-  type HitEdge,
-  type HitVertex,
-} from '../utils/pointer';
-import type { ReadonlyPolygon } from '../types/modelValue';
+} from '../utils';
 
 export type UsePolygonCanvasOptions = {
   canvasRef: Ref<HTMLCanvasElement | null>;

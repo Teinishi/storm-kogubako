@@ -1,4 +1,4 @@
-import type { CanvasMetrics, ViewTransform } from '../types/render';
+import type { CanvasMetrics, ViewTransform } from '../types';
 import type { LogicalBounds } from './bounds';
 
 export const VIEW_PADDING = 16;

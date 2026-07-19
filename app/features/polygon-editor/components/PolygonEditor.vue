@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import PolygonEditorCanvas from './PolygonEditorCanvas.client.vue';
 import PolygonEditorSidebar from './PolygonEditorSidebar.vue';
-import { usePolygonEditor } from '../composables/usePolygonEditor';
-import { providePolygonEditor } from '../composables/usePolygonEditorContext';
-import type { PolygonEditorValue } from '../types/modelValue';
-import type { RenderHooks } from '../types/render';
-import type { PolygonEditorGrid } from '../utils/grid';
+import { usePolygonEditor, providePolygonEditor } from '../composables';
+import type { PolygonEditorValue, RenderHooks } from '../types';
+import type { PolygonEditorGrid } from '../utils';
 
 const props = withDefaults(defineProps<{
   logicalBounds: { width: number; height: number };

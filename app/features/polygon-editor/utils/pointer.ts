@@ -1,4 +1,4 @@
-import type { ReadonlyPolygon } from '../types/modelValue';
+import type { ReadonlyPolygon } from '../types';
 
 export const GRID_SCALE = 56;
 export const HANDLE_HIT_THRESHOLD_PX = 8;

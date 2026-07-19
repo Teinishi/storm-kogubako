@@ -1,10 +1,18 @@
 import type { DeepReadonly, Ref } from 'vue';
-import { clonePolygonEditorValue, type PolygonEditorPolygon, type PolygonEditorValue } from '../types/modelValue';
-import { snapPointWithGrid, type PolygonEditorGrid } from '../utils/grid';
-import { getNextPolygonColor } from '../utils/color';
-import { clampToLogicalBounds, clampVerticesToLogicalBounds } from '../utils/bounds';
-import { createRectangleVertices } from '../utils/poylgon';
-import { GRID_SCALE, HANDLE_HIT_THRESHOLD_PX, type HitEdge } from '../utils/pointer';
+import { clonePolygonEditorValue, type PolygonEditorPolygon, type PolygonEditorValue } from '../types';
+import type {
+  PolygonEditorGrid,
+  HitEdge,
+} from '../utils';
+import {
+  snapPointWithGrid,
+  GRID_SCALE,
+  HANDLE_HIT_THRESHOLD_PX,
+  getNextPolygonColor,
+  clampToLogicalBounds,
+  clampVerticesToLogicalBounds,
+  createRectangleVertices,
+} from '../utils';
 
 export interface PolygonDraftRectangle {
   start: Vec2;
