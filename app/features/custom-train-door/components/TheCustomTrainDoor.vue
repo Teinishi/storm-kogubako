@@ -72,11 +72,11 @@ function saveDoorUnitClicked() {}
     <div class="h-screen flex flex-col">
       <AppTitle />
 
-      <div class="grow px-4 pt-0 pb-18 sm:pb-4 min-h-0">
+      <div class="grow px-4 sm:min-h-0">
         <UTabs
           :items="tabItems"
           :unmount-on-hide="false"
-          :ui="{ root: 'gap-4', content: 'grow min-h-0' }"
+          :ui="{ root: 'gap-4', content: 'grow min-h-0 pb-18 sm:pb-4' }"
           class="h-full"
         >
           <template #settings>
