@@ -1,10 +1,8 @@
 import type { Reactive } from 'vue';
-import type { RenderHooks } from '~/features/polygon-editor/types/render';
-import type { PolygonEditorValue } from '~/features/polygon-editor/types/modelValue';
-import type { TrainDoorState } from '../types/TrainDoorState';
-import { drawBackground } from '../utils/renderHook.client';
+import type { RenderHooks, PolygonEditorValue } from '~/features/polygon-editor';
+import type { TrainDoorState } from '../types';
+import { drawBackground, buildSlidingDoorGeometry } from '../utils';
 import { drawWindowsOnCanvas, getSingleWindowPolygon } from '../doorWindow/basic';
-import { buildSlidingDoorGeometry } from '../utils/geometry';
 import type { RenderHooksSet } from '.';
 
 function getBaseRects(state: Readonly<TrainDoorState>) {

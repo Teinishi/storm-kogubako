@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TrainDoorState } from '../types/TrainDoorState';
+import type { TrainDoorState } from '../types';
 
 const FORMAT_OPTIONS_METER = {
   maximumFractionDigits: 5,

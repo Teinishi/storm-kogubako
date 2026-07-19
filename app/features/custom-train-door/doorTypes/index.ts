@@ -1,6 +1,5 @@
-import type { RenderHooks } from '~/features/polygon-editor/types/render';
-import type { PolygonEditorValue } from '~/features/polygon-editor/types/modelValue';
-import type { TrainDoorState } from '../types/TrainDoorState';
+import type { RenderHooks, PolygonEditorValue } from '~/features/polygon-editor';
+import type { TrainDoorState } from '../types';
 import * as doubleSliding from './doubleSliding';
 import * as singleSlidingLeft from './singleSlidingLeft';
 import * as singleSlidingRight from './singleSlidingRight';

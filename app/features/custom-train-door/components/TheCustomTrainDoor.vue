@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import PolygonEditor from '~/features/polygon-editor/components/PolygonEditor.vue';
+import { PolygonEditor } from '~/features/polygon-editor';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
-import { useCustomTrainDoor } from '../composables/useCustomTrainDoor';
-import { saveMesh } from '../utils/saveMesh';
+import { useCustomTrainDoor } from '../composables';
+import { saveMesh } from '../utils';
 
 const { t } = useI18n({ useScope: 'local' });
 
@@ -24,9 +24,6 @@ const tabItems = computed(() => [
     slot: 'inside' as const,
   },
 ]);
-
-const outsideEditor = useTemplateRef('outsideEditor');
-const insideEditor = useTemplateRef('insideEditor');
 
 const {
   state,

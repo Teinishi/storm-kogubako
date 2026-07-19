@@ -1,5 +1,5 @@
-import type { RenderHookArgs } from '~/features/polygon-editor/types/render';
-import { drawWindows } from '../utils/renderHook.client';
+import type { RenderHookArgs } from '~/features/polygon-editor';
+import { drawWindows } from '../utils';
 
 const FRAME_WIDTH = 0.02;
 const FRAME_COLOR = '#545454';

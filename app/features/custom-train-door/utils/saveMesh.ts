@@ -1,5 +1,5 @@
-import type { PolygonEditorValue } from '~/features/polygon-editor/types/modelValue';
-import type { TrainDoorState } from '../types/TrainDoorState';
+import type { PolygonEditorValue } from '~/features/polygon-editor';
+import type { TrainDoorState } from '../types';
 import { buildDoorGeometry } from '../doorTypes';
 
 export function saveMesh(

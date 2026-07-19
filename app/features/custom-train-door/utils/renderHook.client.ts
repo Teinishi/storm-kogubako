@@ -1,5 +1,5 @@
-import type { RenderHookArgs } from '~/features/polygon-editor/types/render';
-import type { TrainDoorState } from '../types/TrainDoorState';
+import type { RenderHookArgs } from '~/features/polygon-editor';
+import type { TrainDoorState } from '../types';
 
 export function drawBackground(
   { ctx, worldRectToCanvas }: RenderHookArgs,

@@ -1,4 +1,4 @@
-import { transformPolygons, type PolygonEditorPolygon, type PolygonEditorValue } from '~/features/polygon-editor/types/modelValue';
+import { transformPolygons, type PolygonEditorPolygon, type PolygonEditorValue } from '~/features/polygon-editor';
 import { buildWindowGeometry, type WindowRingSet } from '../doorWindow/basic';
 import { createCoordinateConverter } from './coordinateConversion';
 
