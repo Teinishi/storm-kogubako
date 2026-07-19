@@ -9,7 +9,11 @@ export interface WindowRingSet {
   outerRing: Vec2[];
 }
 
-export function getSingleWindowRect(baseRect: Readonly<Rect>, windowSize: Vec2, offset: Vec2): Rect {
+export function getSingleWindowRect(
+  baseRect: Readonly<Rect>,
+  windowSize: Readonly<Vec2>,
+  offset: Readonly<Vec2>,
+): Rect {
   const x = baseRect.x + (baseRect.width - windowSize.x) / 2 + offset.x;
   const y = baseRect.y + baseRect.height - offset.y;
   return {
@@ -29,10 +33,10 @@ export interface GetSingleWindowPolygonOptions {
   flipWidth?: number;
 }
 
-export function getSingleWindowPolygon(baseRect: Readonly<Rect>, options: Readonly<GetSingleWindowPolygonOptions>) {
+export function getSingleWindowPolygon(baseRect: Readonly<Rect>, options: DeepReadonly<GetSingleWindowPolygonOptions>) {
   const rect = getSingleWindowRect(baseRect, options.windowSize, options.offset);
   const innerRing = createRoundedRectPolygon(rect, options.radius ?? 0, options.segments ?? 1);
-  const outerRing = offsetPolygon(innerRing, FRAME_WIDTH / 0.25);
+  const outerRing = offsetRing(innerRing, FRAME_WIDTH / 0.25);
 
   if (options.flip) {
     const w = options.flipWidth ?? 0;
@@ -49,7 +53,7 @@ export function getSingleWindowPolygon(baseRect: Readonly<Rect>, options: Readon
 
 export function drawWindowsOnCanvas(
   args: RenderHookArgs,
-  windowRings: readonly Readonly<WindowRingSet>[],
+  windowRings: DeepReadonly<WindowRingSet[]>,
 ) {
   const { ctx } = args;
 
@@ -75,8 +79,8 @@ export interface BuildWindowGeomtryOptions {
 
 export function buildWindowGeometry(
   builder: GeometryBuilder,
-  windowRings: Readonly<WindowRingSet>,
-  options: Readonly<BuildWindowGeomtryOptions>,
+  windowRings: DeepReadonly<WindowRingSet>,
+  options: DeepReadonly<BuildWindowGeomtryOptions>,
 ) {
   const posConversion = options?.coordinateConversion ?? (p => ({ x: p.x, y: p.y, z: 0 }));
   function ringConversion(ring: readonly Readonly<Vec2>[]) {

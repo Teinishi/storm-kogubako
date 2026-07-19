@@ -1,7 +1,7 @@
 // ポリゴンを Canvas に書く
 export function drawPolygonOnCanvas(
   ctx: CanvasRenderingContext2D,
-  polygon: readonly Readonly<Vec2>[],
+  polygon: DeepReadonly<Vec2[]>,
   coordinateConversion?: (point: Vec2) => Vec2,
 ) {
   polygon.forEach((point, i) => {

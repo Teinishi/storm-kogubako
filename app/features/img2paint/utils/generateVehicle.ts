@@ -1,4 +1,4 @@
-const vehicleXmlColor = ({ r, g, b }: Color, omitBlack: boolean) => {
+const vehicleXmlColor = ({ r, g, b }: Readonly<Color>, omitBlack: boolean) => {
   if (omitBlack && r === 0 && g === 0 && b === 0) {
     // 黒
     return '';
@@ -12,7 +12,7 @@ const vehicleXmlColor = ({ r, g, b }: Color, omitBlack: boolean) => {
   }
 };
 
-const vehicleXmlVp = ({ x, y, z }: Vec3, tagName?: string) => {
+const vehicleXmlVp = ({ x, y, z }: Readonly<Vec3>, tagName?: string) => {
   if (x === 0 && y === 0 && z === 0) return '';
   let xml = `<${tagName ?? 'vp'}`;
   if (x !== 0) {
@@ -28,14 +28,20 @@ const vehicleXmlVp = ({ x, y, z }: Vec3, tagName?: string) => {
   return xml;
 };
 
-export type PaintableSignConfig = Partial<{
-  minimizeSigns: boolean; // 単色部分は通常ブロックにする
-  minimizeIndicators: boolean; // 発光しない部分は Indicator にしない
-  logicLinks: boolean;
-  electricLinks: boolean;
-}>;
+export interface PaintableSignConfig {
+  minimizeSigns?: boolean; // 単色部分は通常ブロックにする
+  minimizeIndicators?: boolean; // 発光しない部分は Indicator にしない
+  logicLinks?: boolean;
+  electricLinks?: boolean;
+};
 
-export const generatePaintableSignVehicle = (width: number, height: number, baseImage: ImageDataArray, glowImage?: ImageDataArray, config?: PaintableSignConfig) => {
+export function generatePaintableSignVehicle(
+  width: number,
+  height: number,
+  baseImage: DeepReadonly<ImageDataArray>,
+  glowImage?: DeepReadonly<ImageDataArray>,
+  config?: Readonly<PaintableSignConfig>,
+) {
   const widthBlocks = Math.ceil(width / 9);
   const heightBlocks = Math.ceil(height / 9);
   const blockOffsetX = Math.floor(-widthBlocks / 2);
@@ -166,7 +172,7 @@ export const generatePaintableSignVehicle = (width: number, height: number, base
   return xml;
 };
 
-const getPixel = (x: number, y: number, width: number, height: number, image: ImageDataArray) => {
+function getPixel(x: number, y: number, width: number, height: number, image: DeepReadonly<ImageDataArray>) {
   if (x < 0 || width <= x || y < 0 || height <= y) {
     return null;
   }
@@ -177,4 +183,4 @@ const getPixel = (x: number, y: number, width: number, height: number, image: Im
     b: image[i + 2]!,
     a: image[i + 3]!,
   };
-};
+}

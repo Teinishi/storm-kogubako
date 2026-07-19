@@ -5,7 +5,7 @@ import { drawBackground, buildSlidingDoorGeometry } from '../utils';
 import { drawWindowsOnCanvas, getSingleWindowPolygon } from '../doorWindow/basic';
 import type { RenderHooksSet } from '.';
 
-function getBaseRect(state: Readonly<TrainDoorState>): Rect {
+function getBaseRect(state: DeepReadonly<TrainDoorState>): Rect {
   const rubber = state.rubberThickness / 0.25;
   return normalizeRect({
     x: 0,
@@ -15,7 +15,7 @@ function getBaseRect(state: Readonly<TrainDoorState>): Rect {
   });
 }
 
-function getWindowRings(state: Readonly<TrainDoorState>, flip?: boolean) {
+function getWindowRings(state: DeepReadonly<TrainDoorState>, flip?: boolean) {
   const options = {
     windowSize: { x: state.windowWidth / 0.25, y: state.windowHeight / 0.25 },
     offset: { x: state.windowXOffset / 0.25, y: state.windowYOffset / 0.25 },
@@ -69,10 +69,10 @@ export function createRenderHooks(state: Reactive<TrainDoorState>): RenderHooksS
 }
 
 export function buildGeometry(
-  state: Readonly<TrainDoorState>,
-  outsidePaint: Readonly<PolygonEditorValue>,
-  insidePaint: Readonly<PolygonEditorValue>,
-  builderOptions?: Readonly<GeometryBuilderOptions>,
+  state: DeepReadonly<TrainDoorState>,
+  outsidePaint: DeepReadonly<PolygonEditorValue>,
+  insidePaint: DeepReadonly<PolygonEditorValue>,
+  builderOptions?: DeepReadonly<GeometryBuilderOptions>,
 ) {
   const builder = new GeometryBuilder(builderOptions);
 

@@ -52,7 +52,7 @@ export function maxVec2(a: Readonly<Vec2>, b: Readonly<Vec2>): Vec2 {
   };
 }
 
-export function getBoundingBox(vertices: readonly Readonly<Vec2>[]): BoundingBox | undefined {
+export function getBoundingBox(vertices: DeepReadonly<Vec2[]>): BoundingBox | undefined {
   let boundsMin, boundsMax;
   for (const v of vertices) {
     if (!boundsMin) {
@@ -75,7 +75,7 @@ export function getBoundingBox(vertices: readonly Readonly<Vec2>[]): BoundingBox
   return { min: boundsMin, max: boundsMax };
 }
 
-export function mergeBoundingBox(a: BoundingBox, b: BoundingBox): BoundingBox {
+export function mergeBoundingBox(a: Readonly<BoundingBox>, b: Readonly<BoundingBox>): BoundingBox {
   return {
     min: minVec2(a.min, b.min),
     max: maxVec2(a.max, b.max),

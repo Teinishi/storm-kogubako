@@ -1,20 +1,20 @@
 <script setup lang="ts">
-const { t } = useI18n({
-  useScope: 'local',
-});
+const { t } = useI18n({ useScope: 'local' });
 
 const props = defineProps<{
   label?: string;
   removable?: boolean;
 }>();
-const file = defineModel<File | null>();
+
 const emit = defineEmits<{
   (e: 'update:image', value: HTMLImageElement | null): void;
 }>();
 
+const file = defineModel<File | null>();
+
 const imgUrl = ref<string | undefined>(undefined);
 
-const loadFile = (loadedFile: File | null | undefined) => {
+function loadFile(loadedFile: File | null | undefined) {
   if (!loadedFile) {
     file.value = null;
     emit('update:image', null);
@@ -34,7 +34,7 @@ const loadFile = (loadedFile: File | null | undefined) => {
     imgUrl.value = img.src;
   });
   reader.readAsDataURL(loadedFile);
-};
+}
 
 watch(file, loadFile);
 </script>

@@ -1,6 +1,6 @@
 import type { MeshVec3, MeshColor4, MeshVertex, SubMesh, MeshFile } from 'sw-mesh-viewer/parser';
 
-export function createMeshFile(data: MeshFile) {
+export function createMeshFile(data: DeepReadonly<MeshFile>) {
   const writer = new BinaryWriter();
   writer.ascii('mesh');
   writer.uint16(7);
@@ -98,26 +98,26 @@ class BinaryWriter {
     this.offset += data.length;
   }
 
-  vec3(data: MeshVec3) {
+  vec3(data: Readonly<MeshVec3>) {
     this.float32(data.x);
     this.float32(data.y);
     this.float32(data.z);
   }
 
-  color4(data: MeshColor4) {
+  color4(data: Readonly<MeshColor4>) {
     this.uint8(data.r);
     this.uint8(data.g);
     this.uint8(data.b);
     this.uint8(data.a);
   }
 
-  vertex(vertex: MeshVertex) {
+  vertex(vertex: DeepReadonly<MeshVertex>) {
     this.vec3(vertex.position);
     this.color4(vertex.color);
     this.vec3(vertex.normal);
   }
 
-  submesh(data: SubMesh) {
+  submesh(data: DeepReadonly<SubMesh>) {
     this.uint32(data.indexBufferStart);
     this.uint32(data.indexBufferLength);
     this.uint16(0);

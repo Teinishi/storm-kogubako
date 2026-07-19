@@ -49,7 +49,7 @@ export interface DrawData {
   isMultiplesOf9: boolean;
 }
 
-export function getDrawData(width: number, height: number, anchorState: AnchorState): DrawData {
+export function getDrawData(width: number, height: number, anchorState: Readonly<AnchorState>): DrawData {
   // キャンバスサイズ、オフセットを計算
   let widthBlocks = Math.ceil(width / 9);
   let heightBlocks = Math.ceil(height / 9);

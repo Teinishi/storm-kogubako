@@ -11,7 +11,7 @@ const DEFAULT_GLASS_COLOR = {
 };
 const DEFAULT_ADDITIVE_COLOR = WHITE;
 
-function computeNormal(a: Vec3, b: Vec3, c: Vec3): Vec3 {
+function computeNormal(a: Readonly<Vec3>, b: Readonly<Vec3>, c: Readonly<Vec3>): Vec3 {
   const abx = b.x - a.x;
   const aby = b.y - a.y;
   const abz = b.z - a.z;
@@ -48,7 +48,7 @@ function getVertexFromFlat(flatVertices: readonly number[], index: number): Vec3
   };
 }
 
-function vec2RingToTuple(ring: readonly Vec2[], z?: number) {
+function vec2RingToTuple(ring: DeepReadonly<Vec2[]>, z?: number) {
   return ring.map(p => z === undefined ? [p.x, p.y] : [p.x, p.y, z]);
 }
 
@@ -108,7 +108,7 @@ export class Orientation {
     { axis: 'z', sign: -1 },
   );
 
-  transformPosition(src: Vec3): Vec3 {
+  transformPosition(src: Readonly<Vec3>): Vec3 {
     const get = (m: AxisMapping) => src[m.axis] * m.sign;
     return {
       x: get(this.x),
@@ -155,7 +155,7 @@ export class GeometryBuilder {
     this.refine = options?.refine ?? false;
   }
 
-  private addCoplanarTriangles(flatVertices: readonly number[], indices: readonly number[], options?: AddFaceOptions) {
+  private addCoplanarTriangles(flatVertices: readonly number[], indices: readonly number[], options?: DeepReadonly<AddFaceOptions>) {
     if (indices.length < 3) {
       throw new Error('Indices must have at least 3 vertices.');
     }
@@ -222,7 +222,7 @@ export class GeometryBuilder {
   }
 
   // 凸多角形面
-  addFace(vertices: readonly Vec3[], options?: number | Color | AddFaceOptions) {
+  addFace(vertices: DeepReadonly<Vec3[]>, options?: number | Readonly<Color> | DeepReadonly<AddFaceOptions>) {
     if (vertices.length < 3) {
       return;
     }
@@ -249,7 +249,7 @@ export class GeometryBuilder {
   }
 
   // ポリゴンを追加 (polygon[0] は外周、それ以降は内側の穴)
-  addPolygon(polygon: readonly Vec2[][], options?: AddPolygonOptions) {
+  addPolygon(polygon: DeepReadonly<Vec2[][]>, options?: DeepReadonly<AddPolygonOptions>) {
     const z = options?.z ?? 0;
 
     const data = earcut.flatten(polygon.map(ring => vec2RingToTuple(ring, z)));
@@ -262,7 +262,7 @@ export class GeometryBuilder {
   }
 
   // ポリゴンをZ軸方向に押し出した側面
-  addExtrudedSides(vertices: Vec2[], options?: AddExtrudedSideOptions) {
+  addExtrudedSides(vertices: DeepReadonly<Vec2[]>, options?: DeepReadonly<AddExtrudedSideOptions>) {
     const [z1, z2] = options?.zRange ?? [0, 1];
 
     const quadCount = options?.close ? vertices.length : vertices.length - 1;
@@ -286,7 +286,7 @@ export class GeometryBuilder {
     }
   }
 
-  transform(orientation: Orientation) {
+  transform(orientation: DeepReadonly<Orientation>) {
     const { positions, normals } = this;
 
     for (let i = 0; 3 * i + 2 < positions.length; i++) {

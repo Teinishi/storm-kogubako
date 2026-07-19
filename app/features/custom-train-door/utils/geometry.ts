@@ -13,8 +13,8 @@ export interface BuildPolygonGeometryOptions {
 
 export function buildPolygonGeometry(
   builder: GeometryBuilder,
-  polygons: readonly Readonly<PolygonEditorPolygon>[],
-  options?: Readonly<BuildPolygonGeometryOptions>,
+  polygons: DeepReadonly<PolygonEditorPolygon[]>,
+  options?: DeepReadonly<BuildPolygonGeometryOptions>,
 ) {
   const posConversion = options?.coordinateConversion ?? (p => ({ x: p.x, y: p.y, z: 0 }));
   function ringConversion(ring: readonly Readonly<Vec2>[]) {
@@ -42,9 +42,9 @@ export function buildPolygonGeometry(
 
 export function buildRubberGeometry(
   builder: GeometryBuilder,
-  root: Vec3,
-  tip: Vec3,
-  options: AddFaceOptions,
+  root: Readonly<Vec3>,
+  tip: Readonly<Vec3>,
+  options?: number | Readonly<Color> | DeepReadonly<AddFaceOptions>,
 ) {
   const { x: x1, y: y1, z: z1 } = tip;
   const { x: x2, y: y2, z: z2 } = root;
@@ -68,9 +68,9 @@ export function buildRubberGeometry(
 }
 
 export interface BuildSlidingDoorGeometryOptions {
-  baseRect: Readonly<Rect>;
-  outsidePaint: Readonly<PolygonEditorValue>;
-  insidePaint: Readonly<PolygonEditorValue>;
+  baseRect: Rect;
+  outsidePaint: PolygonEditorValue;
+  insidePaint: PolygonEditorValue;
   doorSize: Vec2;
   frontZ: number;
   backZ: number;
@@ -79,12 +79,12 @@ export interface BuildSlidingDoorGeometryOptions {
   direction: 'right' | 'left';
   rubberThickness: number;
   rubberColor: Color;
-  windowRings: readonly Readonly<WindowRingSet>[];
+  windowRings: WindowRingSet[];
 }
 
 export function buildSlidingDoorGeometry(
   builder: GeometryBuilder,
-  options: Readonly<BuildSlidingDoorGeometryOptions>,
+  options: DeepReadonly<BuildSlidingDoorGeometryOptions>,
 ) {
   const {
     baseRect,

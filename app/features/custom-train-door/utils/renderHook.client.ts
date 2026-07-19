@@ -3,7 +3,7 @@ import type { TrainDoorState } from '../types';
 
 export function drawBackground(
   { ctx, worldRectToCanvas }: RenderHookArgs,
-  state: Readonly<TrainDoorState>,
+  state: DeepReadonly<TrainDoorState>,
   isInside: boolean,
 ) {
   const r = worldRectToCanvas({ x: 0, y: 0, width: state.doorWidth, height: state.doorHeight });
@@ -14,7 +14,7 @@ export function drawBackground(
 
 export function drawWindows(
   { ctx, worldToCanvas }: RenderHookArgs,
-  windowPolygons: readonly (readonly Readonly<Vec2>[])[],
+  windowPolygons: DeepReadonly<Vec2[][]>,
 ) {
   const bb = windowPolygons.reduce((prev: BoundingBox | undefined, curr) => {
     const bb = getBoundingBox(curr);

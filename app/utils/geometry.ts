@@ -24,7 +24,7 @@ export function distanceToSegment(point: Readonly<Vec2>, start: Readonly<Vec2>, 
   };
 }
 
-export function pointInPolygon(point: Readonly<Vec2>, vertices: readonly Readonly<Vec2>[]) {
+export function pointInPolygon(point: Readonly<Vec2>, vertices: DeepReadonly<Vec2[]>) {
   if (vertices.length < 3) return false;
 
   let inside = false;

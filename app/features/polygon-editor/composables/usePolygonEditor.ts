@@ -1,4 +1,4 @@
-import type { DeepReadonly, Ref } from 'vue';
+import type { Ref } from 'vue';
 import { clonePolygonEditorValue, type PolygonEditorPolygon, type PolygonEditorValue } from '../types';
 import type {
   PolygonEditorGrid,

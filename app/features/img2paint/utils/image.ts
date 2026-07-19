@@ -1,4 +1,4 @@
-export function getImageSize(img: HTMLImageElement | HTMLCanvasElement | null) {
+export function getImageSize(img: DeepReadonly<HTMLImageElement | HTMLCanvasElement | null>) {
   if (!img) return null;
   const { width, height } = img;
   return {

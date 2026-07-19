@@ -64,12 +64,12 @@ function reorder(fromIndex: number, toIndex: number) {
   });
 }
 
-function handleReorder(value: { fromIndex: number; toIndex: number }) {
+function handleReorder(value: Readonly<{ fromIndex: number; toIndex: number }>) {
   const len = editorState.value.polygons.length;
   reorder(len - value.fromIndex - 1, len - value.toIndex - 1);
 }
 
-function handleListItemClick(payload: { key: string | number }) {
+function handleListItemClick(payload: Readonly<{ key: string | number }>) {
   const polygonId = Number(payload.key);
   if (!Number.isFinite(polygonId)) return;
 

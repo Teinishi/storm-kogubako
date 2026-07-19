@@ -12,7 +12,7 @@ export function clampToLogicalBounds(point: Readonly<Vec2>, bounds: Readonly<Log
   };
 }
 
-export function clampVerticesToLogicalBounds(vertices: readonly Readonly<Vec2>[], bounds: Readonly<LogicalBounds>) {
+export function clampVerticesToLogicalBounds(vertices: DeepReadonly<Vec2[]>, bounds: Readonly<LogicalBounds>) {
   return vertices.map(vertex => clampToLogicalBounds(vertex, bounds));
 }
 

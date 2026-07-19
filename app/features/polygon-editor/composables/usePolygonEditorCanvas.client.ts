@@ -1,6 +1,6 @@
 import type { Ref } from 'vue';
 import type { PolygonEditor } from './usePolygonEditor';
-import type { CanvasMetrics, RenderHooks, ViewTransform, ReadonlyPolygon } from '../types';
+import type { CanvasMetrics, PolygonEditorPolygon, RenderHooks, ViewTransform } from '../types';
 import type {
   HitEdge,
   HitVertex,
@@ -53,7 +53,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     } satisfies CanvasMetrics;
   }
 
-  function worldToCanvas(point: Vec2, transform: ViewTransform) {
+  function worldToCanvas(point: Readonly<Vec2>, transform: Readonly<ViewTransform>) {
     return worldToCanvasWithBounds(point, transform);
   }
 
@@ -79,7 +79,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     return snapPoint(canvasToWorldRaw(clientX, clientY));
   }
 
-  function findHitVertex(point: Vec2) {
+  function findHitVertex(point: Readonly<Vec2>) {
     return findHitVertexInPolygons(
       point,
       editorState.value.polygons,
@@ -87,7 +87,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     ) as HitVertex | null;
   }
 
-  function findHitEdge(point: Vec2) {
+  function findHitEdge(point: Readonly<Vec2>) {
     return findHitEdgeInPolygons(
       point,
       editorState.value.polygons,
@@ -96,12 +96,11 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     ) as HitEdge | null;
   }
 
-  function findHitPolygon(point: Vec2) {
+  function findHitPolygon(point: Readonly<Vec2>) {
     return findHitPolygonInPolygons(point, editorState.value.polygons);
   }
 
-  function renderGrid(ctx: CanvasRenderingContext2D, transform: ViewTransform) {
-    // TODO: metrics が本当に必要かどうか調査
+  function renderGrid(ctx: CanvasRenderingContext2D, transform: Readonly<ViewTransform>) {
     if (!grid.value.enabled) return;
 
     const minorDivisions = Math.max(1, grid.value.minorDivisions);
@@ -169,15 +168,15 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
 
   function renderPolygon(
     ctx: CanvasRenderingContext2D,
-    transform: ViewTransform,
-    polygon: ReadonlyPolygon,
-    options?: {
+    transform: Readonly<ViewTransform>,
+    polygon: DeepReadonly<PolygonEditorPolygon>,
+    options?: Readonly<{
       noFill?: boolean;
       stroke?: boolean;
       vertices?: boolean;
       dimmed?: boolean;
       draft?: boolean;
-    },
+    }>,
   ) {
     const noFill = options?.noFill ?? false;
     const stroke = options?.stroke ?? false;
@@ -256,7 +255,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     ctx.restore();
   }
 
-  function renderCanvas(renderHooks?: RenderHooks) {
+  function renderCanvas(renderHooks?: Readonly<RenderHooks>) {
     const canvas = canvasRef.value;
     if (!canvas) return;
 

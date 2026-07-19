@@ -12,7 +12,7 @@ function to16(num: number) {
   return hex.length === 1 ? `0${hex}` : hex;
 }
 
-export const rgbToHex = ({ r, g, b }: Color) => `#${to16(r)}${to16(g)}${to16(b)}`;
+export const rgbToHex = ({ r, g, b }: Readonly<Color>) => `#${to16(r)}${to16(g)}${to16(b)}`;
 
 export function hexToRgb(hex: string) {
   if (hex.startsWith('#')) {
@@ -35,4 +35,4 @@ export function hexToRgb(hex: string) {
   return { ...BLACK };
 }
 
-export const colorEquals = (a: Color, b: Color) => a.r === b.r && a.g === b.g && a.b === b.b;
+export const colorEquals = (a: Readonly<Color>, b: Readonly<Color>) => a.r === b.r && a.g === b.g && a.b === b.b;

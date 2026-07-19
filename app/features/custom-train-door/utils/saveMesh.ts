@@ -3,9 +3,9 @@ import type { TrainDoorState } from '../types';
 import { buildDoorGeometry } from '../doorTypes';
 
 export function saveMesh(
-  state: Readonly<TrainDoorState>,
-  outsidePaint: Readonly<PolygonEditorValue>,
-  insidePaint: Readonly<PolygonEditorValue>,
+  state: DeepReadonly<TrainDoorState>,
+  outsidePaint: DeepReadonly<PolygonEditorValue>,
+  insidePaint: DeepReadonly<PolygonEditorValue>,
 ) {
   const objects = buildDoorGeometry(state, outsidePaint, insidePaint, { refine: true });
 

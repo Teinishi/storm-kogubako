@@ -3,9 +3,9 @@ import type { DrawData } from '../utils';
 
 function drawResizedImage(
   ctx: CanvasRenderingContext2D,
-  img: HTMLImageElement | HTMLCanvasElement,
-  resizeState: ResizeState,
-  offset: Vec2,
+  img: CanvasImageSource,
+  resizeState: Readonly<ResizeState>,
+  offset: Readonly<Vec2>,
 ) {
   let { x: offsetX, y: offsetY } = offset;
   let drawWidth = resizeState.widthPixels;
@@ -27,8 +27,8 @@ function drawResizedImage(
 
 export function paintCanvas(
   state: Img2PaintState,
-  baseDrawData: DrawData,
-  glowOffset: Vec2,
+  baseDrawData: DeepReadonly<DrawData>,
+  glowOffset: Readonly<Vec2>,
   showGlow: boolean,
   baseCanvas: HTMLCanvasElement,
   glowCanvas?: HTMLCanvasElement,

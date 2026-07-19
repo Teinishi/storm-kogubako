@@ -1,4 +1,4 @@
-import type { ReadonlyPolygon } from '../types';
+import type { PolygonEditorPolygon } from '../types';
 
 export const GRID_SCALE = 56;
 export const HANDLE_HIT_THRESHOLD_PX = 8;
@@ -18,7 +18,7 @@ export interface HitEdge {
 
 export function findHitVertex(
   point: Readonly<Vec2>,
-  polygons: readonly ReadonlyPolygon[],
+  polygons: DeepReadonly<PolygonEditorPolygon[]>,
   threshold: number,
 ) {
   for (let polygonIndex = polygons.length - 1; polygonIndex >= 0; polygonIndex -= 1) {
@@ -43,7 +43,7 @@ export function findHitVertex(
 
 export function findHitEdge(
   point: Readonly<Vec2>,
-  polygons: readonly ReadonlyPolygon[],
+  polygons: DeepReadonly<PolygonEditorPolygon[]>,
   threshold: number,
   snapper: (point: Vec2) => Vec2,
 ) {
@@ -71,7 +71,7 @@ export function findHitEdge(
   return null;
 }
 
-export function findHitPolygon(point: Vec2, polygons: readonly ReadonlyPolygon[]) {
+export function findHitPolygon(point: Vec2, polygons: DeepReadonly<PolygonEditorPolygon[]>) {
   for (let polygonIndex = polygons.length - 1; polygonIndex >= 0; polygonIndex -= 1) {
     const polygon = polygons[polygonIndex];
     if (!polygon) continue;

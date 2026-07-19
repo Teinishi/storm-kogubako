@@ -1,10 +1,10 @@
 import polygonClipping from 'polygon-clipping';
 
-function forPolygonClipping(polygon: readonly (readonly Readonly<Vec2>[])[]): polygonClipping.Polygon {
+function forPolygonClipping(polygon: DeepReadonly<Vec2[][]>): polygonClipping.Polygon {
   return polygon.map(ring => ring.map(v => [v.x, v.y]));
 }
 
-function toVec2Polygon(polygon: polygonClipping.Polygon): Vec2[][] {
+function toVec2Polygon(polygon: DeepReadonly<polygonClipping.Polygon>): Vec2[][] {
   return polygon.map(ring => ring.map(v => ({ x: v[0], y: v[1] })));
 }
 
@@ -19,16 +19,16 @@ export function rectToRing(rect: Readonly<Rect>): Vec2[] {
 }
 
 // 向きを判定
-function polygonWindingDirection(polygon: readonly Vec2[]) {
-  const n = polygon.length;
+function ringWindingDirection(ring: DeepReadonly<Vec2[]>) {
+  const n = ring.length;
   if (n < 3) {
     throw new Error('Polygon must have at least 3 vertices.');
   }
 
   let area = 0;
   for (let i = 0; i < n; i++) {
-    const a = polygon[i]!;
-    const b = polygon[(i + 1) % n]!;
+    const a = ring[i]!;
+    const b = ring[(i + 1) % n]!;
     area += a.x * b.y - b.x * a.y;
   }
 
@@ -101,12 +101,12 @@ export function createRoundedRectPolygon(
 }
 
 // ポリゴンを太らせる
-export function offsetPolygon(
-  polygon: readonly Vec2[],
+export function offsetRing(
+  ring: DeepReadonly<Vec2[]>,
   distance: number,
 ): Vec2[] {
-  const normalSign = polygonWindingDirection(polygon) === 'CCW' ? -1 : 1;
-  const n = polygon.length;
+  const normalSign = ringWindingDirection(ring) === 'CCW' ? -1 : 1;
+  const n = ring.length;
 
   const result: Vec2[] = [];
 
@@ -146,11 +146,11 @@ export function offsetPolygon(
     };
   }
 
-  let n1 = normal(polygon.at(-1)!, polygon.at(0)!);
+  let n1 = normal(ring.at(-1)!, ring.at(0)!);
   for (let i = 0; i < n; i++) {
-    const prev = polygon[(i - 1 + n) % n]!;
-    const curr = polygon[i]!;
-    const next = polygon[(i + 1) % n]!;
+    const prev = ring[(i - 1 + n) % n]!;
+    const curr = ring[i]!;
+    const next = ring[(i + 1) % n]!;
 
     const n2 = normal(curr, next);
 
@@ -203,10 +203,10 @@ interface PolygonWithId<T> {
 
 // 重なったポリゴンの重なりを排除
 export function eliminatePolygonOverlap<T>(
-  polygons: readonly Readonly<PolygonWithId<T>>[],
+  polygons: DeepReadonly<PolygonWithId<T>[]>,
   options?: {
-    base?: Readonly<PolygonWithId<T>>;
-    holes?: readonly (readonly Vec2[])[];
+    base?: DeepReadonly<PolygonWithId<T>>;
+    holes?: DeepReadonly<Vec2[][]>;
   },
 ) {
   const base = options?.base;
@@ -215,7 +215,7 @@ export function eliminatePolygonOverlap<T>(
   const basePolygon = base ? forPolygonClipping(base?.polygon) : undefined;
   const masks: polygonClipping.Polygon[] = holes.map(ring => forPolygonClipping([ring]));
   const disjointPolygons: {
-    id: T;
+    id: DeepReadonly<T>;
     multiPolygon: polygonClipping.MultiPolygon;
   }[] = [];
 

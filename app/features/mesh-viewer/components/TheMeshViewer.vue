@@ -37,7 +37,7 @@ interface MeshFileItem {
   properties: ItemProperties;
 }
 
-function getMeshStats(data: MeshData) {
+function getMeshStats(data: DeepReadonly<MeshData>) {
   let vertexCount = 0;
   let triangleCount = 0;
   if (data.kind === 'mesh') {
@@ -57,12 +57,12 @@ const meshFiles = ref<MeshFileItem[]>([]);
 const fileUploadModel = ref<File[] | null>(null);
 let nextMeshFileId = 1;
 
-const removeMeshFile = (id: string) => {
+function removeMeshFile(id: string) {
   const i = meshFiles.value.findIndex(v => v.id === id);
   if (i !== -1) meshFiles.value.splice(i, 1);
-};
+}
 
-const addMeshFiles = async (files: File[] | File | null | undefined) => {
+async function addMeshFiles(files: File[] | File | null | undefined) {
   const fileList = Array.isArray(files) ? files : files ? [files] : [];
   if (!fileList.length) return;
 
@@ -109,21 +109,21 @@ const addMeshFiles = async (files: File[] | File | null | undefined) => {
   }
 
   fileUploadModel.value = null;
-};
+}
 
-const toggleMeshVisibility = (item: { visible: boolean }) => {
+function toggleMeshVisibility(item: { visible: boolean }) {
   item.visible = !item.visible;
-};
+}
 
-const toggleMeshDetails = (item: { detailsOpen: boolean }) => {
+function toggleMeshDetails(item: { detailsOpen: boolean }) {
   item.detailsOpen = !item.detailsOpen;
-};
+}
 
-const formatFileSize = (size: number) => {
+function formatFileSize(size: number) {
   if (size < 1024) return `${size} B`;
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
   return `${(size / 1024 / 1024).toFixed(1)} MB`;
-};
+}
 </script>
 
 <template>

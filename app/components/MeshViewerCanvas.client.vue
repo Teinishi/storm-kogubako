@@ -43,33 +43,35 @@ const orbitMouseButtons = {
   RIGHT: THREE.MOUSE.ROTATE,
 };
 
-const hexToVec4 = (hex: string): [number, number, number, number] => {
+function hexToVec4(hex: string): [number, number, number, number] {
   const { r, g, b } = hexToRgb(hex);
   return [r / 255, g / 255, b / 255, 1];
-};
+}
 
-const createObjectUniforms = (item: MeshViewerCanvasItem): StormworksUniforms => item.properties.kind === 'mesh'
-  ? ({
-      opaque: {
-        overrideColor: {
-          type: 'int' as const,
-          value: item.properties.enablePaintcolor ? 1 : 0,
+function createObjectUniforms(item: DeepReadonly<MeshViewerCanvasItem>): StormworksUniforms {
+  return item.properties.kind === 'mesh'
+    ? ({
+        opaque: {
+          overrideColor: {
+            type: 'int' as const,
+            value: item.properties.enablePaintcolor ? 1 : 0,
+          },
+          overrideColor1: {
+            type: 'vec4' as const,
+            value: hexToVec4(item.properties.paintColor1),
+          },
+          overrideColor2: {
+            type: 'vec4' as const,
+            value: hexToVec4(item.properties.paintColor2),
+          },
+          overrideColor3: {
+            type: 'vec4' as const,
+            value: hexToVec4(item.properties.paintColor3),
+          },
         },
-        overrideColor1: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor1),
-        },
-        overrideColor2: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor2),
-        },
-        overrideColor3: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor3),
-        },
-      },
-    })
-  : {};
+      })
+    : {};
+}
 </script>
 
 <template>

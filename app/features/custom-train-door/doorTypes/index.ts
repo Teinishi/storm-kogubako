@@ -1,3 +1,4 @@
+import type { Reactive } from 'vue';
 import type { RenderHooks, PolygonEditorValue } from '~/features/polygon-editor';
 import type { TrainDoorState } from '../types';
 import * as doubleSliding from './doubleSliding';
@@ -13,7 +14,7 @@ export interface RenderHooksSet {
   inside: RenderHooks;
 }
 
-export function createRenderHooks(state: TrainDoorState): RenderHooksSet {
+export function createRenderHooks(state: Reactive<TrainDoorState>): RenderHooksSet {
   const { doorType } = state;
   switch (doorType) {
     case 'double_sliding':
@@ -28,10 +29,10 @@ export function createRenderHooks(state: TrainDoorState): RenderHooksSet {
 }
 
 export function buildDoorGeometry(
-  state: Readonly<TrainDoorState>,
-  outsidePaint: Readonly<PolygonEditorValue>,
-  insidePaint: Readonly<PolygonEditorValue>,
-  builderOptions?: Readonly<GeometryBuilderOptions>,
+  state: DeepReadonly<TrainDoorState>,
+  outsidePaint: DeepReadonly<PolygonEditorValue>,
+  insidePaint: DeepReadonly<PolygonEditorValue>,
+  builderOptions?: DeepReadonly<GeometryBuilderOptions>,
 ) {
   const { doorType } = state;
   switch (doorType) {

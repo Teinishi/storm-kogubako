@@ -20,7 +20,7 @@ const heightBlocks = computed(() => Math.ceil(modelValue.value.heightPixels / 9)
 const widthPercent = computed(() => round(modelValue.value.widthPixels / props.imageSize.width, 3));
 const heightPercent = computed(() => round(modelValue.value.heightPixels / props.imageSize.height, 3));
 
-const updateWidthPixels = (value: number | null) => {
+function updateWidthPixels(value: number | null) {
   if (value !== null) {
     modelValue.value.sizePriority = 'width';
     modelValue.value.widthPixels = value;
@@ -28,8 +28,8 @@ const updateWidthPixels = (value: number | null) => {
       modelValue.value.heightPixels = round(value * props.imageSize.height / props.imageSize.width, 3);
     }
   }
-};
-const updateHeightPixels = (value: number | null) => {
+}
+function updateHeightPixels(value: number | null) {
   if (value !== null) {
     modelValue.value.sizePriority = 'height';
     modelValue.value.heightPixels = value;
@@ -37,29 +37,29 @@ const updateHeightPixels = (value: number | null) => {
       modelValue.value.widthPixels = round(value * props.imageSize.width / props.imageSize.height, 3);
     }
   }
-};
+}
 
-const updateWidthBlocks = (value: number | null) => {
+function updateWidthBlocks(value: number | null) {
   if (value !== null) {
     updateWidthPixels(value * 9);
   }
-};
-const updateHeightBlocks = (value: number | null) => {
+}
+function updateHeightBlocks(value: number | null) {
   if (value !== null) {
     updateHeightPixels(value * 9);
   }
-};
+}
 
-const updateWidthPercent = (value: number | null) => {
+function updateWidthPercent(value: number | null) {
   if (value !== null) {
     updateWidthPixels(value * props.imageSize.width);
   }
-};
-const updateHeightPercent = (value: number | null) => {
+}
+function updateHeightPercent(value: number | null) {
   if (value !== null) {
     updateHeightPixels(value * props.imageSize.height);
   }
-};
+}
 
 const isOriginalSize = computed(() => {
   if (!props.imageSize) return false;
