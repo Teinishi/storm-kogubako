@@ -3,11 +3,11 @@ import { PolygonEditor } from '~/features/polygon-editor';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import { useCustomTrainDoor } from '../composables';
-import { createMeshFiles } from '../utils';
+import { createMeshFiles, createVisualDefinition } from '../utils';
 
 const { t } = useI18n({ useScope: 'local' });
 
-const { saveFiles } = useFileSave();
+const { saveFile, saveFiles } = useFileSave();
 
 const tabItems = computed(() => [
   {
@@ -34,6 +34,7 @@ const advancedItems = computed(() => [
   },
   {
     label: t('save_visual_component_xml'),
+    onSelect: saveVisualComponentXmlClicked,
   },
   {
     label: t('save_collision_component_xml'),
@@ -55,13 +56,18 @@ const {
 } = useCustomTrainDoor();
 
 function saveMeshClicked() {
-  console.log('saveMeshClicked');
   const meshes = createMeshFiles(state, outsidePolygonEditorValue.value, insidePolygonEditorValue.value);
   const files = meshes.map(({ id, data }) => ({
     filename: `train_door_${id}.mesh`,
     blob: new Blob([data], { type: 'application/octet-stream' }),
   }));
   saveFiles(files, 'train_door_meshes.zip');
+}
+
+function saveVisualComponentXmlClicked() {
+  const xml = createVisualDefinition(state);
+  const blob = new Blob([xml], { type: 'application/xml' });
+  saveFile(blob, 'train_door_visual.xml');
 }
 
 function saveDoorUnitClicked() {}
