@@ -12,8 +12,8 @@ export function useFileSave() {
     URL.revokeObjectURL(link.href);
 
     toast.add({
-      title: t('saving_file'),
-      description: t('saving_file_message'),
+      title: t('saved_file_toast', { name: filename }),
+      description: t('saved_file_toast_message'),
       icon: 'i-lucide-check',
     });
   }

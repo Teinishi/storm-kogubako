@@ -3,7 +3,7 @@ import { PolygonEditor } from '~/features/polygon-editor';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import { useCustomTrainDoor } from '../composables';
-import { createMeshFiles, createVisualDefinition } from '../utils';
+import { createMeshFiles, createVisualDefinition, getFingerprint as getFingerprintFromJson, toJson } from '../utils';
 
 const { t } = useI18n({ useScope: 'local' });
 
@@ -55,19 +55,31 @@ const {
   insideEditorProps,
 } = useCustomTrainDoor();
 
+function getFingerprint() {
+  return getFingerprintFromJson(toJson({
+    state,
+    outsidePaint: outsidePolygonEditorValue.value,
+    insidePaint: insidePolygonEditorValue.value,
+  }));
+}
+
 function saveMeshClicked() {
+  const fingerprint = getFingerprint();
+
   const meshes = createMeshFiles(state, outsidePolygonEditorValue.value, insidePolygonEditorValue.value);
   const files = meshes.map(({ id, data }) => ({
-    filename: `train_door_${id}.mesh`,
+    filename: `train_door_${id}_${fingerprint}.mesh`,
     blob: new Blob([data], { type: 'application/octet-stream' }),
   }));
-  saveFiles(files, 'train_door_meshes.zip');
+  saveFiles(files, `train_door_meshes_${fingerprint}.zip`);
 }
 
 function saveVisualComponentXmlClicked() {
+  const fingerprint = getFingerprint();
+
   const xml = createVisualDefinition(state);
   const blob = new Blob([xml], { type: 'application/xml' });
-  saveFile(blob, 'train_door_visual.xml');
+  saveFile(blob, `train_door_visual_${fingerprint}.xml`);
 }
 
 function saveDoorUnitClicked() {}
