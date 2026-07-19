@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { Img2PaintState } from '../types/Img2PaintState';
-import type { DrawData } from '../utils/anchor';
-import { paintCanvas } from '../renderer/renderer.client';
+import type { Img2PaintState } from '../types';
+import type { DrawData } from '../utils';
+import { paintCanvas } from '../renderer';
 
 const GRID_LINE_WIDTH = 2;
 
@@ -27,7 +27,7 @@ const glowCanvas = useTemplateRef('glowCanvas');
 
 watch(
   [props, showGlow],
-  () => {
+  async () => {
     if (baseCanvas.value && glowCanvas.value) {
       paintCanvas(
         props.state,

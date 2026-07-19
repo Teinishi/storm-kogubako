@@ -1,7 +1,5 @@
-import type { Img2PaintState } from '../types/Img2PaintState';
-import { createDefaultImg2PaintState } from '../types/Img2PaintState';
-import { getImageSize } from '../utils/image';
-import { getDrawData, getAnchorOffset } from '../utils/anchor';
+import { type Img2PaintState, createDefaultImg2PaintState } from '../types';
+import { getImageSize, getDrawData, getAnchorOffset } from '../utils';
 
 export function useImg2Paint() {
   // 元画像

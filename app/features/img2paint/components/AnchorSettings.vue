@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AnchorPositionSelect from './AnchorPositionSelect.vue';
-import type { AnchorState } from '../types/AnchorState.js';
+import type { AnchorState } from '../types';
 
 const { t } = useI18n({ useScope: 'local' });
 

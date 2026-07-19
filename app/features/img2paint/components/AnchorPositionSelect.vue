@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import type { AnchorPosition } from '../types/AnchorState';
-import { ANCHOR_POSITIONS } from '../types/AnchorState';
+import { type AnchorPosition, ANCHOR_POSITIONS } from '../types';
 
 const { t } = useI18n({ useScope: 'local' });
 

@@ -1,4 +1,4 @@
-import { createDefaultBaseResizeState, createDefaultGlowResizeState, type ResizeState } from './ResizeState';
+import { createDefaultBaseResizeState, createDefaultGlowResizeState, type ResizeState } from './resize';
 
 export interface Img2PaintState {
   baseImageFile: File | null;

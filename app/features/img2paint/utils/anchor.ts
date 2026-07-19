@@ -1,4 +1,4 @@
-import type { AnchorPosition, AnchorState } from '../types/AnchorState';
+import type { AnchorPosition, AnchorState } from '../types';
 
 export function getAnchorOffset(
   drawWidth: number,

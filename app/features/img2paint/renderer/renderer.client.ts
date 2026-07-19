@@ -1,6 +1,5 @@
-import type { Img2PaintState } from '../types/Img2PaintState';
-import type { ResizeState } from '../types/ResizeState';
-import type { DrawData } from '../utils/anchor';
+import type { Img2PaintState, ResizeState } from '../types';
+import type { DrawData } from '../utils';
 
 function drawResizedImage(
   ctx: CanvasRenderingContext2D,
