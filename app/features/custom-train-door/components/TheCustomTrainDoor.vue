@@ -3,9 +3,11 @@ import { PolygonEditor } from '~/features/polygon-editor';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import { useCustomTrainDoor } from '../composables';
-import { saveMesh } from '../utils';
+import { createMeshFiles } from '../utils';
 
 const { t } = useI18n({ useScope: 'local' });
+
+const { saveFiles } = useFileSave();
 
 const tabItems = computed(() => [
   {
@@ -25,6 +27,25 @@ const tabItems = computed(() => [
   },
 ]);
 
+const advancedItems = computed(() => [
+  {
+    label: t('save_mesh'),
+    onSelect: saveMeshClicked,
+  },
+  {
+    label: t('save_visual_component_xml'),
+  },
+  {
+    label: t('save_collision_component_xml'),
+  },
+  {
+    label: t('save_visual_component_bin'),
+  },
+  {
+    label: t('save_collision_component_bin'),
+  },
+]);
+
 const {
   state,
   outsidePolygonEditorValue,
@@ -34,8 +55,16 @@ const {
 } = useCustomTrainDoor();
 
 function saveMeshClicked() {
-  saveMesh(state, outsidePolygonEditorValue.value, insidePolygonEditorValue.value);
+  console.log('saveMeshClicked');
+  const meshes = createMeshFiles(state, outsidePolygonEditorValue.value, insidePolygonEditorValue.value);
+  const files = meshes.map(({ id, data }) => ({
+    filename: `train_door_${id}.mesh`,
+    blob: new Blob([data], { type: 'application/octet-stream' }),
+  }));
+  saveFiles(files, 'train_door_meshes.zip');
 }
+
+function saveDoorUnitClicked() {}
 </script>
 
 <template>
@@ -52,14 +81,25 @@ function saveMeshClicked() {
         >
           <template #settings>
             <TheTrainDoorSettings v-model="state" />
-            <div class="mt-4 flex">
+            <div class="mt-4 flex gap-4">
               <UButton
                 block
                 size="xl"
                 color="primary"
-                :label="t('save_mesh')"
-                @click="saveMeshClicked"
+                :label="t('save_door_unit')"
+                @click="saveDoorUnitClicked"
               />
+              <UDropdownMenu :items="advancedItems">
+                <UButton
+                  block
+                  size="xl"
+                  color="primary"
+                  variant="outline"
+                  icon="i-lucide-chevron-down"
+                  :label="t('advanced')"
+                  class="flex-1"
+                />
+              </UDropdownMenu>
             </div>
           </template>
 
@@ -106,14 +146,26 @@ function saveMeshClicked() {
     "outside_paint": "Outside Paint",
     "inside_paint": "Inside Paint",
     "preview": "Preview",
-    "save_mesh": "Save mesh"
+    "save_door_unit": "Save Door Unit",
+    "advanced": "Advanced",
+    "save_mesh": "Save Mesh (.mesh)",
+    "save_visual_component_xml": "Save Visual Component XML (.xml)",
+    "save_collision_component_xml": "Save Collision Component XML (.bin)",
+    "save_visual_component_bin": "Save Visual Component (.bin)",
+    "save_collision_component_bin": "Save Collision Component (.bin)"
   },
   "ja": {
     "settings": "設定",
     "outside_paint": "外側ペイント",
     "inside_paint": "内側ペイント",
     "preview": "プレビュー",
-    "save_mesh": "mesh を保存"
+    "save_door_unit": "ドアユニットを保存",
+    "advanced": "Mod 開発者向け",
+    "save_mesh": "メッシュを保存 (.mesh)",
+    "save_visual_component_xml": "表示コンポーネントXMLを保存 (.xml)",
+    "save_collision_component_xml": "当たり判定コンポーネントXMLを保存 (.xml)",
+    "save_visual_component_bin": "表示コンポーネントを保存 (.bin)",
+    "save_collision_component_bin": "当たり判定コンポーネントXMLを保存 (.bin)"
   }
 }
 </i18n>

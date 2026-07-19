@@ -8,7 +8,7 @@ const { t } = useI18n({ useScope: 'local' });
 
 const { state, computedValues } = useImg2Paint();
 
-const saveFile = useFileSave();
+const { saveFile } = useFileSave();
 
 // XML生成・保存
 async function saveVehicleXml() {

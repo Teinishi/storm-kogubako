@@ -20,6 +20,7 @@
     "@tresjs/nuxt": "^5.6.3",
     "@vueuse/nuxt": "^14.3.0",
     "earcut": "^3.2.3",
+    "jszip": "^3.10.1",
     "nuxt": "^4.2.2",
     "polygon-clipping": "^0.15.7",
     "sw-mesh-viewer": "github:Teinishi/sw-mesh-viewer#v0.2.1",
