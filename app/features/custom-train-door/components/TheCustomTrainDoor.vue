@@ -4,10 +4,11 @@ import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import { useCustomTrainDoor } from '../composables';
 import { createMeshFiles, createVisualDefinition, getFingerprint as getFingerprintFromJson, toJson } from '../utils';
+import { createLuaScript } from '../doorTypes';
 
 const { t } = useI18n({ useScope: 'local' });
 
-const { saveFile, saveFiles } = useFileSave();
+const { saveFiles } = useFileSave();
 
 const tabItems = computed(() => [
   {
@@ -33,14 +34,14 @@ const advancedItems = computed(() => [
     onSelect: saveMeshClicked,
   },
   {
-    label: t('save_visual_component_xml'),
-    onSelect: saveVisualComponentXmlClicked,
-  },
-  {
-    label: t('save_collision_component_xml'),
+    label: t('save_visual_component_source'),
+    onSelect: saveVisualComponentSourceClicked,
   },
   {
     label: t('save_visual_component_bin'),
+  },
+  {
+    label: t('save_collision_component_source'),
   },
   {
     label: t('save_collision_component_bin'),
@@ -74,12 +75,34 @@ function saveMeshClicked() {
   saveFiles(files, `train_door_meshes_${fingerprint}.zip`);
 }
 
-function saveVisualComponentXmlClicked() {
+function saveVisualComponentSourceClicked() {
   const fingerprint = getFingerprint();
 
-  const xml = createVisualDefinition(state);
-  const blob = new Blob([xml], { type: 'application/xml' });
-  saveFile(blob, `train_door_visual_${fingerprint}.xml`);
+  const meshes = createMeshFiles(state, outsidePolygonEditorValue.value, insidePolygonEditorValue.value);
+  const meshFiles = meshes.map(({ id, data }) => ({
+    filename: `train_door_${id}_${fingerprint}.mesh`,
+    blob: new Blob([data], { type: 'application/octet-stream' }),
+  }));
+
+  const lua = createLuaScript(state);
+  const luaBlob = new Blob([lua], { type: 'text/plain' });
+  const luaFilename = `train_door_visual_${fingerprint}.lua`;
+
+  const xml = createVisualDefinition(state, {
+    meshes: meshFiles.map(m => m.filename),
+    luaFilename,
+  });
+  const xmlBlob = new Blob([xml], { type: 'application/xml' });
+  const xmlFilename = `train_door_visual_${fingerprint}.xml`;
+
+  saveFiles(
+    [
+      { filename: xmlFilename, blob: xmlBlob },
+      { filename: luaFilename, blob: luaBlob },
+      ...meshFiles,
+    ],
+    `train_door_visual_${fingerprint}.zip`,
+  );
 }
 
 function saveDoorUnitClicked() {}
@@ -167,9 +190,9 @@ function saveDoorUnitClicked() {}
     "save_door_unit": "Save Door Unit",
     "advanced": "Advanced",
     "save_mesh": "Save Mesh (.mesh)",
-    "save_visual_component_xml": "Save Visual Component XML (.xml)",
-    "save_collision_component_xml": "Save Collision Component XML (.bin)",
+    "save_visual_component_xml": "Save Visual Component (.xml, .lua, .mesh)",
     "save_visual_component_bin": "Save Visual Component (.bin)",
+    "save_collision_component_xml": "Save Collision Component (.xml)",
     "save_collision_component_bin": "Save Collision Component (.bin)"
   },
   "ja": {
@@ -180,10 +203,10 @@ function saveDoorUnitClicked() {}
     "save_door_unit": "ドアユニットを保存",
     "advanced": "Mod 開発者向け",
     "save_mesh": "メッシュを保存 (.mesh)",
-    "save_visual_component_xml": "表示コンポーネントXMLを保存 (.xml)",
-    "save_collision_component_xml": "当たり判定コンポーネントXMLを保存 (.xml)",
+    "save_visual_component_source": "表示コンポーネントを保存 (.xml, .lua, .mesh)",
     "save_visual_component_bin": "表示コンポーネントを保存 (.bin)",
-    "save_collision_component_bin": "当たり判定コンポーネントXMLを保存 (.bin)"
+    "save_collision_component_source": "当たり判定コンポーネントを保存 (.xml)",
+    "save_collision_component_bin": "当たり判定コンポーネントを保存 (.bin)"
   }
 }
 </i18n>

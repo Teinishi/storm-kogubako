@@ -93,3 +93,28 @@ export function buildGeometry(
 
   return [{ id: 'main', builder }];
 }
+
+export function createLuaScript(
+  state: DeepReadonly<TrainDoorState>,
+) {
+  const motionRange = state.doorWidth * 0.25;
+
+  const script = `local MOTION_RANGE = ${motionRange}
+
+local transform = matrix.identity()
+
+function onTick()
+  local value, success = component.getInputLogicSlotFloat(0)
+  if success then
+    local x = MOTION_RANGE * math.min(math.max(value, 0), 1)
+    transform = matrix.translation(0, 0, -x)
+  end
+end
+
+function onRender()
+  component.renderMesh0(transform)
+end
+`;
+
+  return script;
+}

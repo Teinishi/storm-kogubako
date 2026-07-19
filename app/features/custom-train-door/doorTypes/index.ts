@@ -5,10 +5,6 @@ import * as doubleSliding from './doubleSliding';
 import * as singleSlidingLeft from './singleSlidingLeft';
 import * as singleSlidingRight from './singleSlidingRight';
 
-function assertNever(x: never): never {
-  throw new Error(`Unexpected value: ${x}`);
-}
-
 export interface RenderHooksSet {
   outside: RenderHooks;
   inside: RenderHooks;
@@ -24,7 +20,8 @@ export function createRenderHooks(state: Reactive<TrainDoorState>): RenderHooksS
     case 'single_sliding_right':
       return singleSlidingRight.createRenderHooks(state);
     default:
-      assertNever(doorType);
+      doorType satisfies never;
+      throw new Error('Unreachable');
   }
 }
 
@@ -43,6 +40,22 @@ export function buildDoorGeometry(
     case 'single_sliding_right':
       return singleSlidingRight.buildGeometry(state, outsidePaint, insidePaint, builderOptions);
     default:
-      assertNever(doorType);
+      doorType satisfies never;
+      throw new Error('Unreachable');
+  }
+}
+
+export function createLuaScript(state: DeepReadonly<TrainDoorState>) {
+  const { doorType } = state;
+  switch (doorType) {
+    case 'double_sliding':
+      return doubleSliding.createLuaScript(state);
+    case 'single_sliding_left':
+      return singleSlidingLeft.createLuaScript(state);
+    case 'single_sliding_right':
+      return singleSlidingRight.createLuaScript(state);
+    default:
+      doorType satisfies never;
+      throw new Error('Unreachable');
   }
 }

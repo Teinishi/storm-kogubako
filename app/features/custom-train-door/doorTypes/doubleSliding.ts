@@ -135,3 +135,31 @@ export function buildGeometry(
     { id: 'right', builder: rightBuilder },
   ];
 }
+
+export function createLuaScript(
+  state: DeepReadonly<TrainDoorState>,
+) {
+  const motionRange = state.doorWidth / 2 * 0.25;
+
+  const script = `local MOTION_RANGE = ${motionRange}
+
+local transform1 = matrix.identity()
+local transform2 = matrix.identity()
+
+function onTick()
+  local value, success = component.getInputLogicSlotFloat(0)
+  if success then
+    local x = MOTION_RANGE * math.min(math.max(value, 0), 1)
+    transform1 = matrix.translation(0, 0, x)
+    transform2 = matrix.translation(0, 0, -x)
+  end
+end
+
+function onRender()
+  component.renderMesh0(transform1)
+  component.renderMesh1(transform2)
+end
+`;
+
+  return script;
+}
