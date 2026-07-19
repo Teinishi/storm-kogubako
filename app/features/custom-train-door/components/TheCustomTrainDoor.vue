@@ -3,12 +3,12 @@ import { PolygonEditor } from '~/features/polygon-editor';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import { useCustomTrainDoor } from '../composables';
-import { createMeshFiles, createVisualDefinition, getFingerprint as getFingerprintFromJson, toJson } from '../utils';
+import { createMeshFiles, createVisualDefinition, getFingerprint as getFingerprintFromJson, toJson, createComponentBin, type CreateVisualDefinitionOptions } from '../utils';
 import { createLuaScript } from '../doorTypes';
 
 const { t } = useI18n({ useScope: 'local' });
 
-const { saveFiles } = useFileSave();
+const { saveFile, saveFiles } = useFileSave();
 
 const tabItems = computed(() => [
   {
@@ -39,6 +39,7 @@ const advancedItems = computed(() => [
   },
   {
     label: t('save_visual_component_bin'),
+    onSelect: saveVisualComponentBinClicked,
   },
   {
     label: t('save_collision_component_source'),
@@ -64,45 +65,67 @@ function getFingerprint() {
   }));
 }
 
+function getMeshFiles(fingerprint: string) {
+  const meshes = createMeshFiles(state, outsidePolygonEditorValue.value, insidePolygonEditorValue.value);
+  return meshes.map(({ id, data }) => ({
+    filename: `train_door_${id}_${fingerprint}.mesh`,
+    data,
+    type: 'application/octet-stream',
+  }));
+}
+
+function getLuaScriptFile(fingerprint: string) {
+  return {
+    filename: `train_door_visual_${fingerprint}.lua`,
+    data: createLuaScript(state),
+    type: 'text/plain',
+  };
+}
+
+function getVisualDefinitionFile(fingerprint: string, options?: DeepReadonly<CreateVisualDefinitionOptions>) {
+  return {
+    filename: `train_door_visual_${fingerprint}.xml`,
+    data: createVisualDefinition(state, options),
+    type: 'application/xml',
+  };
+}
+
 function saveMeshClicked() {
   const fingerprint = getFingerprint();
-
-  const meshes = createMeshFiles(state, outsidePolygonEditorValue.value, insidePolygonEditorValue.value);
-  const files = meshes.map(({ id, data }) => ({
-    filename: `train_door_${id}_${fingerprint}.mesh`,
-    blob: new Blob([data], { type: 'application/octet-stream' }),
-  }));
+  const files = getMeshFiles(fingerprint);
   saveFiles(files, `train_door_meshes_${fingerprint}.zip`);
 }
 
 function saveVisualComponentSourceClicked() {
   const fingerprint = getFingerprint();
 
-  const meshes = createMeshFiles(state, outsidePolygonEditorValue.value, insidePolygonEditorValue.value);
-  const meshFiles = meshes.map(({ id, data }) => ({
-    filename: `train_door_${id}_${fingerprint}.mesh`,
-    blob: new Blob([data], { type: 'application/octet-stream' }),
-  }));
-
-  const lua = createLuaScript(state);
-  const luaBlob = new Blob([lua], { type: 'text/plain' });
-  const luaFilename = `train_door_visual_${fingerprint}.lua`;
-
-  const xml = createVisualDefinition(state, {
+  const meshFiles = getMeshFiles(fingerprint);
+  const luaFile = getLuaScriptFile(fingerprint);
+  const definitionFile = getVisualDefinitionFile(fingerprint, {
     meshes: meshFiles.map(m => m.filename),
-    luaFilename,
+    luaFilename: luaFile.filename,
   });
-  const xmlBlob = new Blob([xml], { type: 'application/xml' });
-  const xmlFilename = `train_door_visual_${fingerprint}.xml`;
 
-  saveFiles(
-    [
-      { filename: xmlFilename, blob: xmlBlob },
-      { filename: luaFilename, blob: luaBlob },
-      ...meshFiles,
-    ],
-    `train_door_visual_${fingerprint}.zip`,
-  );
+  saveFiles([definitionFile, luaFile, ...meshFiles], `train_door_visual_${fingerprint}.zip`);
+}
+
+function saveVisualComponentBinClicked() {
+  const fingerprint = getFingerprint();
+
+  const meshFiles = getMeshFiles(fingerprint);
+  const luaFile = getLuaScriptFile(fingerprint);
+  const definitionFile = getVisualDefinitionFile(fingerprint, {
+    meshes: meshFiles.map(m => m.filename),
+    luaFilename: luaFile.filename,
+  });
+
+  const data = createComponentBin(definitionFile.filename, definitionFile.data, [luaFile, ...meshFiles]);
+
+  saveFile({
+    filename: `train_door_visual_${fingerprint}.bin`,
+    data,
+    type: 'application/octet-stream',
+  });
 }
 
 function saveDoorUnitClicked() {}

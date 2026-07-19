@@ -1,4 +1,5 @@
 export * from './coordinateConversion';
+export * from './createComponentBin';
 export * from './createDefinition';
 export * from './createMesh';
 export * from './geometry';
