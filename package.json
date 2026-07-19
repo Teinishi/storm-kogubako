@@ -33,6 +33,7 @@
     "@types/earcut": "^3.0.0",
     "@types/three": "^0.185.1",
     "eslint": "^10.6.0",
+    "ts-essentials": "^10.2.1",
     "typescript": "^6.0.3",
     "vue-tsc": "^3.3.7"
   }
