@@ -50,6 +50,7 @@ export interface DoorUnitFileNameSet {
   script: string;
   meshes: Record<string, string>;
   collisionDefinition: string;
+  meshesZip: string;
 }
 
 export function getFilenames(state: DeepReadonly<TrainDoorState>, fingerprint: string): DoorUnitFileNameSet {

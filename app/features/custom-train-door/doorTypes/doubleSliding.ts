@@ -145,6 +145,7 @@ export function getFilenames(_state: DeepReadonly<TrainDoorState>, fingerprint: 
       right: `m_train_door_right_${fingerprint}.mesh`,
     },
     collisionDefinition: `m_train_door_collision_${fingerprint}.xml`,
+    meshesZip: `m_train_door_meshes_${fingerprint}.zip`,
   };
 }
 

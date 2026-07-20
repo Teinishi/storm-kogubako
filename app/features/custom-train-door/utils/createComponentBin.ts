@@ -5,6 +5,7 @@ export interface ComponentBinAsset {
 
 export function createComponentBin(filename: string, definition: string, assets: DeepReadonly<ComponentBinAsset[]> = []) {
   const name = replaceExtension(filename, '');
+  const binName = name + '.bin';
 
   const writer = new BinaryWriter();
 
@@ -28,5 +29,9 @@ export function createComponentBin(filename: string, definition: string, assets:
     }
   });
 
-  return writer.toUint8Array();
+  return {
+    filename: binName,
+    data: writer.toUint8Array(),
+    type: 'application/octet-stream',
+  };
 }
