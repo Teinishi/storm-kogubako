@@ -122,13 +122,33 @@ export class DefinitionBuilder {
     });
   }
 
+  addSurfacesCuboid(
+    from: Readonly<Vec3>,
+    to: Readonly<Vec3>,
+    orientations: number[],
+    options?: Readonly<StrictOmit<Surface, 'position' | 'orientation'>>,
+  ) {
+    this.forCuboidSurfaces(from, to, (a, b, orientation) => {
+      if (!orientations.includes(orientation)) return;
+      this.addSurfaces(a, b, { orientation, ...options });
+    });
+  }
+
+  addBuoyancySurfacesCuboid(
+    from: Readonly<Vec3>,
+    to: Readonly<Vec3>,
+    orientations: number[],
+    options?: Readonly<StrictOmit<Surface, 'position' | 'orientation'>>,
+  ) {
+    this.forCuboidSurfaces(from, to, (a, b, orientation) => {
+      if (!orientations.includes(orientation)) return;
+      this.addBuoyancySurfaces(a, b, { orientation, ...options });
+    });
+  }
+
   private forVoxels(from: Readonly<Vec3>, to: Readonly<Vec3>, callback: (position: Vec3) => void) {
-    const x1 = Math.min(from.x, to.x);
-    const x2 = Math.max(from.x, to.x);
-    const y1 = Math.min(from.y, to.y);
-    const y2 = Math.max(from.y, to.y);
-    const z1 = Math.min(from.z, to.z);
-    const z2 = Math.max(from.z, to.z);
+    const { x: x1, y: y1, z: z1 } = minVec3(from, to);
+    const { x: x2, y: y2, z: z2 } = maxVec3(from, to);
 
     for (let z = z1; z <= z2; z++) {
       for (let y = y1; y <= y2; y++) {
@@ -139,11 +159,22 @@ export class DefinitionBuilder {
     }
   }
 
+  private forCuboidSurfaces(from: Readonly<Vec3>, to: Readonly<Vec3>, callback: (from: Vec3, to: Vec3, orientation: number) => void) {
+    const min = minVec3(from, to);
+    const max = maxVec3(from, to);
+    callback({ ...min, x: max.x }, max, 0);
+    callback(min, { ...max, x: min.x }, 1);
+    callback({ ...min, y: max.y }, max, 0);
+    callback(min, { ...max, y: min.y }, 1);
+    callback({ ...min, z: max.z }, max, 0);
+    callback(min, { ...max, z: min.z }, 1);
+  }
+
   addElement(tagName: string, attrs: DeepReadonly<XmlAttribute[]>) {
     this.elements.push({ tagName, attrs });
   }
 
-  writeXml() {
+  toXml() {
     const writer = new XmlWriter();
 
     writer.begin('definition', this.attrs);
@@ -153,13 +184,13 @@ export class DefinitionBuilder {
     this.writeList(writer, 'logic_nodes', 'logic_node', this.logicNodes.map(splitAttrsAndChildrenOfLogicNode));
     this.writeList(writer, 'voxels', 'voxel', this.voxels.map(splitAttrsAndChildrenOfVoxel));
 
-    const voxelRange = this.getVoxelRange();
-    if (voxelRange) {
+    const voxelBounds = this.getVoxelBounds();
+    if (voxelBounds) {
       if (this.elements.findIndex(e => e.tagName === 'voxel_min') === -1) {
-        writer.empty('voxel_min', vec3ToAttrs(voxelRange.min));
+        writer.empty('voxel_min', vec3ToAttrs(voxelBounds.min));
       }
       if (this.elements.findIndex(e => e.tagName === 'voxel_max') === -1) {
-        writer.empty('voxel_max', vec3ToAttrs(voxelRange.max));
+        writer.empty('voxel_max', vec3ToAttrs(voxelBounds.max));
       }
     }
 
@@ -198,7 +229,7 @@ export class DefinitionBuilder {
     writer.end(listName);
   }
 
-  private getVoxelRange() {
+  private getVoxelBounds() {
     let min, max;
 
     for (const { position } of this.voxels) {

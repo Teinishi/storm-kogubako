@@ -316,7 +316,7 @@ export class GeometryBuilder {
     }
   }
 
-  createMeshFile() {
+  toMeshData() {
     const { positions, colors, normals, indices } = this;
     const vertexCount = positions.length / 3;
     if (!Number.isInteger(vertexCount)) {

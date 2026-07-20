@@ -45,6 +45,43 @@ export function buildDoorGeometry(
   }
 }
 
+export interface DoorUnitFileNameSet {
+  visualDefinition: string;
+  script: string;
+  meshes: Record<string, string>;
+  collisionDefinition: string;
+}
+
+export function getFilenames(state: DeepReadonly<TrainDoorState>, fingerprint: string): DoorUnitFileNameSet {
+  const { doorType } = state;
+  switch (doorType) {
+    case 'double_sliding':
+      return doubleSliding.getFilenames(state, fingerprint);
+    case 'single_sliding_left':
+      throw new Error('Unimplemented');
+    case 'single_sliding_right':
+      throw new Error('Unimplemented');
+    default:
+      doorType satisfies never;
+      throw new Error('Unreachable');
+  }
+}
+
+export function createVisualComponent(state: DeepReadonly<TrainDoorState>, fingerprint: string, filenames: DeepReadonly<DoorUnitFileNameSet>) {
+  const { doorType } = state;
+  switch (doorType) {
+    case 'double_sliding':
+      return doubleSliding.createVisualComponent(state, fingerprint, filenames);
+    case 'single_sliding_left':
+      throw new Error('Unimplemented');
+    case 'single_sliding_right':
+      throw new Error('Unimplemented');
+    default:
+      doorType satisfies never;
+      throw new Error('Unreachable');
+  }
+}
+
 export function createLuaScript(state: DeepReadonly<TrainDoorState>) {
   const { doorType } = state;
   switch (doorType) {
@@ -54,6 +91,21 @@ export function createLuaScript(state: DeepReadonly<TrainDoorState>) {
       return singleSlidingLeft.createLuaScript(state);
     case 'single_sliding_right':
       return singleSlidingRight.createLuaScript(state);
+    default:
+      doorType satisfies never;
+      throw new Error('Unreachable');
+  }
+}
+
+export function createCollisionComponent(state: DeepReadonly<TrainDoorState>, fingerprint: string) {
+  const { doorType } = state;
+  switch (doorType) {
+    case 'double_sliding':
+      return doubleSliding.createCollisionComponent(state, fingerprint);
+    case 'single_sliding_left':
+      throw new Error('Unimplemented');
+    case 'single_sliding_right':
+      throw new Error('Unimplemented');
     default:
       doorType satisfies never;
       throw new Error('Unreachable');

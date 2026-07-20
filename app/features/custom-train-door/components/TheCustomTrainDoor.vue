@@ -3,8 +3,7 @@ import { PolygonEditor } from '~/features/polygon-editor';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import { useCustomTrainDoor } from '../composables';
-import { createMeshFiles, createVisualDefinition, getFingerprint as getFingerprintFromJson, toJson, createComponentBin, type CreateVisualDefinitionOptions, createCollisionDefinition } from '../utils';
-import { createLuaScript } from '../doorTypes';
+import { getFingerprint as getFingerprintFromJson, toJson, createComponentBin, createMeshFiles, createVisualComponentFiles, createCollisionComponentFile } from '../utils';
 
 const { t } = useI18n({ useScope: 'local' });
 
@@ -66,7 +65,7 @@ function getFingerprint() {
   }));
 }
 
-function getMeshFiles(fingerprint: string) {
+/* function getMeshFiles(fingerprint: string) {
   const meshes = createMeshFiles(state, outsidePolygonEditorValue.value, insidePolygonEditorValue.value);
   return meshes.map(({ id, data }) => ({
     filename: `train_door_${id}_${fingerprint}.mesh`,
@@ -97,39 +96,43 @@ function getCollisionDefinitionFile(fingerprint: string) {
     data: createCollisionDefinition(state, fingerprint),
     type: 'application/xml',
   };
-}
+} */
 
 function saveMeshClicked() {
   const fingerprint = getFingerprint();
-  const files = getMeshFiles(fingerprint);
+  const files = createMeshFiles(
+    state,
+    outsidePolygonEditorValue.value,
+    insidePolygonEditorValue.value,
+    fingerprint,
+  );
   saveFiles(files, `train_door_meshes_${fingerprint}.zip`);
 }
 
 function saveVisualComponentSourceClicked() {
   const fingerprint = getFingerprint();
-
-  const meshFiles = getMeshFiles(fingerprint);
-  const luaFile = getLuaScriptFile(fingerprint);
-  const definitionFile = getVisualDefinitionFile(fingerprint, {
-    meshes: meshFiles.map(m => m.filename),
-    luaFilename: luaFile.filename,
-  });
-
-  saveFiles([definitionFile, luaFile, ...meshFiles], `train_door_visual_${fingerprint}.zip`);
+  const files = createVisualComponentFiles(
+    state,
+    outsidePolygonEditorValue.value,
+    insidePolygonEditorValue.value,
+    fingerprint,
+  );
+  saveFiles([files.definition, files.script, ...files.meshes], `train_door_visual_${fingerprint}.zip`);
 }
 
 function saveVisualComponentBinClicked() {
   const fingerprint = getFingerprint();
-
-  const meshFiles = getMeshFiles(fingerprint);
-  const luaFile = getLuaScriptFile(fingerprint);
-  const definitionFile = getVisualDefinitionFile(fingerprint, {
-    meshes: meshFiles.map(m => m.filename),
-    luaFilename: luaFile.filename,
-  });
-
-  const data = createComponentBin(definitionFile.filename, definitionFile.data, [luaFile, ...meshFiles]);
-
+  const files = createVisualComponentFiles(
+    state,
+    outsidePolygonEditorValue.value,
+    insidePolygonEditorValue.value,
+    fingerprint,
+  );
+  const data = createComponentBin(
+    files.definition.filename,
+    files.definition.data,
+    [files.script, ...files.meshes],
+  );
   saveFile({
     filename: `train_door_visual_${fingerprint}.bin`,
     data,
@@ -139,10 +142,8 @@ function saveVisualComponentBinClicked() {
 
 function saveCollisionComponentSourceClicked() {
   const fingerprint = getFingerprint();
-
-  const definitionFile = getCollisionDefinitionFile(fingerprint);
-
-  saveFile(definitionFile);
+  const file = createCollisionComponentFile(state, fingerprint);
+  saveFile(file);
 }
 
 function saveDoorUnitClicked() {}

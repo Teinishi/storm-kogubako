@@ -28,6 +28,22 @@ export function cloneVec2(value: Readonly<Vec2>): Vec2 {
   };
 }
 
+export function minVec3(a: Readonly<Vec3>, b: Readonly<Vec3>): Vec3 {
+  return {
+    x: Math.min(a.x, b.x),
+    y: Math.min(a.y, b.y),
+    z: Math.min(a.z, b.z),
+  };
+}
+
+export function maxVec3(a: Readonly<Vec3>, b: Readonly<Vec3>): Vec3 {
+  return {
+    x: Math.max(a.x, b.x),
+    y: Math.max(a.y, b.y),
+    z: Math.max(a.z, b.z),
+  };
+}
+
 export const round = (x: number, n: number) => Math.round(x * 10 ** n) / 10 ** n;
 
 export function lerp(a: number, b: number, t: number) {
