@@ -139,7 +139,7 @@ export function buildGeometry(
 export function getFilenames(_state: DeepReadonly<TrainDoorState>, fingerprint: string) {
   return {
     visualDefinition: `m_train_door_visual_${fingerprint}.xml`,
-    script: `m_train_door_${fingerprint}.mesh`,
+    script: `m_train_door_${fingerprint}.lua`,
     meshes: {
       left: `m_train_door_left_${fingerprint}.mesh`,
       right: `m_train_door_right_${fingerprint}.mesh`,
@@ -184,10 +184,17 @@ export function createVisualComponent(
   builder.addVoxels(voxelRange.min, voxelRange.max, { flags: 4 });
 
   builder.addLogicNode({
+    position: { x: 0, y: -1, z: 0 },
     label: 'Position',
     mode: 1,
     type: 1,
     description: 'Controls the position of the door with the value between 0 and 1.',
+  });
+  builder.addLogicNode({
+    label: 'Connect to Collision Component',
+    mode: 0,
+    type: 0,
+    description: 'Controls the collision component to synchronize with the visual.',
   });
 
   builder.addElement(
@@ -209,14 +216,22 @@ export function createLuaScript(state: DeepReadonly<TrainDoorState>) {
 
 local transform1 = matrix.identity()
 local transform2 = matrix.identity()
+local collisionPos = 0
 
 function onTick()
-  local value, success = component.getInputLogicSlotFloat(0)
-  if success then
-    local x = MOTION_RANGE * math.min(math.max(value, 0), 1)
-    transform1 = matrix.translation(0, 0, x)
-    transform2 = matrix.translation(0, 0, -x)
+  local value, _ = component.getInputLogicSlotFloat(0)
+  local x = MOTION_RANGE * math.min(math.max(value, 0), 1)
+  transform1 = matrix.translation(0, 0, x)
+  transform2 = matrix.translation(0, 0, -x)
+
+  local control = (value >= 1) or (60 * x > collisionPos)
+  if control then
+    collisionPos = collisionPos + 1
+  else
+    collisionPos = collisionPos - 1
   end
+  collisionPos = math.min(math.max(collisionPos, 0), 60 * MOTION_RANGE)
+  component.setOutputLogicSlotBool(0, control)
 end
 
 function onRender()
@@ -252,7 +267,6 @@ export function createCollisionComponent(state: DeepReadonly<TrainDoorState>, fi
   builder.addAttribute('value', 4 * volume);
   builder.addAttribute('flags', 1);
   builder.addAttribute('tags', 'mod,train,door');
-  builder.addAttribute('mesh_0_name', 'meshes/m_tns_train_door_test_2.mesh');
   builder.addAttribute('door_lower_limit', -(width - 1) / 2);
   builder.addAttribute('door_upper_limit', (width + 1) / 2);
   builder.addAttribute('door_flipped', false);
