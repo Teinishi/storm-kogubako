@@ -3,7 +3,7 @@ import { PolygonEditor } from '~/features/polygon-editor';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import { useCustomTrainDoor } from '../composables';
-import { createMeshFiles, createVisualDefinition, getFingerprint as getFingerprintFromJson, toJson, createComponentBin, type CreateVisualDefinitionOptions } from '../utils';
+import { createMeshFiles, createVisualDefinition, getFingerprint as getFingerprintFromJson, toJson, createComponentBin, type CreateVisualDefinitionOptions, createCollisionDefinition } from '../utils';
 import { createLuaScript } from '../doorTypes';
 
 const { t } = useI18n({ useScope: 'local' });
@@ -43,6 +43,7 @@ const advancedItems = computed(() => [
   },
   {
     label: t('save_collision_component_source'),
+    onSelect: saveCollisionComponentSourceClicked,
   },
   {
     label: t('save_collision_component_bin'),
@@ -85,7 +86,15 @@ function getLuaScriptFile(fingerprint: string) {
 function getVisualDefinitionFile(fingerprint: string, options?: DeepReadonly<CreateVisualDefinitionOptions>) {
   return {
     filename: `train_door_visual_${fingerprint}.xml`,
-    data: createVisualDefinition(state, options),
+    data: createVisualDefinition(state, fingerprint, options),
+    type: 'application/xml',
+  };
+}
+
+function getCollisionDefinitionFile(fingerprint: string) {
+  return {
+    filename: `train_door_collision_${fingerprint}.xml`,
+    data: createCollisionDefinition(state, fingerprint),
     type: 'application/xml',
   };
 }
@@ -126,6 +135,14 @@ function saveVisualComponentBinClicked() {
     data,
     type: 'application/octet-stream',
   });
+}
+
+function saveCollisionComponentSourceClicked() {
+  const fingerprint = getFingerprint();
+
+  const definitionFile = getCollisionDefinitionFile(fingerprint);
+
+  saveFile(definitionFile);
 }
 
 function saveDoorUnitClicked() {}

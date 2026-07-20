@@ -28,14 +28,6 @@ export interface Voxel {
   buoyPipes?: number;
 }
 
-function vec3ToAttrs(value: Vec3) {
-  return [
-    { name: 'x', value: value.x },
-    { name: 'y', value: value.y },
-    { name: 'z', value: value.z },
-  ];
-}
-
 function splitAttrsAndChildrenOfSurface(surface: DeepReadonly<Surface>) {
   return {
     attrs: [
@@ -68,8 +60,8 @@ function splitAttrsAndChildrenOfVoxel(voxel: DeepReadonly<Voxel>) {
   return {
     attrs: [
       { name: 'flags', value: voxel.flags },
-      { name: 'physicsShape', value: voxel.physicsShape },
-      { name: 'buoyPipes', value: voxel.buoyPipes },
+      { name: 'physics_shape', value: voxel.physicsShape },
+      { name: 'buoy_pipes', value: voxel.buoyPipes },
     ],
     children: voxel.position ? [{ tagName: 'position', attrs: vec3ToAttrs(voxel.position) }] : [],
   };

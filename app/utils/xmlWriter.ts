@@ -3,6 +3,14 @@ export interface XmlAttribute {
   value: string | number | boolean | undefined;
 }
 
+export function vec3ToAttrs(value: Vec3) {
+  return [
+    { name: 'x', value: value.x },
+    { name: 'y', value: value.y },
+    { name: 'z', value: value.z },
+  ];
+}
+
 export class XmlWriter {
   private readonly lines: string[] = [];
   private indentString = '  ';
@@ -53,9 +61,7 @@ export class XmlWriter {
       );
     }
 
-    return this.pretty
-      ? this.lines.join('\n')
-      : this.lines.join('');
+    return this.lines.concat('').join(this.pretty ? '\n' : '');
   }
 
   private writeLine(line: string): void {
