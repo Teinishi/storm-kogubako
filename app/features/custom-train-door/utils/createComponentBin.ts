@@ -8,27 +8,25 @@ export function createComponentBin(filename: string, definition: string, assets:
 
   const writer = new BinaryWriter();
 
-  const endFile = writer.startSized(4); // ファイルサイズ
+  writer.withSize(4, (writer) => {
+    writer.uint32(1); // バージョン
 
-  writer.uint32(1); // バージョン
+    writer.utf8(name, true); // 定義ファイル名
+    writer.utf8(definition, true); // 定義XML
 
-  writer.utf8(name, true); // 定義ファイル名
-  writer.utf8(definition, true); // 定義XML
-
-  writer.uint16(assets.length); // アセット数
-  for (const asset of assets) {
-    writer.utf8(asset.filename, true); // アセット名
-    const endAsset = writer.startSized(4); // アセットサイズ
-    if (typeof asset.data === 'string') {
-      writer.utf8(asset.data, true);
+    writer.uint16(assets.length); // アセット数
+    for (const asset of assets) {
+      writer.utf8(asset.filename, true); // アセット名
+      writer.withSize(4, (writer) => {
+        if (typeof asset.data === 'string') {
+          writer.utf8(asset.data, true);
+        }
+        else {
+          writer.bytes(asset.data);
+        }
+      });
     }
-    else {
-      writer.bytes(asset.data);
-    }
-    endAsset();
-  }
-
-  endFile();
+  });
 
   return writer.toUint8Array();
 }

@@ -58,9 +58,7 @@ class MeshWriter extends BinaryWriter {
     this.vec3(data.boundsMax);
 
     this.uint16(0);
-    const endName = this.startSized(2);
-    this.utf8(data.name);
-    endName();
+    this.withSize(2, writer => writer.utf8(data.name));
 
     this.vec3({ x: 1, y: 1, z: 1 });
   }

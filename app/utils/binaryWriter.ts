@@ -18,29 +18,30 @@ export class BinaryWriter {
     this.offset = value;
   }
 
-  startSized(sizeWidth: 1 | 2 | 4) {
+  withSize(sizeWidth: 1 | 2 | 4, writeContent: (writer: BinaryWriter) => void) {
     const startPos = this.offset;
+    this.ensure(sizeWidth);
     this.offset += sizeWidth;
 
-    return () => {
-      const returnPos = this.offset;
-      const size = returnPos - startPos - sizeWidth;
+    writeContent(this);
 
-      this.offset = startPos;
-      switch (sizeWidth) {
-        case 1:
-          this.uint8(size);
-          break;
-        case 2:
-          this.uint16(size);
-          break;
-        case 4:
-          this.uint32(size);
-          break;
-      }
+    const returnPos = this.offset;
+    const size = returnPos - startPos - sizeWidth;
 
-      this.offset = returnPos;
-    };
+    this.offset = startPos;
+    switch (sizeWidth) {
+      case 1:
+        this.uint8(size);
+        break;
+      case 2:
+        this.uint16(size);
+        break;
+      case 4:
+        this.uint32(size);
+        break;
+    }
+
+    this.offset = returnPos;
   }
 
   private ensure(size: number) {
