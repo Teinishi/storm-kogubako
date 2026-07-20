@@ -33,6 +33,16 @@ export function createVisualDefinition(
   builder.addAttribute('lua_filename', options?.luaFilename);
 
   builder.addSurfaces(
+    { x: 0, y: y1, z: z1 },
+    { x: 0, y: y2, z: z2 },
+    { orientation: 0, shape: 0 },
+  );
+  builder.addSurfaces(
+    { x: 0, y: y1, z: z1 },
+    { x: 0, y: y2, z: z2 },
+    { orientation: 1, shape: 0 },
+  );
+  builder.addSurfaces(
     { x: 0, y: y2, z: z1 },
     { x: 0, y: y2, z: z2 },
     { orientation: 2, shape: 0 },
@@ -67,7 +77,22 @@ export function createVisualDefinition(
   builder.addVoxels(
     { x: 0, y: y1, z: z1 },
     { x: 0, y: y2, z: z2 },
-    { flags: 0 },
+    { flags: 2, physicsShape: 0 },
+  );
+
+  builder.addLogicNode({
+    label: 'Position',
+    mode: 1,
+    type: 1,
+    description: 'Controls the position of the door with the value between 0 and 1.',
+  });
+
+  builder.addElement(
+    'tooltip_properties',
+    [{
+      name: 'short_description',
+      value: 'Sliding door that can be opened and closed using a number input.',
+    }],
   );
 
   return builder.writeXml();

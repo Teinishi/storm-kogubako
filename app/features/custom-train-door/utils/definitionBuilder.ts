@@ -16,7 +16,7 @@ export interface LogicNode {
   orientation?: number;
   label?: string;
   mode?: number;
-  nodeType?: number;
+  type?: number;
   description?: string;
 }
 
@@ -57,7 +57,7 @@ function splitAttrsAndChildrenOfLogicNode(logicNode: DeepReadonly<LogicNode>) {
       { name: 'orientation', value: logicNode.orientation },
       { name: 'label', value: logicNode.label },
       { name: 'mode', value: logicNode.mode },
-      { name: 'node_type', value: logicNode.nodeType },
+      { name: 'type', value: logicNode.type },
       { name: 'description', value: logicNode.description },
     ],
     children: logicNode.position ? [{ tagName: 'position', attrs: vec3ToAttrs(logicNode.position) }] : [],

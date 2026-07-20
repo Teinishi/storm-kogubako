@@ -9,8 +9,11 @@ export function createMeshFiles(
 ) {
   const objects = buildDoorGeometry(state, outsidePaint, insidePaint, { refine: true });
 
-  return objects.map(({ id, builder }) => ({
-    id,
-    data: builder.createMeshFile(),
-  }));
+  return objects.map(({ id, builder }) => {
+    builder.transform(Orientation.RotateY270);
+    return {
+      id,
+      data: builder.createMeshFile(),
+    };
+  });
 }
