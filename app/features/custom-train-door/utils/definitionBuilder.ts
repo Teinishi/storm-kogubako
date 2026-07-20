@@ -164,10 +164,10 @@ export class DefinitionBuilder {
     const max = maxVec3(from, to);
     callback({ ...min, x: max.x }, max, 0);
     callback(min, { ...max, x: min.x }, 1);
-    callback({ ...min, y: max.y }, max, 0);
-    callback(min, { ...max, y: min.y }, 1);
-    callback({ ...min, z: max.z }, max, 0);
-    callback(min, { ...max, z: min.z }, 1);
+    callback({ ...min, y: max.y }, max, 2);
+    callback(min, { ...max, y: min.y }, 3);
+    callback({ ...min, z: max.z }, max, 4);
+    callback(min, { ...max, z: min.z }, 5);
   }
 
   addElement(tagName: string, attrs: DeepReadonly<XmlAttribute[]>) {
