@@ -14,7 +14,7 @@ import {
   GRID_SCALE,
   HANDLE_HIT_THRESHOLD_PX,
 } from '../utils';
-import { getFinalPolygons, getMirrorCenter } from '../utils/mirror';
+import { withMirroredPolygons, getMirrorCenter } from '../utils/mirror';
 
 export type UsePolygonCanvasOptions = {
   canvasRef: Ref<HTMLCanvasElement | null>;
@@ -98,7 +98,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
   }
 
   function findHitPolygon(point: Readonly<Vec2>) {
-    return findHitPolygonInPolygons(point, editorState.value.polygons);
+    return findHitPolygonInPolygons(point, withMirroredPolygons(editorState.value, logicalBounds.value));
   }
 
   function renderGrid(ctx: CanvasRenderingContext2D, transform: Readonly<ViewTransform>) {
@@ -345,9 +345,9 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       ? editorState.value.polygons.find(polygon => polygon.id === selectedPolygonId.value) ?? null
       : null;
 
-    for (const polygon of getFinalPolygons(editorState.value, logicalBounds.value)) {
+    for (const polygon of withMirroredPolygons(editorState.value, logicalBounds.value)) {
       renderPolygon(ctx, transform, polygon, {
-        dimmed: hasSelectedPolygon && polygon.id !== selectedPolygonId.value,
+        dimmed: hasSelectedPolygon && (polygon.isMirrorGhost || polygon.id !== selectedPolygonId.value),
       });
     }
 

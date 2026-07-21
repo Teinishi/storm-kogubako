@@ -8,6 +8,7 @@ export interface PolygonEditorPolygon {
   id: number;
   color: string;
   vertices: Vec2[];
+  isMirrorGhost?: boolean;
 }
 
 export interface PolygonEditorValue {

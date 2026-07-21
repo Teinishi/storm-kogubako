@@ -41,10 +41,11 @@ function mirrorPolygon(
     id: polygon.id,
     color: polygon.color,
     vertices: polygon.vertices.map(v => mirrorVertex(v, axis, center)),
+    isMirrorGhost: true,
   };
 }
 
-export function getFinalPolygons(
+export function withMirroredPolygons(
   value: DeepReadonly<PolygonEditorValue>,
   bounds: Readonly<LogicalBounds>,
 ): DeepReadonly<PolygonEditorPolygon[]> {

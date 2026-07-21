@@ -136,6 +136,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
     return;
   }
 
+  // 矩形作成
   if (mode.value === 'drawRectangle') {
     if (!draftRectangle.value) {
       draftRectangle.value = {
@@ -155,6 +156,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
     return;
   }
 
+  // 多角形作成
   if (mode.value === 'drawPolygon') {
     if (draftPolygon.value && completePolygon(worldPoint)) {
       finalizeDraftPolygon();
@@ -171,6 +173,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
     return;
   }
 
+  // 選択
   const polygonHit = findHitPolygon(worldPoint);
   if (polygonHit) {
     selectPolygon(polygonHit.id, null);
