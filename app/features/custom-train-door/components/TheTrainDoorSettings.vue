@@ -40,7 +40,7 @@ const state = defineModel<TrainDoorState>({ required: true });
         </UFormField>
       </div> -->
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
         <UFormField :label="t('door_width')">
           <div class="flex items-center gap-2">
             <UInputNumber
@@ -69,6 +69,7 @@ const state = defineModel<TrainDoorState>({ required: true });
           <UInputNumber
             v-model="state.doorThickness"
             :step="0.05"
+            :step-snapping="false"
             :min="0.05"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
@@ -79,6 +80,7 @@ const state = defineModel<TrainDoorState>({ required: true });
           <UInputNumber
             v-model="state.doorZOffset"
             :step="0.05"
+            :step-snapping="false"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
           />
@@ -95,11 +97,12 @@ const state = defineModel<TrainDoorState>({ required: true });
         />
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
         <UFormField :label="t('rubber_thickness')">
           <UInputNumber
             v-model="state.rubberThickness"
             :step="0.01"
+            :step-snapping="false"
             :min="0"
             :max="0.1"
             class="w-full"
@@ -115,11 +118,12 @@ const state = defineModel<TrainDoorState>({ required: true });
     </FormCard>
 
     <FormCard :title="t('window_settings')">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
         <UFormField :label="t('window_x_offset')">
           <UInputNumber
             v-model="state.windowXOffset"
-            :step="0.0625"
+            :step="0.005"
+            :step-snapping="false"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
           />
@@ -128,7 +132,8 @@ const state = defineModel<TrainDoorState>({ required: true });
         <UFormField :label="t('window_y_offset')">
           <UInputNumber
             v-model="state.windowYOffset"
-            :step="0.0625"
+            :step="0.005"
+            :step-snapping="false"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
           />
@@ -137,8 +142,9 @@ const state = defineModel<TrainDoorState>({ required: true });
         <UFormField :label="t('window_width')">
           <UInputNumber
             v-model="state.windowWidth"
-            :step="0.0625"
-            :min="0"
+            :step="0.01"
+            :step-snapping="false"
+            :min="0.01"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
           />
@@ -147,8 +153,9 @@ const state = defineModel<TrainDoorState>({ required: true });
         <UFormField :label="t('window_height')">
           <UInputNumber
             v-model="state.windowHeight"
-            :step="0.0625"
-            :min="0"
+            :step="0.01"
+            :step-snapping="false"
+            :min="0.01"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
           />
@@ -158,6 +165,7 @@ const state = defineModel<TrainDoorState>({ required: true });
           <UInputNumber
             v-model="state.windowCornerRadius"
             :step="0.01"
+            :step-snapping="false"
             :min="0"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
@@ -173,6 +181,25 @@ const state = defineModel<TrainDoorState>({ required: true });
             class="w-full"
           />
         </UFormField>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
+        <UFormField :label="t('window_frame_thickness')">
+          <UInputNumber
+            v-model="state.windowFrameThickness"
+            :step="0.01"
+            :step-snapping="false"
+            :min="0"
+            :max="0.1"
+            class="w-full"
+            :format-options="FORMAT_OPTIONS_METER"
+          />
+        </UFormField>
+
+        <ColorPicker
+          v-model="state.windowFrameColor"
+          :label="t('window_frame_color')"
+        />
       </div>
     </FormCard>
   </div>
@@ -201,7 +228,9 @@ const state = defineModel<TrainDoorState>({ required: true });
     "window_width": "Window Width",
     "window_height": "Window Height",
     "window_corner_radius": "Window Corner Radius",
-    "window_corner_divisions": "Window Corner Divisions"
+    "window_corner_divisions": "Window Corner Divisions",
+    "window_frame_thickness": "Window Frame Thickness",
+    "window_frame_color": "Window Frame Color"
   },
   "ja": {
     "blocks": "ブロック",
@@ -224,7 +253,9 @@ const state = defineModel<TrainDoorState>({ required: true });
     "window_width": "幅",
     "window_height": "高さ",
     "window_corner_radius": "角丸",
-    "window_corner_divisions": "角分割数"
+    "window_corner_divisions": "角分割数",
+    "window_frame_thickness": "枠太さ",
+    "window_frame_color": "枠カラー"
   }
 }
 </i18n>

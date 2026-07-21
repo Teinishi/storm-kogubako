@@ -1,17 +1,19 @@
 import { reactive } from 'vue';
-import type { PolygonEditorValue } from '~/features/polygon-editor';
+import { createDefaultPolygonEditorValue, type PolygonEditorValue } from '~/features/polygon-editor';
 import { type TrainDoorState, createDefaultTrainDoorState } from '../types';
 import { createRenderHooks } from '../doorTypes';
 
 export function useCustomTrainDoor() {
   const state = reactive<TrainDoorState>(createDefaultTrainDoorState());
 
-  const outsidePolygonEditorValue = ref<PolygonEditorValue>({ polygons: [] });
-  const insidePolygonEditorValue = ref<PolygonEditorValue>({ polygons: [] });
+  const outsidePolygonEditorValue = ref<PolygonEditorValue>(createDefaultPolygonEditorValue());
+  const insidePolygonEditorValue = ref<PolygonEditorValue>(createDefaultPolygonEditorValue());
 
   const editorLogicalBounds = computed(() => ({
-    width: state.doorWidth,
-    height: state.doorHeight,
+    minX: 0,
+    minY: 0,
+    maxX: state.doorWidth,
+    maxY: state.doorHeight,
   }));
 
   const polygonEditorProps = computed(() => {
@@ -37,5 +39,6 @@ export function useCustomTrainDoor() {
     insidePolygonEditorValue,
     outsideEditorProps,
     insideEditorProps,
+    editorLogicalBounds,
   };
 }

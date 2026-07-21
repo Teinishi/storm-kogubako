@@ -1,11 +1,11 @@
-import type { PolygonEditorValue } from '~/features/polygon-editor';
+import type { PolygonEditorPolygon } from '~/features/polygon-editor';
 import type { TrainDoorState } from '../types';
 import { buildDoorGeometry, getFilenames, createVisualComponent, createLuaScript, createCollisionComponent, type DoorUnitFileNameSet } from '../doorTypes';
 
 export function createMeshFiles(
   state: DeepReadonly<TrainDoorState>,
-  outsidePaint: DeepReadonly<PolygonEditorValue>,
-  insidePaint: DeepReadonly<PolygonEditorValue>,
+  outsidePaint: DeepReadonly<PolygonEditorPolygon[]>,
+  insidePaint: DeepReadonly<PolygonEditorPolygon[]>,
   fingerprint: string,
   meshNames?: Record<string, string>,
 ) {
@@ -26,8 +26,8 @@ export function createMeshFiles(
 
 export function createVisualComponentFiles(
   state: DeepReadonly<TrainDoorState>,
-  outsidePaint: DeepReadonly<PolygonEditorValue>,
-  insidePaint: DeepReadonly<PolygonEditorValue>,
+  outsidePaint: DeepReadonly<PolygonEditorPolygon[]>,
+  insidePaint: DeepReadonly<PolygonEditorPolygon[]>,
   fingerprint: string,
   filenames?: DeepReadonly<DoorUnitFileNameSet>,
 ) {

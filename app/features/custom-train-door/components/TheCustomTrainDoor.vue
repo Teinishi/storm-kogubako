@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { PolygonEditor } from '~/features/polygon-editor';
+import { getMirrorMergedPolygons, PolygonEditor } from '~/features/polygon-editor';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import UsageInstructions from './UsageInstructions.vue';
@@ -65,13 +65,24 @@ const {
   insidePolygonEditorValue,
   outsideEditorProps,
   insideEditorProps,
+  editorLogicalBounds,
 } = useCustomTrainDoor();
+
+const outsidePaint = computed(() => getMirrorMergedPolygons(
+  outsidePolygonEditorValue.value,
+  editorLogicalBounds.value,
+));
+
+const insidePaint = computed(() => getMirrorMergedPolygons(
+  insidePolygonEditorValue.value,
+  editorLogicalBounds.value,
+));
 
 function getFingerprint() {
   return getFingerprintFromJson(toJson({
     state,
-    outsidePaint: outsidePolygonEditorValue.value,
-    insidePaint: insidePolygonEditorValue.value,
+    outsidePolygonEditorValue: outsidePolygonEditorValue.value,
+    insidePolygonEditorValue: insidePolygonEditorValue.value,
   }));
 }
 
@@ -81,8 +92,8 @@ function saveMeshClicked() {
     const filenames = getFilenames(state, fingerprint);
     const files = createMeshFiles(
       state,
-      outsidePolygonEditorValue.value,
-      insidePolygonEditorValue.value,
+      outsidePaint.value,
+      insidePaint.value,
       fingerprint,
       filenames.meshes,
     );
@@ -96,8 +107,8 @@ function saveVisualComponentSourceClicked() {
     const filenames = getFilenames(state, fingerprint);
     const files = createVisualComponentFiles(
       state,
-      outsidePolygonEditorValue.value,
-      insidePolygonEditorValue.value,
+      outsidePaint.value,
+      insidePaint.value,
       fingerprint,
       filenames,
     );
@@ -111,8 +122,8 @@ function saveVisualComponentBinClicked() {
     const fingerprint = getFingerprint();
     const files = createVisualComponentFiles(
       state,
-      outsidePolygonEditorValue.value,
-      insidePolygonEditorValue.value,
+      outsidePaint.value,
+      insidePaint.value,
       fingerprint,
     );
     const { file: binFile } = createComponentBin(
@@ -148,8 +159,8 @@ function saveDoorUnitClicked() {
 
     const visualFiles = createVisualComponentFiles(
       state,
-      outsidePolygonEditorValue.value,
-      insidePolygonEditorValue.value,
+      outsidePaint.value,
+      insidePaint.value,
       fingerprint,
       filenames,
     );
@@ -207,7 +218,7 @@ function saveDoorUnitClicked() {
         >
           <template #settings>
             <TheTrainDoorSettings v-model="state" />
-            <div class="mt-4 flex gap-4">
+            <div class="mt-4 flex gap-4 flex-wrap md:flex-nowrap">
               <UButton
                 block
                 size="xl"
@@ -276,8 +287,8 @@ function saveDoorUnitClicked() {
       <ClientOnly>
         <TheTrainDoorPreviewClient
           :state="state"
-          :outside-paint="outsidePolygonEditorValue"
-          :inside-paint="insidePolygonEditorValue"
+          :outside-paint="outsidePaint"
+          :inside-paint="insidePaint"
         />
       </ClientOnly>
     </ResponsivePanel>

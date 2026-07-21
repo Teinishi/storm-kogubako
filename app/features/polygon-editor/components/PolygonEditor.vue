@@ -2,11 +2,11 @@
 import PolygonEditorCanvas from './PolygonEditorCanvas.client.vue';
 import PolygonEditorSidebar from './PolygonEditorSidebar.vue';
 import { usePolygonEditor, providePolygonEditor } from '../composables';
-import type { PolygonEditorValue, RenderHooks } from '../types';
+import type { LogicalBounds, PolygonEditorValue, RenderHooks } from '../types';
 import type { PolygonEditorGrid } from '../utils';
 
 const props = withDefaults(defineProps<{
-  logicalBounds: { width: number; height: number };
+  logicalBounds: LogicalBounds;
   disabled?: boolean;
   readonly?: boolean;
   renderHooks?: RenderHooks;

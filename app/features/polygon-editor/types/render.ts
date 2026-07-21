@@ -16,6 +16,13 @@ export interface ViewTransform {
   logicalHeight: number;
 }
 
+export interface LogicalBounds {
+  minX: number;
+  minY: number;
+  maxX: number;
+  maxY: number;
+}
+
 export interface RenderHookArgs {
   editor: PolygonEditor;
   ctx: CanvasRenderingContext2D;

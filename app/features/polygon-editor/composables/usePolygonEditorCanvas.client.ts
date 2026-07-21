@@ -1,6 +1,6 @@
 import type { Ref } from 'vue';
 import type { PolygonEditor } from './usePolygonEditor';
-import type { CanvasMetrics, PolygonEditorPolygon, RenderHooks, ViewTransform } from '../types';
+import type { CanvasMetrics, PolygonEditorMirror, PolygonEditorPolygon, RenderHooks, ViewTransform } from '../types';
 import type {
   HitEdge,
   HitVertex,
@@ -12,7 +12,7 @@ import {
   findHitPolygon as findHitPolygonInPolygons,
   findHitVertex as findHitVertexInPolygons,
   GRID_SCALE,
-  HANDLE_HIT_THRESHOLD_PX,
+  HANDLE_HIT_THRESHOLD_PX, withMirroredPolygons, getMirrorCenter,
 } from '../utils';
 
 export type UsePolygonCanvasOptions = {
@@ -97,7 +97,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
   }
 
   function findHitPolygon(point: Readonly<Vec2>) {
-    return findHitPolygonInPolygons(point, editorState.value.polygons);
+    return findHitPolygonInPolygons(point, withMirroredPolygons(editorState.value, logicalBounds.value));
   }
 
   function renderGrid(ctx: CanvasRenderingContext2D, transform: Readonly<ViewTransform>) {
@@ -255,6 +255,39 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     ctx.restore();
   }
 
+  function renderMirror(
+    ctx: CanvasRenderingContext2D,
+    transform: Readonly<ViewTransform>,
+    mirror: Readonly<PolygonEditorMirror>,
+  ) {
+    if (!mirror.enabled) return;
+
+    const bounds = logicalBounds.value;
+    const center = getMirrorCenter(mirror.axis, mirror.centerOffset, bounds);
+
+    let v1, v2;
+    if (mirror.axis === 'x') {
+      v1 = { x: center, y: bounds.minY };
+      v2 = { x: center, y: bounds.maxY };
+      ctx.strokeStyle = 'rgba(225, 61, 61, 0.7)';
+    }
+    else {
+      v1 = { x: bounds.minX, y: center };
+      v2 = { x: bounds.maxX, y: center };
+      ctx.strokeStyle = 'rgba(62, 226, 58, 0.7)';
+    }
+
+    v1 = worldToCanvas(v1, transform);
+    v2 = worldToCanvas(v2, transform);
+
+    ctx.globalAlpha = 1;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(v1.x, v1.y);
+    ctx.lineTo(v2.x, v2.y);
+    ctx.stroke();
+  }
+
   function renderCanvas(renderHooks?: Readonly<RenderHooks>) {
     const canvas = canvasRef.value;
     if (!canvas) return;
@@ -306,16 +339,14 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       renderHooks.onBeforeRenderPolygons(renderHookArgs);
     }
 
-    renderGrid(ctx, transform);
-
     const hasSelectedPolygon = selectedPolygonId.value !== null;
     const selectedPolygonItem = hasSelectedPolygon
       ? editorState.value.polygons.find(polygon => polygon.id === selectedPolygonId.value) ?? null
       : null;
 
-    for (const polygon of editorState.value.polygons) {
+    for (const polygon of withMirroredPolygons(editorState.value, logicalBounds.value)) {
       renderPolygon(ctx, transform, polygon, {
-        dimmed: hasSelectedPolygon && polygon.id !== selectedPolygonId.value,
+        dimmed: hasSelectedPolygon && (polygon.isMirrorGhost || polygon.id !== selectedPolygonId.value),
       });
     }
 
@@ -350,6 +381,9 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     if (renderHooks?.onAfterRender) {
       renderHooks.onAfterRender(renderHookArgs);
     }
+
+    renderGrid(ctx, transform);
+    renderMirror(ctx, transform, editorState.value.mirror);
   }
 
   return {

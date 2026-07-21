@@ -1,9 +1,4 @@
-export interface LogicalBounds {
-  minX: number;
-  minY: number;
-  maxX: number;
-  maxY: number;
-}
+import type { LogicalBounds } from '../types';
 
 export function clampToLogicalBounds(point: Readonly<Vec2>, bounds: Readonly<LogicalBounds>): Vec2 {
   return {

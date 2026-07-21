@@ -1,5 +1,5 @@
 import type { Ref } from 'vue';
-import { clonePolygonEditorValue, type PolygonEditorPolygon, type PolygonEditorValue } from '../types';
+import { clonePolygonEditorValue, type LogicalBounds, type PolygonEditorMirror, type PolygonEditorPolygon, type PolygonEditorValue } from '../types';
 import type {
   PolygonEditorGrid,
   HitEdge,
@@ -24,7 +24,7 @@ export type PolygonEditorMode = 'select' | 'drawPolygon' | 'drawRectangle';
 
 export interface UsePolygonEditorOptions {
   props: DeepReadonly<{
-    logicalBounds: { width: number; height: number };
+    logicalBounds: LogicalBounds;
     disabled?: boolean;
     readonly?: boolean;
   }>;
@@ -88,8 +88,8 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
       return;
     }
 
-    if (!selectedPolygonId.value || !editorState.value.polygons.some(polygon => polygon.id === selectedPolygonId.value)) {
-      selectedPolygonId.value = editorState.value.polygons[editorState.value.polygons.length - 1]?.id ?? null;
+    if (!editorState.value.polygons.some(polygon => polygon.id === selectedPolygonId.value)) {
+      selectedPolygonId.value = null;
       selectedVertexIndex.value = null;
     }
 
@@ -116,12 +116,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     original: Vec2;
   } | null>(null);
 
-  const logicalBounds = computed(() => ({
-    minX: 0,
-    minY: 0,
-    maxX: props.logicalBounds.width,
-    maxY: props.logicalBounds.height,
-  }));
+  const logicalBounds = computed(() => props.logicalBounds);
   const editingLocked = computed(() => props.disabled || props.readonly || false);
 
   const selectedPolygonIndex = computed(() => {
@@ -410,6 +405,16 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     renderCanvas();
   }
 
+  // ミラー関連
+  function updateMirror(patch: Partial<PolygonEditorMirror>) {
+    if (editingLocked.value) return;
+
+    clearTransientInteraction();
+    applyStateChange((state) => {
+      Object.assign(state.mirror, patch);
+    });
+  }
+
   return {
     grid,
     editorState: readonly(editorState),
@@ -452,6 +457,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     finalizeRectangleDraft,
     commitCanvasDrag,
     cancelCanvasDrag,
+    updateMirror,
   };
 }
 
