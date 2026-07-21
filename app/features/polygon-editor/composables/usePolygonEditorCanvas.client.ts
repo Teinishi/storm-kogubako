@@ -306,8 +306,6 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       renderHooks.onBeforeRenderPolygons(renderHookArgs);
     }
 
-    renderGrid(ctx, transform);
-
     const hasSelectedPolygon = selectedPolygonId.value !== null;
     const selectedPolygonItem = hasSelectedPolygon
       ? editorState.value.polygons.find(polygon => polygon.id === selectedPolygonId.value) ?? null
@@ -350,6 +348,8 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     if (renderHooks?.onAfterRender) {
       renderHooks.onAfterRender(renderHookArgs);
     }
+
+    renderGrid(ctx, transform);
   }
 
   return {
