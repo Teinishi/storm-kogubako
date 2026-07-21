@@ -2,7 +2,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from '@tresjs/cientos';
 import { TresCanvas } from '@tresjs/core';
-import type { MeshData } from 'sw-mesh-viewer';
+import type { MeshData } from 'sw-mesh-viewer/parser';
 import { createStormworksLightGroup, type StormworksUniforms } from 'sw-mesh-viewer/viewer';
 import { SwMeshPrimitive } from 'sw-mesh-viewer/vue';
 import { markRaw } from 'vue';
@@ -31,7 +31,7 @@ interface MeshViewerCanvasItem {
 }
 
 defineProps<{
-  items: MeshViewerCanvasItem[];
+  items?: MeshViewerCanvasItem[];
 }>();
 
 const colorMode = useColorMode();
@@ -43,33 +43,35 @@ const orbitMouseButtons = {
   RIGHT: THREE.MOUSE.ROTATE,
 };
 
-const hexToVec4 = (hex: string): [number, number, number, number] => {
+function hexToVec4(hex: string): [number, number, number, number] {
   const { r, g, b } = hexToRgb(hex);
   return [r / 255, g / 255, b / 255, 1];
-};
+}
 
-const createObjectUniforms = (item: MeshViewerCanvasItem): StormworksUniforms => item.properties.kind === 'mesh'
-  ? ({
-      opaque: {
-        overrideColor: {
-          type: 'int' as const,
-          value: item.properties.enablePaintcolor ? 1 : 0,
+function createObjectUniforms(item: DeepReadonly<MeshViewerCanvasItem>): StormworksUniforms {
+  return item.properties.kind === 'mesh'
+    ? ({
+        opaque: {
+          overrideColor: {
+            type: 'int' as const,
+            value: item.properties.enablePaintcolor ? 1 : 0,
+          },
+          overrideColor1: {
+            type: 'vec4' as const,
+            value: hexToVec4(item.properties.paintColor1),
+          },
+          overrideColor2: {
+            type: 'vec4' as const,
+            value: hexToVec4(item.properties.paintColor2),
+          },
+          overrideColor3: {
+            type: 'vec4' as const,
+            value: hexToVec4(item.properties.paintColor3),
+          },
         },
-        overrideColor1: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor1),
-        },
-        overrideColor2: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor2),
-        },
-        overrideColor3: {
-          type: 'vec4' as const,
-          value: hexToVec4(item.properties.paintColor3),
-        },
-      },
-    })
-  : {};
+      })
+    : {};
+}
 </script>
 
 <template>
@@ -85,8 +87,9 @@ const createObjectUniforms = (item: MeshViewerCanvasItem): StormworksUniforms =>
       :mouse-buttons="orbitMouseButtons"
     />
     <primitive :object="lights" />
+    <!-- @vue-expect-error -->
     <TresGroup
-      v-for="item in items"
+      v-for="item in items ?? []"
       :key="item.id"
       :position="[item.offset.x, item.offset.y, item.offset.z]"
     >
@@ -98,5 +101,6 @@ const createObjectUniforms = (item: MeshViewerCanvasItem): StormworksUniforms =>
         :wireframe="item.wireframe"
       />
     </TresGroup>
+    <slot />
   </TresCanvas>
 </template>

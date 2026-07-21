@@ -1,37 +1,17 @@
 <script setup lang="ts">
-import { round } from '~/utils/utils';
+import type { ResizeState } from '../types';
 
-export type ResizeSettings = {
-  sizeType: 'block' | 'pixel' | 'percent';
-  keepAspect: boolean;
-  sizePriority: 'width' | 'height';
-  widthPixels: number;
-  heightPixels: number;
-  resizeAlgo: 'pixelated' | 'smooth';
-};
+const { t } = useI18n({ useScope: 'local' });
 
-const { t } = useI18n({
-  useScope: 'local',
+const props = withDefaults(defineProps<{
+  label: string;
+  roundDigit?: number;
+  imageSize: { width: number; height: number };
+}>(), {
+  roundDigit: 3,
 });
 
-const props = defineProps({
-  label: {
-    type: String,
-    required: true,
-  },
-  roundDigit: {
-    type: Number,
-    default: 3,
-  },
-  imageSize: {
-    type: Object as () => { width: number; height: number },
-    required: true,
-  },
-  sizeBlocks: {
-    type: Object as () => { width: number; height: number },
-  },
-});
-const modelValue = defineModel<ResizeSettings>({ required: true });
+const modelValue = defineModel<ResizeState>({ required: true });
 
 const sizeUnitLabel = computed(() => t(`size_type_unit_${modelValue.value.sizeType}`));
 
@@ -40,7 +20,7 @@ const heightBlocks = computed(() => Math.ceil(modelValue.value.heightPixels / 9)
 const widthPercent = computed(() => round(modelValue.value.widthPixels / props.imageSize.width, 3));
 const heightPercent = computed(() => round(modelValue.value.heightPixels / props.imageSize.height, 3));
 
-const updateWidthPixels = (value: number | null) => {
+function updateWidthPixels(value: number | null) {
   if (value !== null) {
     modelValue.value.sizePriority = 'width';
     modelValue.value.widthPixels = value;
@@ -48,8 +28,8 @@ const updateWidthPixels = (value: number | null) => {
       modelValue.value.heightPixels = round(value * props.imageSize.height / props.imageSize.width, 3);
     }
   }
-};
-const updateHeightPixels = (value: number | null) => {
+}
+function updateHeightPixels(value: number | null) {
   if (value !== null) {
     modelValue.value.sizePriority = 'height';
     modelValue.value.heightPixels = value;
@@ -57,29 +37,29 @@ const updateHeightPixels = (value: number | null) => {
       modelValue.value.widthPixels = round(value * props.imageSize.width / props.imageSize.height, 3);
     }
   }
-};
+}
 
-const updateWidthBlocks = (value: number | null) => {
+function updateWidthBlocks(value: number | null) {
   if (value !== null) {
     updateWidthPixels(value * 9);
   }
-};
-const updateHeightBlocks = (value: number | null) => {
+}
+function updateHeightBlocks(value: number | null) {
   if (value !== null) {
     updateHeightPixels(value * 9);
   }
-};
+}
 
-const updateWidthPercent = (value: number | null) => {
+function updateWidthPercent(value: number | null) {
   if (value !== null) {
     updateWidthPixels(value * props.imageSize.width);
   }
-};
-const updateHeightPercent = (value: number | null) => {
+}
+function updateHeightPercent(value: number | null) {
   if (value !== null) {
     updateHeightPixels(value * props.imageSize.height);
   }
-};
+}
 
 const isOriginalSize = computed(() => {
   if (!props.imageSize) return false;
@@ -113,7 +93,7 @@ watch(modelValue, (newValue, oldValue) => {
 </script>
 
 <template>
-  <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
+  <FormCard>
     <h2 class="font-bold text-lg">
       {{ props.label }}
     </h2>
@@ -229,7 +209,7 @@ watch(modelValue, (newValue, oldValue) => {
         </UFormField>
       </div>
     </div>
-  </div>
+  </FormCard>
 </template>
 
 <i18n lang="json">

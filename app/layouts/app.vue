@@ -1,11 +1,10 @@
 <template>
-  <div>
+  <div class="flex flex-1 h-screen">
     <NuxtRouteAnnouncer />
-    <AppHeader />
-    <UMain class="h-[calc(100vh-var(--ui-header-height))] flex flex-col">
+    <NavigationSidebar />
+
+    <div class="flex-1 h-full">
       <slot />
-      <USeparator />
-      <AppFooter />
-    </UMain>
+    </div>
   </div>
 </template>
