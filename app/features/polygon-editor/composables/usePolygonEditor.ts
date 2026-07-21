@@ -1,5 +1,5 @@
 import type { Ref } from 'vue';
-import { clonePolygonEditorValue, type PolygonEditorPolygon, type PolygonEditorValue } from '../types';
+import { clonePolygonEditorValue, type PolygonEditorMirror, type PolygonEditorPolygon, type PolygonEditorValue } from '../types';
 import type {
   PolygonEditorGrid,
   HitEdge,
@@ -410,6 +410,16 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     renderCanvas();
   }
 
+  // ミラー関連
+  function updateMirror(patch: Partial<PolygonEditorMirror>) {
+    if (editingLocked.value) return;
+
+    clearTransientInteraction();
+    applyStateChange((state) => {
+      Object.assign(state.mirror, patch);
+    });
+  }
+
   return {
     grid,
     editorState: readonly(editorState),
@@ -452,6 +462,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     finalizeRectangleDraft,
     commitCanvasDrag,
     cancelCanvasDrag,
+    updateMirror,
   };
 }
 

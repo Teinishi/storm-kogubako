@@ -1,3 +1,9 @@
+export interface PolygonEditorMirror {
+  enabled: boolean;
+  axis: 'x' | 'y';
+  centerOffset: number;
+}
+
 export interface PolygonEditorPolygon {
   id: number;
   color: string;
@@ -5,6 +11,7 @@ export interface PolygonEditorPolygon {
 }
 
 export interface PolygonEditorValue {
+  mirror: PolygonEditorMirror;
   polygons: PolygonEditorPolygon[];
 }
 
@@ -17,11 +24,21 @@ export function clonePolygon(polygon: DeepReadonly<PolygonEditorPolygon>): Polyg
 }
 
 export function clonePolygonEditorValue(value: DeepReadonly<PolygonEditorValue>): PolygonEditorValue {
-  return { polygons: value.polygons.map(clonePolygon) };
+  return {
+    mirror: { ...value.mirror },
+    polygons: value.polygons.map(clonePolygon),
+  };
 }
 
 export function createDefaultPolygonEditorValue(): PolygonEditorValue {
-  return { polygons: [] };
+  return {
+    mirror: {
+      enabled: false,
+      axis: 'x',
+      centerOffset: 0,
+    },
+    polygons: [],
+  };
 }
 
 export function transformPolygons(

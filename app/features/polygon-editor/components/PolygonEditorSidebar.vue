@@ -34,6 +34,7 @@ const {
   updateVertexCoordinate,
   clearTransientInteraction,
   applyStateChange,
+  updateMirror,
 } = usePolygonEditorContext();
 
 const polygonsForList = computed(() => [...editorState.value.polygons].reverse());
@@ -122,6 +123,33 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
   if (id === null) return;
   updateVertexCoordinate(id, index, { [axis]: value });
 }
+
+const mirrorEnabled = computed({
+  get() {
+    return editorState.value.mirror.enabled;
+  },
+  set(enabled: boolean) {
+    updateMirror({ enabled });
+  },
+});
+
+const mirrorAxis = computed({
+  get() {
+    return editorState.value.mirror.axis;
+  },
+  set(axis: 'x' | 'y') {
+    updateMirror({ axis });
+  },
+});
+
+const mirrorOffset = computed({
+  get() {
+    return editorState.value.mirror.centerOffset;
+  },
+  set(centerOffset: number) {
+    updateMirror({ centerOffset });
+  },
+});
 </script>
 
 <template>
@@ -190,6 +218,35 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
             :min="1"
             :step="1"
             :disabled="editingLocked || !gridEnabled"
+          />
+        </UFormField>
+      </div>
+
+      <div class="py-1.5">
+        <USwitch
+          v-model="mirrorEnabled"
+          :disabled="editingLocked"
+          :label="t('mirror')"
+        />
+      </div>
+
+      <div
+        v-if="mirrorEnabled"
+        class="-mt-4 grid sm:grid-cols-2 gap-2 items-end"
+      >
+        <URadioGroup
+          v-model="mirrorAxis"
+          orientation="horizontal"
+          variant="table"
+          :items="[{ label: 'X', value: 'x' }, { label: 'Y', value: 'y' }]"
+        />
+
+        <UFormField :label="t('mirror_offset')">
+          <UInputNumber
+            v-model="mirrorOffset"
+            :step="1 / (gridMiniorDivisions ?? 1)"
+            :step-snapping="false"
+            :disabled="editingLocked"
           />
         </UFormField>
       </div>
@@ -385,7 +442,8 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
     "redo": "Redo",
     "grid_visible": "Grid",
     "minor_divisions": "Grid Divisions",
-    "background_color": "Background Color",
+    "mirror": "Mirror",
+    "mirror_offset": "Center offset",
     "polygon_list": "Layers",
     "polygon_count": "{count} items",
     "polygon_empty": "Nothing yet. Add a rectangle or start polygon drawing.",
@@ -412,7 +470,8 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
     "redo": "やり直し",
     "grid_visible": "グリッド",
     "minor_divisions": "グリッド分割数",
-    "background_color": "背景色",
+    "mirror": "ミラー",
+    "mirror_offset": "軸オフセット",
     "polygon_list": "レイヤー一覧",
     "polygon_count": "{count} 件",
     "polygon_empty": "まだ何もありません。矩形を追加するか、多角形描画を開始してください。",
