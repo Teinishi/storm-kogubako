@@ -201,16 +201,11 @@ export class DefinitionBuilder {
     writer.begin(listName);
 
     for (const { attrs, children } of items) {
-      if (!children || children.length === 0) {
-        writer.empty(itemName, attrs);
-      }
-      else {
-        writer.begin(itemName, attrs);
-        for (const child of children) {
+      writer.element(itemName, attrs, (writer) => {
+        for (const child of (children ?? [])) {
           writer.empty(child.tagName, child.attrs);
         }
-        writer.end(itemName);
-      }
+      });
     }
 
     writer.end(listName);
