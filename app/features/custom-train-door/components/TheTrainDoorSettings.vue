@@ -69,6 +69,7 @@ const state = defineModel<TrainDoorState>({ required: true });
           <UInputNumber
             v-model="state.doorThickness"
             :step="0.05"
+            :step-snapping="false"
             :min="0.05"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
@@ -79,6 +80,7 @@ const state = defineModel<TrainDoorState>({ required: true });
           <UInputNumber
             v-model="state.doorZOffset"
             :step="0.05"
+            :step-snapping="false"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
           />
@@ -100,6 +102,7 @@ const state = defineModel<TrainDoorState>({ required: true });
           <UInputNumber
             v-model="state.rubberThickness"
             :step="0.01"
+            :step-snapping="false"
             :min="0"
             :max="0.1"
             class="w-full"
@@ -119,7 +122,8 @@ const state = defineModel<TrainDoorState>({ required: true });
         <UFormField :label="t('window_x_offset')">
           <UInputNumber
             v-model="state.windowXOffset"
-            :step="0.0625"
+            :step="0.005"
+            :step-snapping="false"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
           />
@@ -128,7 +132,8 @@ const state = defineModel<TrainDoorState>({ required: true });
         <UFormField :label="t('window_y_offset')">
           <UInputNumber
             v-model="state.windowYOffset"
-            :step="0.0625"
+            :step="0.005"
+            :step-snapping="false"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
           />
@@ -137,8 +142,9 @@ const state = defineModel<TrainDoorState>({ required: true });
         <UFormField :label="t('window_width')">
           <UInputNumber
             v-model="state.windowWidth"
-            :step="0.0625"
-            :min="0"
+            :step="0.01"
+            :step-snapping="false"
+            :min="0.01"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
           />
@@ -147,8 +153,9 @@ const state = defineModel<TrainDoorState>({ required: true });
         <UFormField :label="t('window_height')">
           <UInputNumber
             v-model="state.windowHeight"
-            :step="0.0625"
-            :min="0"
+            :step="0.01"
+            :step-snapping="false"
+            :min="0.01"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
           />
@@ -158,6 +165,7 @@ const state = defineModel<TrainDoorState>({ required: true });
           <UInputNumber
             v-model="state.windowCornerRadius"
             :step="0.01"
+            :step-snapping="false"
             :min="0"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"

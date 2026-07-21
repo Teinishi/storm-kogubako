@@ -16,6 +16,7 @@ const {
   selectedPolygonIndex,
   selectedPolygon,
   editingLocked,
+  logicalBounds,
   activateSelectMode,
   activatePolygonMode,
   activateRectangleMode,
@@ -333,7 +334,10 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
             <UInputNumber
               :model-value="vertex.x"
               :disabled="editingLocked"
-              :step="0.125"
+              :step="1 / (gridMiniorDivisions ?? 1)"
+              :step-snapping="false"
+              :min="logicalBounds.minX"
+              :max="logicalBounds.maxX"
               orientation="vertical"
               size="sm"
               @update:model-value="updateSelectedVertexCoordinate(index, 'x', $event)"
@@ -342,7 +346,10 @@ function updateSelectedVertexCoordinate(index: number, axis: 'x' | 'y', value: n
             <UInputNumber
               :model-value="vertex.y"
               :disabled="editingLocked"
-              :step="0.125"
+              :step="1 / (gridMiniorDivisions ?? 1)"
+              :step-snapping="false"
+              :min="logicalBounds.minY"
+              :max="logicalBounds.maxY"
               orientation="vertical"
               size="sm"
               @update:model-value="updateSelectedVertexCoordinate(index, 'y', $event)"
