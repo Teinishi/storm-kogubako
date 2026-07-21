@@ -3,7 +3,7 @@ export interface XmlAttribute {
   value: string | number | boolean | undefined;
 }
 
-export function vec3ToAttrs(value: Vec3, omitZero: boolean = true) {
+export function vec3ToAttrs(value: Vec3, omitZero: boolean = false) {
   const { x, y, z } = value;
   return [
     { name: 'x', value: omitZero && x === 0 ? undefined : x },
@@ -51,7 +51,7 @@ export class XmlWriter {
     this.writeLine(`<${name}${this.formatAttributes(attributes)}/>`);
   }
 
-  element(name: string, attributes: DeepReadonly<XmlAttribute[]>, children: (writer: XmlWriter) => void) {
+  element(name: string, attributes: DeepReadonly<XmlAttribute[]> | undefined, children: (writer: XmlWriter) => void) {
     const childrenWriter = new XmlWriter(this.pretty, false);
     children(childrenWriter);
     if (childrenWriter.lines.length === 0) {
