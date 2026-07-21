@@ -6,3 +6,4 @@ export * from './geometry';
 export * from './renderHook.client';
 export * from './saveFile';
 export * from './saveSession';
+export * from './vehicleBuilder';

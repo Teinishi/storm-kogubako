@@ -6,15 +6,37 @@ export type SaveFileEntry = {
 } | {
   filename: string;
   data: string | Uint8Array<ArrayBuffer>;
-  type: string;
+  mimetype: string;
 };
 
-function getBlobFromEntry(file: SaveFileEntry) {
-  if ('data' in file && 'type' in file) {
-    return new Blob([file.data], { type: file.type });
+export type SaveZipNode = {
+  type: 'file';
+  entry: SaveFileEntry;
+} | {
+  type: 'folder';
+  name: string;
+  content: SaveZipNode[];
+};
+
+function getBlobFromEntry(file: DeepReadonly<SaveFileEntry>) {
+  if ('data' in file && 'mimetype' in file) {
+    return new Blob([file.data], { type: file.mimetype });
   }
   else {
     return file.blob;
+  }
+}
+
+function writeToZip(zip: JSZip, items: DeepReadonly<SaveZipNode[]>) {
+  for (const item of items) {
+    if (item.type === 'file') {
+      zip.file(item.entry.filename, getBlobFromEntry(item.entry));
+    }
+    else {
+      const folder = zip.folder(item.name);
+      if (folder === null) throw new Error(`Failed to create folder "${item.name}" in zip.`);
+      writeToZip(folder, item.content);
+    }
   }
 }
 
@@ -46,15 +68,17 @@ export function useFileSave() {
       return;
     }
 
+    saveZip(files.map(entry => ({ type: 'file', entry })), zipFilename);
+  }
+
+  async function saveZip(files: DeepReadonly<SaveZipNode[]>, zipFilename: string) {
+    if (files.length === 0) return;
+
     const zip = new JSZip();
-
-    for (const file of files) {
-      zip.file(file.filename, getBlobFromEntry(file));
-    }
-
+    writeToZip(zip, files);
     const blob = await zip.generateAsync({ type: 'blob' });
     saveFile({ blob, filename: zipFilename });
   }
 
-  return { saveFile, saveFiles };
+  return { saveFile, saveFiles, saveZip };
 }

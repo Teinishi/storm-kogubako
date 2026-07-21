@@ -84,7 +84,7 @@ export class DefinitionBuilder {
     to: Readonly<Vec3>,
     options?: Readonly<StrictOmit<Surface, 'position'>>,
   ) {
-    this.forVoxels(from, to, (position) => {
+    forVoxels(from, to, (position) => {
       this.surfaces.push({
         position,
         ...options,
@@ -97,7 +97,7 @@ export class DefinitionBuilder {
     to: Readonly<Vec3>,
     options?: Readonly<StrictOmit<Surface, 'position'>>,
   ) {
-    this.forVoxels(from, to, (position) => {
+    forVoxels(from, to, (position) => {
       this.buoyancySurfaces.push({
         position,
         ...options,
@@ -114,7 +114,7 @@ export class DefinitionBuilder {
     to: Readonly<Vec3>,
     options?: Readonly<StrictOmit<Voxel, 'position'>>,
   ) {
-    this.forVoxels(from, to, (position) => {
+    forVoxels(from, to, (position) => {
       this.voxels.push({
         position,
         ...options,
@@ -144,19 +144,6 @@ export class DefinitionBuilder {
       if (!orientations.includes(orientation)) return;
       this.addBuoyancySurfaces(a, b, { orientation, ...options });
     });
-  }
-
-  private forVoxels(from: Readonly<Vec3>, to: Readonly<Vec3>, callback: (position: Vec3) => void) {
-    const { x: x1, y: y1, z: z1 } = minVec3(from, to);
-    const { x: x2, y: y2, z: z2 } = maxVec3(from, to);
-
-    for (let z = z1; z <= z2; z++) {
-      for (let y = y1; y <= y2; y++) {
-        for (let x = x1; x <= x2; x++) {
-          callback({ x, y, z });
-        }
-      }
-    }
   }
 
   private forCuboidSurfaces(from: Readonly<Vec3>, to: Readonly<Vec3>, callback: (from: Vec3, to: Vec3, orientation: number) => void) {

@@ -46,11 +46,13 @@ export function buildDoorGeometry(
 }
 
 export interface DoorUnitFileNameSet {
+  doorUnitVehicleName: string;
   visualDefinition: string;
   script: string;
   meshes: Record<string, string>;
   collisionDefinition: string;
   meshesZip: string;
+  visualComponentZip: string;
 }
 
 export function getFilenames(state: DeepReadonly<TrainDoorState>, fingerprint: string): DoorUnitFileNameSet {
@@ -103,6 +105,25 @@ export function createCollisionComponent(state: DeepReadonly<TrainDoorState>, fi
   switch (doorType) {
     case 'double_sliding':
       return doubleSliding.createCollisionComponent(state, fingerprint);
+    case 'single_sliding_left':
+      throw new Error('Unimplemented');
+    case 'single_sliding_right':
+      throw new Error('Unimplemented');
+    default:
+      doorType satisfies never;
+      throw new Error('Unreachable');
+  }
+}
+
+export function createDoorUnitVehicle(
+  state: DeepReadonly<TrainDoorState>,
+  visualComponentName: string,
+  collisionComponentName: string,
+) {
+  const { doorType } = state;
+  switch (doorType) {
+    case 'double_sliding':
+      return doubleSliding.createDoorUnitVehicle(state, visualComponentName, collisionComponentName);
     case 'single_sliding_left':
       throw new Error('Unimplemented');
     case 'single_sliding_right':

@@ -3,11 +3,12 @@ export interface XmlAttribute {
   value: string | number | boolean | undefined;
 }
 
-export function vec3ToAttrs(value: Vec3) {
+export function vec3ToAttrs(value: Vec3, omitZero: boolean = true) {
+  const { x, y, z } = value;
   return [
-    { name: 'x', value: value.x },
-    { name: 'y', value: value.y },
-    { name: 'z', value: value.z },
+    { name: 'x', value: omitZero && x === 0 ? undefined : x },
+    { name: 'y', value: omitZero && y === 0 ? undefined : y },
+    { name: 'z', value: omitZero && z === 0 ? undefined : z },
   ];
 }
 
@@ -50,6 +51,21 @@ export class XmlWriter {
     this.writeLine(`<${name}${this.formatAttributes(attributes)}/>`);
   }
 
+  element(name: string, attributes: DeepReadonly<XmlAttribute[]>, children: (writer: XmlWriter) => void) {
+    const childrenWriter = new XmlWriter(this.pretty, false);
+    children(childrenWriter);
+    if (childrenWriter.lines.length === 0) {
+      this.empty(name, attributes);
+    }
+    else {
+      this.begin(name, attributes);
+      for (const line of childrenWriter.lines) {
+        this.writeLine(line);
+      }
+      this.end(name);
+    }
+  }
+
   comment(text: string): void {
     this.writeLine(`<!-- ${text} -->`);
   }
@@ -65,9 +81,12 @@ export class XmlWriter {
   }
 
   private writeLine(line: string): void {
-    if (!this.pretty) return;
-
-    this.lines.push(this.indentString.repeat(this.elementStack.length) + line);
+    if (!this.pretty) {
+      this.lines.push(line);
+    }
+    else {
+      this.lines.push(this.indentString.repeat(this.elementStack.length) + line);
+    }
   }
 
   private formatAttributes(attributes?: DeepReadonly<XmlAttribute[]>): string {

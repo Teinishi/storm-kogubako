@@ -11,11 +11,11 @@ import {
   createVisualComponentFiles,
   createCollisionComponentFile,
 } from '../utils';
-import { getFilenames } from '../doorTypes';
+import { createDoorUnitVehicle, getFilenames } from '../doorTypes';
 
 const { t } = useI18n({ useScope: 'local' });
 
-const { saveFile, saveFiles } = useFileSave();
+const { saveFile, saveFiles, saveZip } = useFileSave();
 
 const tabItems = computed(() => [
   {
@@ -89,11 +89,13 @@ function saveMeshClicked() {
 
 function saveVisualComponentSourceClicked() {
   const fingerprint = getFingerprint();
+  const filenames = getFilenames(state, fingerprint);
   const files = createVisualComponentFiles(
     state,
     outsidePolygonEditorValue.value,
     insidePolygonEditorValue.value,
     fingerprint,
+    filenames,
   );
   const zipName = replaceExtension(files.definition.filename, '.zip');
   saveFiles([files.definition, files.script, ...files.meshes], zipName);
@@ -107,7 +109,7 @@ function saveVisualComponentBinClicked() {
     insidePolygonEditorValue.value,
     fingerprint,
   );
-  const binFile = createComponentBin(
+  const { file: binFile } = createComponentBin(
     files.definition.filename,
     files.definition.data,
     [files.script, ...files.meshes],
@@ -124,11 +126,57 @@ function saveCollisionComponentSourceClicked() {
 function saveCollisionComponentBinClicked() {
   const fingerprint = getFingerprint();
   const file = createCollisionComponentFile(state, fingerprint);
-  const binFile = createComponentBin(file.filename, file.data);
+  const { file: binFile } = createComponentBin(file.filename, file.data);
   saveFile(binFile);
 }
 
 function saveDoorUnitClicked() {
+  const fingerprint = getFingerprint();
+  const filenames = getFilenames(state, fingerprint);
+
+  const visualFiles = createVisualComponentFiles(
+    state,
+    outsidePolygonEditorValue.value,
+    insidePolygonEditorValue.value,
+    fingerprint,
+    filenames,
+  );
+  const visualComponent = createComponentBin(
+    visualFiles.definition.filename,
+    visualFiles.definition.data,
+    [visualFiles.script, ...visualFiles.meshes],
+  );
+
+  const collisionFile = createCollisionComponentFile(state, fingerprint);
+  const collisionComponent = createComponentBin(collisionFile.filename, collisionFile.data);
+
+  const vehicleData = createDoorUnitVehicle(state, visualComponent.name, collisionComponent.name);
+  const vehicle: SaveZipNode[] = [
+    {
+      type: 'file',
+      entry: {
+        filename: filenames.doorUnitVehicleName,
+        data: vehicleData,
+        mimetype: 'application/xml',
+      },
+    },
+    {
+      type: 'folder',
+      name: replaceExtension(filenames.doorUnitVehicleName, ''),
+      content: [
+        {
+          type: 'file',
+          entry: visualComponent.file,
+        },
+        {
+          type: 'file',
+          entry: collisionComponent.file,
+        },
+      ],
+    },
+  ];
+
+  saveZip(vehicle, replaceExtension(filenames.doorUnitVehicleName, '.zip'));
 }
 </script>
 

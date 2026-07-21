@@ -30,8 +30,11 @@ export function createComponentBin(filename: string, definition: string, assets:
   });
 
   return {
-    filename: binName,
-    data: writer.toUint8Array(),
-    type: 'application/octet-stream',
+    name,
+    file: {
+      filename: binName,
+      data: writer.toUint8Array(),
+      mimetype: 'application/octet-stream',
+    },
   };
 }

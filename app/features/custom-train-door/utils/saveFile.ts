@@ -20,7 +20,7 @@ export function createMeshFiles(
     const filename = filenames[id];
     if (filename === undefined) throw new Error(`Unexpected Error: No mesh filename found for id "${id}".`);
 
-    return { filename, data, type: 'application/octet-stream' };
+    return { filename, data, mimetype: 'application/octet-stream' };
   });
 }
 
@@ -39,12 +39,12 @@ export function createVisualComponentFiles(
     definition: {
       filename: filenames.visualDefinition,
       data: definition,
-      type: 'application/xml',
+      mimetype: 'application/xml',
     },
     script: {
       filename: filenames.script,
       data: script,
-      type: 'text/plain',
+      mimetype: 'text/plain',
     },
     meshes: createMeshFiles(state, outsidePaint, insidePaint, fingerprint, filenames.meshes),
   };
@@ -61,6 +61,6 @@ export function createCollisionComponentFile(
   return {
     filename,
     data: definition,
-    type: 'application/xml',
+    mimetype: 'application/xml',
   };
 }

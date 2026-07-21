@@ -1,7 +1,7 @@
 import type { Reactive } from 'vue';
 import type { RenderHooks, PolygonEditorValue } from '~/features/polygon-editor';
 import type { TrainDoorState } from '../types';
-import { drawBackground, buildSlidingDoorGeometry, DefinitionBuilder, getVoxelRange, getVoxelVolume } from '../utils';
+import { drawBackground, buildSlidingDoorGeometry, DefinitionBuilder, getVoxelRange, getVoxelVolume, VehicleBuilder } from '../utils';
 import { drawWindowsOnCanvas, getSingleWindowPolygon } from '../doorWindow/basic';
 import type { DoorUnitFileNameSet, RenderHooksSet } from '.';
 
@@ -137,8 +137,11 @@ export function buildGeometry(
 }
 
 export function getFilenames(_state: DeepReadonly<TrainDoorState>, fingerprint: string) {
+  const visual = `m_train_door_visual_${fingerprint}`;
+
   return {
-    visualDefinition: `m_train_door_visual_${fingerprint}.xml`,
+    doorUnitVehicleName: `m_train_door_${fingerprint}.xml`,
+    visualDefinition: `${visual}.xml`,
     script: `m_train_door_${fingerprint}.lua`,
     meshes: {
       left: `m_train_door_left_${fingerprint}.mesh`,
@@ -146,6 +149,7 @@ export function getFilenames(_state: DeepReadonly<TrainDoorState>, fingerprint: 
     },
     collisionDefinition: `m_train_door_collision_${fingerprint}.xml`,
     meshesZip: `m_train_door_meshes_${fingerprint}.zip`,
+    visualComponentZip: `${visual}.zip`,
   };
 }
 
@@ -304,6 +308,50 @@ export function createCollisionComponent(state: DeepReadonly<TrainDoorState>, fi
       value: 'Sliding door that can be opened and closed using an on/off signal.',
     }],
   );
+
+  return builder.toXml();
+}
+
+// ドアユニットビークルを生成
+export function createDoorUnitVehicle(
+  state: DeepReadonly<TrainDoorState>,
+  visualComponentName: string,
+  collisionComponentName: string,
+) {
+  const voxelRange = getVoxelRange(state.doorWidth, state.doorHeight);
+
+  const visualPos = { x: 0, y: 0, z: 0 };
+  const collisionRightPos = { x: 0, y: 0, z: voxelRange.min.z };
+  const collisionLeftPos = { x: 0, y: 0, z: voxelRange.max.z };
+
+  const builder = new VehicleBuilder();
+
+  builder.addComponent('root', {
+    type: visualComponentName,
+    position: visualPos,
+  });
+  builder.addComponent('root', {
+    type: collisionComponentName,
+    position: collisionRightPos,
+  });
+  builder.addComponent('root', {
+    type: collisionComponentName,
+    position: collisionLeftPos,
+    flip: { z: true },
+  });
+
+  builder.addCuboid(
+    'root',
+    { x: -1, y: 0, z: voxelRange.min.z - 1 },
+    { x: -1, y: 0, z: voxelRange.max.z + 1 },
+  );
+  builder.addComponent('root', { position: { x: -1, y: voxelRange.min.y - 1, z: voxelRange.min.z - 1 } });
+  builder.addComponent('root', { position: { x: -1, y: voxelRange.min.y - 1, z: voxelRange.max.z + 1 } });
+  builder.addComponent('root', { position: { x: -1, y: voxelRange.max.y + 1, z: voxelRange.min.z - 1 } });
+  builder.addComponent('root', { position: { x: -1, y: voxelRange.max.y + 1, z: voxelRange.max.z + 1 } });
+
+  builder.addLogicLink(visualPos, collisionRightPos, 'boolean');
+  builder.addLogicLink(visualPos, collisionLeftPos, 'boolean');
 
   return builder.toXml();
 }

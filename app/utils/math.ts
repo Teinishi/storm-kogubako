@@ -21,10 +21,40 @@ export interface BoundingBox {
   max: Vec2;
 }
 
+export type Mat3 = [
+  number, number, number,
+  number, number, number,
+  number, number, number,
+];
+
+export const round = (x: number, n: number) => Math.round(x * 10 ** n) / 10 ** n;
+
+export function lerp(a: number, b: number, t: number) {
+  return (1 - t) * a + t * b;
+}
+
+export function clamp(x: number, a: number, b: number) {
+  return Math.min(Math.max(x, a), b);
+}
+
 export function cloneVec2(value: Readonly<Vec2>): Vec2 {
   return {
     x: value.x,
     y: value.y,
+  };
+}
+
+export function minVec2(a: Readonly<Vec2>, b: Readonly<Vec2>): Vec2 {
+  return {
+    x: Math.min(a.x, b.x),
+    y: Math.min(a.y, b.y),
+  };
+}
+
+export function maxVec2(a: Readonly<Vec2>, b: Readonly<Vec2>): Vec2 {
+  return {
+    x: Math.max(a.x, b.x),
+    y: Math.max(a.y, b.y),
   };
 }
 
@@ -41,30 +71,6 @@ export function maxVec3(a: Readonly<Vec3>, b: Readonly<Vec3>): Vec3 {
     x: Math.max(a.x, b.x),
     y: Math.max(a.y, b.y),
     z: Math.max(a.z, b.z),
-  };
-}
-
-export const round = (x: number, n: number) => Math.round(x * 10 ** n) / 10 ** n;
-
-export function lerp(a: number, b: number, t: number) {
-  return (1 - t) * a + t * b;
-}
-
-export function clamp(x: number, a: number, b: number) {
-  return Math.min(Math.max(x, a), b);
-}
-
-export function minVec2(a: Readonly<Vec2>, b: Readonly<Vec2>): Vec2 {
-  return {
-    x: Math.min(a.x, b.x),
-    y: Math.min(a.y, b.y),
-  };
-}
-
-export function maxVec2(a: Readonly<Vec2>, b: Readonly<Vec2>): Vec2 {
-  return {
-    x: Math.max(a.x, b.x),
-    y: Math.max(a.y, b.y),
   };
 }
 
@@ -109,4 +115,17 @@ export function normalizeRect(rect: Readonly<Rect>): Rect {
     y -= height;
   }
   return { x, y, width, height };
+}
+
+export function forVoxels(from: Readonly<Vec3>, to: Readonly<Vec3>, callback: (position: Vec3) => void) {
+  const { x: x1, y: y1, z: z1 } = minVec3(from, to);
+  const { x: x2, y: y2, z: z2 } = maxVec3(from, to);
+
+  for (let z = z1; z <= z2; z++) {
+    for (let y = y1; y <= y2; y++) {
+      for (let x = x1; x <= x2; x++) {
+        callback({ x, y, z });
+      }
+    }
+  }
 }
