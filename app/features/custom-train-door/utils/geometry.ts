@@ -80,6 +80,7 @@ export interface BuildSlidingDoorGeometryOptions {
   rubberThickness: number;
   rubberColor: Color;
   windowRings: WindowRingSet[];
+  windowFrameColor: string;
 }
 
 export function buildSlidingDoorGeometry(
@@ -105,7 +106,7 @@ export function buildSlidingDoorGeometry(
   const flipX = ({ x, y }: Vec2) => ({ x: options.doorSize.x - x, y });
 
   const basePolygon = [rectToRing(baseRect)];
-  const holeRings = windowRings.map(v => v.outerRing);
+  const holeRings = windowRings.map(v => v.outerRing ?? v.innerRing);
 
   // ドア外面
   buildPolygonGeometry(
@@ -176,6 +177,7 @@ export function buildSlidingDoorGeometry(
     buildWindowGeometry(builder, ringSet, {
       z1: frontZ,
       z2: backZ,
+      frameColor: options.windowFrameColor,
       coordinateConversion,
     });
   }

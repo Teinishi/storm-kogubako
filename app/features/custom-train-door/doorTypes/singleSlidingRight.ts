@@ -21,6 +21,7 @@ function getWindowRings(state: DeepReadonly<TrainDoorState>, flip?: boolean) {
     offset: { x: state.windowXOffset / 0.25, y: state.windowYOffset / 0.25 },
     radius: state.windowCornerRadius / 0.25,
     segments: state.windowCornerDivisions,
+    frameThickness: state.windowFrameThickness,
     flip,
     flipWidth: state.doorWidth,
   };
@@ -38,7 +39,7 @@ function createRenderHook(state: Reactive<TrainDoorState>, isInside: boolean): R
       const hasSelection = editor.selectedPolygonId.value !== null;
       ctx.globalAlpha = hasSelection ? 0.6 : 1;
 
-      drawWindowsOnCanvas(args, [getWindowRings(state, isInside)]);
+      drawWindowsOnCanvas(args, [getWindowRings(state, isInside)], state.windowFrameColor);
 
       // 戸先ゴム描画
       const rubber = state.rubberThickness / 0.25;
@@ -89,6 +90,7 @@ export function buildGeometry(
     rubberThickness: state.rubberThickness / 0.25,
     rubberColor: hexToRgb(state.rubberColor),
     windowRings: [getWindowRings(state)],
+    windowFrameColor: state.windowFrameColor,
   });
 
   return [{ id: 'main', builder }];
