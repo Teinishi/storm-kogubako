@@ -88,8 +88,8 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
       return;
     }
 
-    if (!selectedPolygonId.value || !editorState.value.polygons.some(polygon => polygon.id === selectedPolygonId.value)) {
-      selectedPolygonId.value = editorState.value.polygons[editorState.value.polygons.length - 1]?.id ?? null;
+    if (!editorState.value.polygons.some(polygon => polygon.id === selectedPolygonId.value)) {
+      selectedPolygonId.value = null;
       selectedVertexIndex.value = null;
     }
 
