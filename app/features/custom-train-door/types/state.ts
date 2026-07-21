@@ -2,7 +2,7 @@ export type DoorTypes = 'double_sliding' | 'single_sliding_left' | 'single_slidi
 
 export interface TrainDoorState {
   doorType: DoorTypes;
-  direction: 'left' | 'right';
+  direction: 'double' | 'left' | 'right';
   doorWidth: number;
   doorHeight: number;
   doorThickness: number;
@@ -17,12 +17,14 @@ export interface TrainDoorState {
   windowHeight: number;
   windowCornerRadius: number;
   windowCornerDivisions: number;
+  windowFrameThickness: number;
+  windowFrameColor: string;
 }
 
 export function createDefaultTrainDoorState(): TrainDoorState {
   return {
     doorType: 'double_sliding',
-    direction: 'right',
+    direction: 'double',
     doorWidth: 6,
     doorHeight: 8,
     doorThickness: 0.1,
@@ -37,5 +39,7 @@ export function createDefaultTrainDoorState(): TrainDoorState {
     windowHeight: 1,
     windowCornerRadius: 0.08,
     windowCornerDivisions: 1,
+    windowFrameThickness: 0.02,
+    windowFrameColor: '#545454',
   };
 }
