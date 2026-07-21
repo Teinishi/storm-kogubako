@@ -218,7 +218,7 @@ function saveDoorUnitClicked() {
         >
           <template #settings>
             <TheTrainDoorSettings v-model="state" />
-            <div class="mt-4 flex gap-4">
+            <div class="mt-4 flex gap-4 flex-wrap md:flex-nowrap">
               <UButton
                 block
                 size="xl"

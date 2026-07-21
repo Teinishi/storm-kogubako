@@ -3,9 +3,9 @@ const { t } = useI18n({ useScope: 'local' });
 </script>
 
 <template>
-  <div class="flex flex-col gap-2">
+  <div class="space-y-4">
     <p>{{ t('message1') }}</p>
-    <div class="flex gap-2 items-center">
+    <div class="flex gap-2 items-center flex-wrap md:flex-nowrap">
       <div>{{ t('destination') }}:</div>
       <CopyableText
         class="grow"
