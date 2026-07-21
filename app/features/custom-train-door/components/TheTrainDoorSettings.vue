@@ -9,7 +9,7 @@ const FORMAT_OPTIONS_METER = {
 
 const { t } = useI18n({ useScope: 'local' });
 
-const doorTypeItems = computed(() => [
+const _doorTypeItems = computed(() => [
   {
     label: t('double_sliding'),
     value: 'double_sliding',
@@ -30,7 +30,7 @@ const state = defineModel<TrainDoorState>({ required: true });
 <template>
   <div class="grid lg:grid-cols-2 gap-4">
     <FormCard :title="t('door_settings')">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+      <!-- <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
         <UFormField :label="t('door_type')">
           <USelect
             v-model="state.doorType"
@@ -38,7 +38,7 @@ const state = defineModel<TrainDoorState>({ required: true });
             class="w-full"
           />
         </UFormField>
-      </div>
+      </div> -->
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
         <UFormField :label="t('door_width')">
