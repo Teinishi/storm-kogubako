@@ -48,7 +48,10 @@ async function saveVehicleXml() {
   );
   const blob = new Blob([xml], { type: 'text/plain' });
 
-  saveFile(blob, state.saveFileName);
+  saveFile({
+    filename: state.saveFileName,
+    blob,
+  });
 };
 </script>
 
