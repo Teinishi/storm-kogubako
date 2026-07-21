@@ -11,5 +11,6 @@
   "blender_mesh_io_description": "Add-on for direct import and export .mesh and .phys files on Blender.",
   "saved_file_toast": "Saved \"{name}\"",
   "saved_file_toast_message": "Please check your download folder.",
+  "error_occured": "Error",
   "stormskey": "Stormskey"
 }

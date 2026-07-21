@@ -11,5 +11,6 @@
   "blender_mesh_io_description": ".mesh ファイルと .phys ファイルを Blender 上で直接インポート・エクスポートするアドオン",
   "saved_file_toast": "\"{name}\" を保存しました",
   "saved_file_toast_message": "ダウンロードフォルダをご確認ください",
+  "error_occured": "エラーが発生しました",
   "stormskey": "すとーむすきー"
 }

@@ -15,7 +15,7 @@ import { createDoorUnitVehicle, getFilenames } from '../doorTypes';
 
 const { t } = useI18n({ useScope: 'local' });
 
-const { saveFile, saveFiles, saveZip } = useFileSave();
+const { saveFile, saveFiles, saveZip, handleError } = useFileSave();
 
 const tabItems = computed(() => [
   {
@@ -75,108 +75,120 @@ function getFingerprint() {
 }
 
 function saveMeshClicked() {
-  const fingerprint = getFingerprint();
-  const filenames = getFilenames(state, fingerprint);
-  const files = createMeshFiles(
-    state,
-    outsidePolygonEditorValue.value,
-    insidePolygonEditorValue.value,
-    fingerprint,
-    filenames.meshes,
-  );
-  saveFiles(files, filenames.meshesZip);
+  handleError(() => {
+    const fingerprint = getFingerprint();
+    const filenames = getFilenames(state, fingerprint);
+    const files = createMeshFiles(
+      state,
+      outsidePolygonEditorValue.value,
+      insidePolygonEditorValue.value,
+      fingerprint,
+      filenames.meshes,
+    );
+    saveFiles(files, filenames.meshesZip);
+  });
 }
 
 function saveVisualComponentSourceClicked() {
-  const fingerprint = getFingerprint();
-  const filenames = getFilenames(state, fingerprint);
-  const files = createVisualComponentFiles(
-    state,
-    outsidePolygonEditorValue.value,
-    insidePolygonEditorValue.value,
-    fingerprint,
-    filenames,
-  );
-  const zipName = replaceExtension(files.definition.filename, '.zip');
-  saveFiles([files.definition, files.script, ...files.meshes], zipName);
+  handleError(() => {
+    const fingerprint = getFingerprint();
+    const filenames = getFilenames(state, fingerprint);
+    const files = createVisualComponentFiles(
+      state,
+      outsidePolygonEditorValue.value,
+      insidePolygonEditorValue.value,
+      fingerprint,
+      filenames,
+    );
+    const zipName = replaceExtension(files.definition.filename, '.zip');
+    saveFiles([files.definition, files.script, ...files.meshes], zipName);
+  });
 }
 
 function saveVisualComponentBinClicked() {
-  const fingerprint = getFingerprint();
-  const files = createVisualComponentFiles(
-    state,
-    outsidePolygonEditorValue.value,
-    insidePolygonEditorValue.value,
-    fingerprint,
-  );
-  const { file: binFile } = createComponentBin(
-    files.definition.filename,
-    files.definition.data,
-    [files.script, ...files.meshes],
-  );
-  saveFile(binFile);
+  handleError(() => {
+    const fingerprint = getFingerprint();
+    const files = createVisualComponentFiles(
+      state,
+      outsidePolygonEditorValue.value,
+      insidePolygonEditorValue.value,
+      fingerprint,
+    );
+    const { file: binFile } = createComponentBin(
+      files.definition.filename,
+      files.definition.data,
+      [files.script, ...files.meshes],
+    );
+    saveFile(binFile);
+  });
 }
 
 function saveCollisionComponentSourceClicked() {
-  const fingerprint = getFingerprint();
-  const file = createCollisionComponentFile(state, fingerprint);
-  saveFile(file);
+  handleError(() => {
+    const fingerprint = getFingerprint();
+    const file = createCollisionComponentFile(state, fingerprint);
+    saveFile(file);
+  });
 }
 
 function saveCollisionComponentBinClicked() {
-  const fingerprint = getFingerprint();
-  const file = createCollisionComponentFile(state, fingerprint);
-  const { file: binFile } = createComponentBin(file.filename, file.data);
-  saveFile(binFile);
+  handleError(() => {
+    const fingerprint = getFingerprint();
+    const file = createCollisionComponentFile(state, fingerprint);
+    const { file: binFile } = createComponentBin(file.filename, file.data);
+    saveFile(binFile);
+  });
 }
 
 function saveDoorUnitClicked() {
-  const fingerprint = getFingerprint();
-  const filenames = getFilenames(state, fingerprint);
+  handleError(() => {
+    const fingerprint = getFingerprint();
+    const filenames = getFilenames(state, fingerprint);
 
-  const visualFiles = createVisualComponentFiles(
-    state,
-    outsidePolygonEditorValue.value,
-    insidePolygonEditorValue.value,
-    fingerprint,
-    filenames,
-  );
-  const visualComponent = createComponentBin(
-    visualFiles.definition.filename,
-    visualFiles.definition.data,
-    [visualFiles.script, ...visualFiles.meshes],
-  );
+    const visualFiles = createVisualComponentFiles(
+      state,
+      outsidePolygonEditorValue.value,
+      insidePolygonEditorValue.value,
+      fingerprint,
+      filenames,
+    );
+    const visualComponent = createComponentBin(
+      visualFiles.definition.filename,
+      visualFiles.definition.data,
+      [visualFiles.script, ...visualFiles.meshes],
+    );
 
-  const collisionFile = createCollisionComponentFile(state, fingerprint);
-  const collisionComponent = createComponentBin(collisionFile.filename, collisionFile.data);
+    const collisionFile = createCollisionComponentFile(state, fingerprint);
+    const collisionComponent = createComponentBin(collisionFile.filename, collisionFile.data);
 
-  const vehicleData = createDoorUnitVehicle(state, visualComponent.name, collisionComponent.name);
-  const vehicle: SaveZipNode[] = [
-    {
-      type: 'file',
-      entry: {
-        filename: filenames.doorUnitVehicleName,
-        data: vehicleData,
-        mimetype: 'application/xml',
+    const vehicleData = createDoorUnitVehicle(state, visualComponent.name, collisionComponent.name);
+    const vehicle: SaveZipNode[] = [
+      {
+        type: 'file',
+        entry: {
+          filename: filenames.doorUnitVehicleName,
+          data: vehicleData,
+          mimetype: 'application/xml',
+        },
       },
-    },
-    {
-      type: 'folder',
-      name: replaceExtension(filenames.doorUnitVehicleName, ''),
-      content: [
-        {
-          type: 'file',
-          entry: visualComponent.file,
-        },
-        {
-          type: 'file',
-          entry: collisionComponent.file,
-        },
-      ],
-    },
-  ];
+      {
+        type: 'folder',
+        name: replaceExtension(filenames.doorUnitVehicleName, ''),
+        content: [
+          {
+            type: 'file',
+            entry: visualComponent.file,
+          },
+          {
+            type: 'file',
+            entry: collisionComponent.file,
+          },
+        ],
+      },
+    ];
 
-  saveZip(vehicle, replaceExtension(filenames.doorUnitVehicleName, '.zip'));
+    saveZip(vehicle, replaceExtension(filenames.doorUnitVehicleName, '.zip'));
+  });
 }
 </script>
 

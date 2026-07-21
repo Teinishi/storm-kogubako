@@ -80,5 +80,24 @@ export function useFileSave() {
     saveFile({ blob, filename: zipFilename });
   }
 
-  return { saveFile, saveFiles, saveZip };
+  function handleError(callback: () => void) {
+    try {
+      callback();
+    }
+    catch (e) {
+      let description;
+      if (e instanceof Error) {
+        description = e.toString();
+      }
+      toast.add({
+        title: t('error_occured'),
+        description,
+        icon: 'i-lucide-circle-alert',
+        color: 'error',
+      });
+      console.error(e);
+    }
+  }
+
+  return { saveFile, saveFiles, saveZip, handleError };
 }
