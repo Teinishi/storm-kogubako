@@ -1,14 +1,13 @@
 <script setup lang="ts">
 const props = defineProps<{
   to: string;
-  icon: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
   title: string | Record<string, string>;
   description: string | Record<string, string>;
 }>();
 
-const { t, locale } = useI18n({
-  useScope: 'local',
-});
+const { t, locale } = useI18n({ useScope: 'local' });
 
 const title_text = computed(() => typeof props.title === 'string' ? props.title : props.title[locale.value]);
 const description_text = computed(() => typeof props.description === 'string' ? props.description : props.description[locale.value]);
@@ -21,6 +20,7 @@ const description_text = computed(() => typeof props.description === 'string' ? 
   >
     <UCard
       class="h-full transition-all duration-300 group-hover:shadow-lg group-hover:ring-2 group-hover:ring-primary-500 group-hover:-translate-y-1"
+      :ui="{ root: 'flex flex-col', body: 'flex-1' }"
     >
       <template #header>
         <div class="flex items-center gap-3">

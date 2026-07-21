@@ -1,27 +1,15 @@
 <script setup lang="ts">
-import type { AnchorPosition } from './AnchorPositionSelect.vue';
+import AnchorPositionSelect from './AnchorPositionSelect.vue';
+import type { AnchorState } from '../types';
 
-export type AnchorSettings = {
-  anchorPosition: AnchorPosition;
-  offsetX: number;
-  offsetY: number;
-};
+const { t } = useI18n({ useScope: 'local' });
 
-const { t } = useI18n({
-  useScope: 'local',
-});
+const props = defineProps<{
+  label: string;
+  anchorDisabled?: boolean;
+}>();
 
-const props = defineProps({
-  label: {
-    type: String,
-    required: true,
-  },
-  anchorDisabled: {
-    type: Boolean,
-    default: false,
-  },
-});
-const modelValue = defineModel<AnchorSettings>({ required: true });
+const modelValue = defineModel<AnchorState>({ required: true });
 
 const isOffsetZero = computed(() => modelValue.value.offsetX === 0 && modelValue.value.offsetY === 0);
 
@@ -32,11 +20,7 @@ const reset = () => {
 </script>
 
 <template>
-  <div class="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-4">
-    <h2 class="font-bold text-lg">
-      {{ props.label }}
-    </h2>
-
+  <FormCard :title="props.label">
     <div class="grid grid-cols-2 gap-4">
       <AnchorPositionSelect
         v-model="modelValue.anchorPosition"
@@ -70,7 +54,7 @@ const reset = () => {
         @click="reset"
       />
     </div>
-  </div>
+  </FormCard>
 </template>
 
 <i18n lang="json">
