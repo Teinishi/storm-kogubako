@@ -2,6 +2,7 @@
 import { PolygonEditor } from '~/features/polygon-editor';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
+import UsageInstructions from './UsageInstructions.vue';
 import { useCustomTrainDoor } from '../composables';
 import {
   getFingerprint as getFingerprintFromJson,
@@ -214,6 +215,25 @@ function saveDoorUnitClicked() {
                 :label="t('save_door_unit')"
                 @click="saveDoorUnitClicked"
               />
+
+              <UModal
+                :title="t('usage_title')"
+                :ui="{ content: 'sm:max-w-3xl' }"
+              >
+                <UButton
+                  block
+                  size="xl"
+                  color="primary"
+                  variant="subtle"
+                  icon="i-lucide-circle-question-mark"
+                  :label="t('usage')"
+                  class="flex-1"
+                />
+                <template #body>
+                  <UsageInstructions />
+                </template>
+              </UModal>
+
               <UDropdownMenu :items="advancedItems">
                 <UButton
                   block
@@ -272,6 +292,8 @@ function saveDoorUnitClicked() {
     "inside_paint": "Inside Paint",
     "preview": "Preview",
     "save_door_unit": "Save Door Unit",
+    "usage": "Usage",
+    "usage_title": "Installing the Door Unit",
     "advanced": "Advanced",
     "save_mesh": "Save Mesh (.mesh)",
     "save_visual_component_xml": "Save Visual Component (.xml, .lua, .mesh)",
@@ -285,6 +307,8 @@ function saveDoorUnitClicked() {
     "inside_paint": "内側ペイント",
     "preview": "プレビュー",
     "save_door_unit": "ドアユニットを保存",
+    "usage": "使い方",
+    "usage_title": "ドアユニットの導入方法",
     "advanced": "Mod 開発者向け",
     "save_mesh": "メッシュを保存 (.mesh)",
     "save_visual_component_source": "表示コンポーネントを保存 (.xml, .lua, .mesh)",
