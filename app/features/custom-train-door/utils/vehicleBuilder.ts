@@ -82,7 +82,7 @@ export class VehicleBuilder {
           writer.element('o', oAttrs, (writer) => {
             const { position } = component;
             if (position.x !== 0 || position.y !== 0 || position.z !== 0) {
-              writer.empty('vp', vec3ToAttrs(position));
+              writer.empty('vp', vec3ToAttrs(position, true));
             }
           });
         });
@@ -99,8 +99,8 @@ export class VehicleBuilder {
           writer.begin('logic_node_link', [
             { name: 'type', value: this.toLogicTypeAttrValue(logicLink.type) },
           ]);
-          writer.empty('voxel_pos_0', vec3ToAttrs(logicLink.from));
-          writer.empty('voxel_pos_1', vec3ToAttrs(logicLink.to));
+          writer.empty('voxel_pos_0', vec3ToAttrs(logicLink.from, true));
+          writer.empty('voxel_pos_1', vec3ToAttrs(logicLink.to, true));
           writer.end('logic_node_link');
         }
       });
