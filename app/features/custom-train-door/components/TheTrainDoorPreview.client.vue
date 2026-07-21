@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { BufferGeometry } from 'three';
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
-import type { PolygonEditorValue } from '~/features/polygon-editor';
+import type { PolygonEditorPolygon } from '~/features/polygon-editor';
 import type { TrainDoorState } from '../types';
 import { buildDoorGeometry } from '../doorTypes';
 
 const props = defineProps<{
   state: TrainDoorState;
-  outsidePaint: PolygonEditorValue;
-  insidePaint: PolygonEditorValue;
+  outsidePaint: DeepReadonly<PolygonEditorPolygon[]>;
+  insidePaint: DeepReadonly<PolygonEditorPolygon[]>;
 }>();
 
 const geometries = shallowRef<{ id: string; geometry: BufferGeometry }[]>([]);

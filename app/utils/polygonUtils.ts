@@ -196,6 +196,11 @@ export function offsetRing(
   return result;
 }
 
+export function mergePolygons(a: DeepReadonly<Vec2[][]>, b: DeepReadonly<Vec2[][]>) {
+  const mp = polygonClipping.union(forPolygonClipping(a), forPolygonClipping(b));
+  return mp.map(toVec2Polygon);
+}
+
 interface PolygonWithId<T> {
   id: T;
   polygon: Vec2[][];

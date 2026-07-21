@@ -1,5 +1,5 @@
 import type { Reactive } from 'vue';
-import type { RenderHooks, PolygonEditorValue } from '~/features/polygon-editor';
+import type { RenderHooks, PolygonEditorPolygon } from '~/features/polygon-editor';
 import type { TrainDoorState } from '../types';
 import { drawBackground, buildSlidingDoorGeometry, DefinitionBuilder, getVoxelRange, getVoxelVolume, VehicleBuilder } from '../utils';
 import { drawWindowsOnCanvas, getSingleWindowPolygon } from '../doorWindow/basic';
@@ -34,6 +34,7 @@ function getWindowRings(state: DeepReadonly<TrainDoorState>, flip?: boolean) {
     offset: { x: state.windowXOffset / 0.25, y: state.windowYOffset / 0.25 },
     radius: state.windowCornerRadius / 0.25,
     segments: state.windowCornerDivisions,
+    frameThickness: state.windowFrameThickness,
     flip,
     flipWidth: state.doorWidth,
   };
@@ -57,7 +58,7 @@ function createRenderHook(state: Reactive<TrainDoorState>, isInside: boolean): R
       ctx.globalAlpha = hasSelection ? 0.6 : 1;
 
       const windowRings = getWindowRings(state, isInside);
-      drawWindowsOnCanvas(args, [windowRings.left, windowRings.right]);
+      drawWindowsOnCanvas(args, [windowRings.left, windowRings.right], state.windowFrameColor);
 
       // 戸先ゴム描画
       const rubber = state.rubberThickness / 0.25;
@@ -82,8 +83,8 @@ export function createRenderHooks(state: Reactive<TrainDoorState>): RenderHooksS
 
 export function buildGeometry(
   state: DeepReadonly<TrainDoorState>,
-  outsidePaint: DeepReadonly<PolygonEditorValue>,
-  insidePaint: DeepReadonly<PolygonEditorValue>,
+  outsidePaint: DeepReadonly<PolygonEditorPolygon[]>,
+  insidePaint: DeepReadonly<PolygonEditorPolygon[]>,
   builderOptions?: DeepReadonly<GeometryBuilderOptions>,
 ) {
   const doorSize = { x: state.doorWidth, y: state.doorHeight };
@@ -113,6 +114,7 @@ export function buildGeometry(
     rubberThickness,
     rubberColor,
     windowRings: [windowRings.left],
+    windowFrameColor: state.windowFrameColor,
   });
 
   buildSlidingDoorGeometry(rightBuilder, {
@@ -128,6 +130,7 @@ export function buildGeometry(
     rubberThickness,
     rubberColor,
     windowRings: [windowRings.right],
+    windowFrameColor: state.windowFrameColor,
   });
 
   return [

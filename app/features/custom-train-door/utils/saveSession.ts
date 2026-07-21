@@ -6,16 +6,16 @@ const VERSION = 0;
 
 export interface SessionState {
   state: TrainDoorState;
-  outsidePaint: PolygonEditorValue;
-  insidePaint: PolygonEditorValue;
+  outsidePolygonEditorValue: PolygonEditorValue;
+  insidePolygonEditorValue: PolygonEditorValue;
 }
 
 export function toJson(sessionState: SessionState, pretty?: boolean) {
   return JSON.stringify({
     version: VERSION,
     state: sessionState.state,
-    outsidePaint: sessionState.outsidePaint,
-    insidePaint: sessionState.insidePaint,
+    outsidePolygonEditorValue: sessionState.outsidePolygonEditorValue,
+    insidePolygonEditorValue: sessionState.insidePolygonEditorValue,
   }, null, pretty ? 4 : undefined);
 }
 

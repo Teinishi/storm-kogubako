@@ -29,6 +29,9 @@ export default defineNuxtConfig({
       include: [
         '@vue/devtools-core',
         '@vue/devtools-kit',
+        'earcut',
+        'jszip', // CJS
+        'polygon-clipping',
         'sw-mesh-viewer/parser',
         'three',
       ],
