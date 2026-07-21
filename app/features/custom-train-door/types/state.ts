@@ -2,6 +2,7 @@ export type DoorTypes = 'double_sliding' | 'single_sliding_left' | 'single_slidi
 
 export interface TrainDoorState {
   doorType: DoorTypes;
+  direction: 'left' | 'right';
   doorWidth: number;
   doorHeight: number;
   doorThickness: number;
@@ -21,6 +22,7 @@ export interface TrainDoorState {
 export function createDefaultTrainDoorState(): TrainDoorState {
   return {
     doorType: 'double_sliding',
+    direction: 'right',
     doorWidth: 6,
     doorHeight: 8,
     doorThickness: 0.1,
