@@ -1,4 +1,5 @@
-import { clampToLogicalBounds, type LogicalBounds } from './bounds';
+import type { LogicalBounds } from '../types';
+import { clampToLogicalBounds } from './bounds';
 
 const SNAP_PRECISION = 1_000_000;
 

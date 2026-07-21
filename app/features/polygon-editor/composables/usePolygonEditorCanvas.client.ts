@@ -12,9 +12,8 @@ import {
   findHitPolygon as findHitPolygonInPolygons,
   findHitVertex as findHitVertexInPolygons,
   GRID_SCALE,
-  HANDLE_HIT_THRESHOLD_PX,
+  HANDLE_HIT_THRESHOLD_PX, withMirroredPolygons, getMirrorCenter,
 } from '../utils';
-import { withMirroredPolygons, getMirrorCenter } from '../utils/mirror';
 
 export type UsePolygonCanvasOptions = {
   canvasRef: Ref<HTMLCanvasElement | null>;

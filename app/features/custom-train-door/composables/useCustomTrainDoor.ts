@@ -10,8 +10,10 @@ export function useCustomTrainDoor() {
   const insidePolygonEditorValue = ref<PolygonEditorValue>(createDefaultPolygonEditorValue());
 
   const editorLogicalBounds = computed(() => ({
-    width: state.doorWidth,
-    height: state.doorHeight,
+    minX: 0,
+    minY: 0,
+    maxX: state.doorWidth,
+    maxY: state.doorHeight,
   }));
 
   const polygonEditorProps = computed(() => {
@@ -37,5 +39,6 @@ export function useCustomTrainDoor() {
     insidePolygonEditorValue,
     outsideEditorProps,
     insideEditorProps,
+    editorLogicalBounds,
   };
 }

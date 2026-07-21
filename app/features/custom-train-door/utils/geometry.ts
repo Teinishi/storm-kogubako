@@ -1,4 +1,4 @@
-import { transformPolygons, type PolygonEditorPolygon, type PolygonEditorValue } from '~/features/polygon-editor';
+import { transformPolygons, type PolygonEditorPolygon } from '~/features/polygon-editor';
 import { buildWindowGeometry, type WindowRingSet } from '../doorWindow/basic';
 import { createCoordinateConverter } from './coordinateConversion';
 
@@ -69,8 +69,8 @@ export function buildRubberGeometry(
 
 export interface BuildSlidingDoorGeometryOptions {
   baseRect: Rect;
-  outsidePaint: PolygonEditorValue;
-  insidePaint: PolygonEditorValue;
+  outsidePaint: PolygonEditorPolygon[];
+  insidePaint: PolygonEditorPolygon[];
   doorSize: Vec2;
   frontZ: number;
   backZ: number;
@@ -110,7 +110,7 @@ export function buildSlidingDoorGeometry(
   // ドア外面
   buildPolygonGeometry(
     builder,
-    outsidePaint.polygons,
+    outsidePaint,
     {
       basePolygon,
       baseColor: frontColor,
@@ -123,7 +123,7 @@ export function buildSlidingDoorGeometry(
   // ドア内面
   buildPolygonGeometry(
     builder,
-    transformPolygons(insidePaint.polygons, flipX),
+    transformPolygons(insidePaint, flipX),
     {
       basePolygon,
       baseColor: backColor,

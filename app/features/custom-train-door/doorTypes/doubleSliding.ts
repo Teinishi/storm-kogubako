@@ -1,5 +1,5 @@
 import type { Reactive } from 'vue';
-import type { RenderHooks, PolygonEditorValue } from '~/features/polygon-editor';
+import type { RenderHooks, PolygonEditorPolygon } from '~/features/polygon-editor';
 import type { TrainDoorState } from '../types';
 import { drawBackground, buildSlidingDoorGeometry, DefinitionBuilder, getVoxelRange, getVoxelVolume, VehicleBuilder } from '../utils';
 import { drawWindowsOnCanvas, getSingleWindowPolygon } from '../doorWindow/basic';
@@ -82,8 +82,8 @@ export function createRenderHooks(state: Reactive<TrainDoorState>): RenderHooksS
 
 export function buildGeometry(
   state: DeepReadonly<TrainDoorState>,
-  outsidePaint: DeepReadonly<PolygonEditorValue>,
-  insidePaint: DeepReadonly<PolygonEditorValue>,
+  outsidePaint: DeepReadonly<PolygonEditorPolygon[]>,
+  insidePaint: DeepReadonly<PolygonEditorPolygon[]>,
   builderOptions?: DeepReadonly<GeometryBuilderOptions>,
 ) {
   const doorSize = { x: state.doorWidth, y: state.doorHeight };

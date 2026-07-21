@@ -1,5 +1,5 @@
 import type { Ref } from 'vue';
-import { clonePolygonEditorValue, type PolygonEditorMirror, type PolygonEditorPolygon, type PolygonEditorValue } from '../types';
+import { clonePolygonEditorValue, type LogicalBounds, type PolygonEditorMirror, type PolygonEditorPolygon, type PolygonEditorValue } from '../types';
 import type {
   PolygonEditorGrid,
   HitEdge,
@@ -24,7 +24,7 @@ export type PolygonEditorMode = 'select' | 'drawPolygon' | 'drawRectangle';
 
 export interface UsePolygonEditorOptions {
   props: DeepReadonly<{
-    logicalBounds: { width: number; height: number };
+    logicalBounds: LogicalBounds;
     disabled?: boolean;
     readonly?: boolean;
   }>;
@@ -116,12 +116,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     original: Vec2;
   } | null>(null);
 
-  const logicalBounds = computed(() => ({
-    minX: 0,
-    minY: 0,
-    maxX: props.logicalBounds.width,
-    maxY: props.logicalBounds.height,
-  }));
+  const logicalBounds = computed(() => props.logicalBounds);
   const editingLocked = computed(() => props.disabled || props.readonly || false);
 
   const selectedPolygonIndex = computed(() => {
