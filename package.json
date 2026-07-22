@@ -22,7 +22,7 @@
     "earcut": "^3.2.3",
     "js-xxhash": "^5.0.1",
     "jszip": "^3.10.1",
-    "nuxt": "^4.2.2",
+    "nuxt": "^4.5.0",
     "polygon-clipping": "^0.15.7",
     "sw-mesh-viewer": "github:Teinishi/sw-mesh-viewer#v0.2.1",
     "three": "^0.185.1",
