@@ -10,6 +10,8 @@
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
     "typecheck": "nuxt typecheck",
     "check": "npm run lint && npm run typecheck"
   },
@@ -35,6 +37,7 @@
     "@types/earcut": "^3.0.0",
     "@types/three": "^0.185.1",
     "eslint": "^10.6.0",
+    "oxfmt": "^0.60.0",
     "ts-essentials": "^10.2.1",
     "typescript": "^6.0.3",
     "vue-tsc": "^3.3.7"

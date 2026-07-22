@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "ignorePatterns": [],
+  "singleQuote": true,
+  "trailingComma": "all",
+  "experimentalSortImports": {
+    "order": "asc",
+    "newlinesBetween": false
+  },
+  "experimentalTailwindcss": {},
+  "embeddedLanguageFormatting": "auto"
+}
