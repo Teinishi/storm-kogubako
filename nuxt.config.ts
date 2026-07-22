@@ -9,8 +9,12 @@ export default defineNuxtConfig({
   ],
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
+  experimental: {
+    typedPages: true,
+  },
   compatibilityDate: '2025-07-15',
   nitro: {
+    compressPublicAssets: true,
     prerender: {
       autoSubfolderIndex: false,
     },
@@ -20,6 +24,7 @@ export default defineNuxtConfig({
     },
   },
   vite: {
+    vue: { features: { optionsAPI: false } },
     optimizeDeps: {
       entries: [
         'pages/**/*.vue',
