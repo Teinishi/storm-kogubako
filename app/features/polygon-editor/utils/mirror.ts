@@ -1,30 +1,20 @@
 import type { LogicalBounds, PolygonEditorPolygon, PolygonEditorValue } from '../types';
 
-export function getMirrorCenter(
-  axis: 'x' | 'y',
-  offset: number,
-  bounds: Readonly<LogicalBounds>,
-) {
+export function getMirrorCenter(axis: 'x' | 'y', offset: number, bounds: Readonly<LogicalBounds>) {
   if (axis === 'x') {
     return (bounds.minX + bounds.maxX) / 2 + offset;
-  }
-  else {
+  } else {
     return (bounds.minY + bounds.maxY) / 2 + offset;
   }
 }
 
-function mirrorVertex(
-  vertex: Readonly<Vec2>,
-  axis: 'x' | 'y',
-  center: number,
-) {
+function mirrorVertex(vertex: Readonly<Vec2>, axis: 'x' | 'y', center: number) {
   if (axis === 'x') {
     return {
       x: 2 * center - vertex.x,
       y: vertex.y,
     };
-  }
-  else {
+  } else {
     return {
       x: vertex.x,
       y: 2 * center - vertex.y,
@@ -44,7 +34,7 @@ export function withMirroredPolygons(
       const mirrored = {
         id: polygon.id,
         color: polygon.color,
-        vertices: polygon.vertices.map(v => mirrorVertex(v, axis, center)),
+        vertices: polygon.vertices.map((v) => mirrorVertex(v, axis, center)),
         isMirrorGhost: true,
       };
 
@@ -52,8 +42,7 @@ export function withMirroredPolygons(
       result.push(mirrored);
     }
     return result;
-  }
-  else {
+  } else {
     return value.polygons;
   }
 }
@@ -71,7 +60,7 @@ export function getMirrorMergedPolygons(
     for (const polygon of value.polygons) {
       const mp = mergePolygons(
         [polygon.vertices],
-        [polygon.vertices.map(v => mirrorVertex(v, axis, center))],
+        [polygon.vertices.map((v) => mirrorVertex(v, axis, center))],
       );
       for (const p of mp) {
         for (const ring of p) {
@@ -84,8 +73,7 @@ export function getMirrorMergedPolygons(
       }
     }
     return result;
-  }
-  else {
+  } else {
     return value.polygons;
   }
 }

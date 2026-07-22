@@ -49,13 +49,23 @@ export interface DrawData {
   isMultiplesOf9: boolean;
 }
 
-export function getDrawData(width: number, height: number, anchorState: Readonly<AnchorState>): DrawData {
+export function getDrawData(
+  width: number,
+  height: number,
+  anchorState: Readonly<AnchorState>,
+): DrawData {
   // キャンバスサイズ、オフセットを計算
   let widthBlocks = Math.ceil(width / 9);
   let heightBlocks = Math.ceil(height / 9);
 
   // オフセットを計算
-  let { x: drawOffsetX, y: drawOffsetY } = getAnchorOffset(width, height, widthBlocks * 9, heightBlocks * 9, anchorState.anchorPosition);
+  let { x: drawOffsetX, y: drawOffsetY } = getAnchorOffset(
+    width,
+    height,
+    widthBlocks * 9,
+    heightBlocks * 9,
+    anchorState.anchorPosition,
+  );
   drawOffsetX += anchorState.offsetX;
   drawOffsetY += anchorState.offsetY;
 
@@ -89,7 +99,8 @@ export function getDrawData(width: number, height: number, anchorState: Readonly
   }
 
   return {
-    widthBlocks, heightBlocks,
+    widthBlocks,
+    heightBlocks,
     canvasWidth: widthBlocks * 9,
     canvasHeight: heightBlocks * 9,
     offset: { x: drawOffsetX, y: drawOffsetY },

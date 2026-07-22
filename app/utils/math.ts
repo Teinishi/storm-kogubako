@@ -21,11 +21,7 @@ export interface BoundingBox {
   max: Vec2;
 }
 
-export type Mat3 = [
-  number, number, number,
-  number, number, number,
-  number, number, number,
-];
+export type Mat3 = [number, number, number, number, number, number, number, number, number];
 
 export const round = (x: number, n: number) => Math.round(x * 10 ** n) / 10 ** n;
 
@@ -79,15 +75,13 @@ export function getBoundingBox(vertices: DeepReadonly<Vec2[]>): BoundingBox | un
   for (const v of vertices) {
     if (!boundsMin) {
       boundsMin = { x: v.x, y: v.y };
-    }
-    else {
+    } else {
       boundsMin = minVec2(boundsMin, v);
     }
 
     if (!boundsMax) {
       boundsMax = { x: v.x, y: v.y };
-    }
-    else {
+    } else {
       boundsMax = maxVec2(boundsMax, v);
     }
   }
@@ -117,7 +111,11 @@ export function normalizeRect(rect: Readonly<Rect>): Rect {
   return { x, y, width, height };
 }
 
-export function forVoxels(from: Readonly<Vec3>, to: Readonly<Vec3>, callback: (position: Vec3) => void) {
+export function forVoxels(
+  from: Readonly<Vec3>,
+  to: Readonly<Vec3>,
+  callback: (position: Vec3) => void,
+) {
   const { x: x1, y: y1, z: z1 } = minVec3(from, to);
   const { x: x2, y: y2, z: z2 } = maxVec3(from, to);
 

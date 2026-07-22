@@ -16,7 +16,7 @@ export function buildPolygonGeometry(
   polygons: DeepReadonly<PolygonEditorPolygon[]>,
   options?: DeepReadonly<BuildPolygonGeometryOptions>,
 ) {
-  const posConversion = options?.coordinateConversion ?? (p => ({ x: p.x, y: p.y, z: 0 }));
+  const posConversion = options?.coordinateConversion ?? ((p) => ({ x: p.x, y: p.y, z: 0 }));
   function ringConversion(ring: readonly Readonly<Vec2>[]) {
     return ring.map(posConversion);
   }
@@ -33,7 +33,7 @@ export function buildPolygonGeometry(
   );
 
   for (const { id, polygon } of disjoint) {
-    const hexColor = polygons.find(v => v.id === id)?.color;
+    const hexColor = polygons.find((v) => v.id === id)?.color;
     const color = (hexColor !== undefined ? hexToRgb(hexColor) : options?.baseColor) ?? WHITE;
     const transformed = polygon.map(ringConversion);
     builder.addPolygon(transformed, { z, color, flip });
@@ -106,34 +106,26 @@ export function buildSlidingDoorGeometry(
   const flipX = ({ x, y }: Vec2) => ({ x: options.doorSize.x - x, y });
 
   const basePolygon = [rectToRing(baseRect)];
-  const holeRings = windowRings.map(v => v.outerRing ?? v.innerRing);
+  const holeRings = windowRings.map((v) => v.outerRing ?? v.innerRing);
 
   // ドア外面
-  buildPolygonGeometry(
-    builder,
-    outsidePaint,
-    {
-      basePolygon,
-      baseColor: frontColor,
-      holeRings,
-      z: frontZ,
-      coordinateConversion,
-    },
-  );
+  buildPolygonGeometry(builder, outsidePaint, {
+    basePolygon,
+    baseColor: frontColor,
+    holeRings,
+    z: frontZ,
+    coordinateConversion,
+  });
 
   // ドア内面
-  buildPolygonGeometry(
-    builder,
-    transformPolygons(insidePaint, flipX),
-    {
-      basePolygon,
-      baseColor: backColor,
-      holeRings,
-      z: backZ,
-      coordinateConversion,
-      flip: true,
-    },
-  );
+  buildPolygonGeometry(builder, transformPolygons(insidePaint, flipX), {
+    basePolygon,
+    baseColor: backColor,
+    holeRings,
+    z: backZ,
+    coordinateConversion,
+    flip: true,
+  });
 
   // ドア側面
   const path = [
@@ -145,17 +137,15 @@ export function buildSlidingDoorGeometry(
   if (direction === 'left') {
     path.push(...path.splice(0, 2));
   }
-  builder.addExtrudedSides(
-    path.map(coordinateConversion),
-    {
-      zRange: [frontZ, backZ],
-      color: frontColor,
-    },
-  );
+  builder.addExtrudedSides(path.map(coordinateConversion), {
+    zRange: [frontZ, backZ],
+    color: frontColor,
+  });
 
   // 戸先ゴム
   const rubberRootX = direction === 'right' ? baseRect.x : baseRect.x + baseRect.width;
-  const rubberTipX = direction === 'right' ? rubberRootX - rubberThickness : rubberRootX + rubberThickness;
+  const rubberTipX =
+    direction === 'right' ? rubberRootX - rubberThickness : rubberRootX + rubberThickness;
   buildRubberGeometry(
     builder,
     {

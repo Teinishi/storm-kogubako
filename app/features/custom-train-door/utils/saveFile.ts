@@ -1,6 +1,13 @@
 import type { PolygonEditorPolygon } from '~/features/polygon-editor';
+import {
+  buildDoorGeometry,
+  getFilenames,
+  createVisualComponent,
+  createLuaScript,
+  createCollisionComponent,
+  type DoorUnitFileNameSet,
+} from '../doorTypes';
 import type { TrainDoorState } from '../types';
-import { buildDoorGeometry, getFilenames, createVisualComponent, createLuaScript, createCollisionComponent, type DoorUnitFileNameSet } from '../doorTypes';
 
 export function createMeshFiles(
   state: DeepReadonly<TrainDoorState>,
@@ -18,7 +25,8 @@ export function createMeshFiles(
     const data = builder.toMeshData();
 
     const filename = filenames[id];
-    if (filename === undefined) throw new Error(`Unexpected Error: No mesh filename found for id "${id}".`);
+    if (filename === undefined)
+      throw new Error(`Unexpected Error: No mesh filename found for id "${id}".`);
 
     return { filename, data, mimetype: 'application/octet-stream' };
   });

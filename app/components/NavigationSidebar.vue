@@ -2,17 +2,19 @@
 import type { NavigationMenuItem } from '@nuxt/ui';
 
 const { t: gt } = useI18n({ useScope: 'global' });
-const { t: t } = useI18n();
+const { t } = useI18n();
 
 const open = useNavMenu();
 
 const items = computed<NavigationMenuItem[][]>(() => {
   return [
-    [{
-      icon: 'i-lucide-home',
-      label: t('home'),
-      to: '/',
-    }],
+    [
+      {
+        icon: 'i-lucide-home',
+        label: t('home'),
+        to: '/',
+      },
+    ],
     [
       {
         label: gt('web_tools_for_stormworks'),
@@ -40,10 +42,7 @@ const items = computed<NavigationMenuItem[][]>(() => {
 </script>
 
 <template>
-  <USidebar
-    v-model:open="open"
-    mode="slideover"
-  >
+  <USidebar v-model:open="open" mode="slideover">
     <UNavigationMenu
       :items="items"
       orientation="vertical"
@@ -55,9 +54,7 @@ const items = computed<NavigationMenuItem[][]>(() => {
       <LocaleSelect class="shrink" />
       <UColorModeSwitch />
     </div>
-    <p class="text-muted text-sm">
-      © 2026 Teinishi
-    </p>
+    <p class="text-muted text-sm">© 2026 Teinishi</p>
   </USidebar>
 </template>
 

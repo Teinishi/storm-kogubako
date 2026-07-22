@@ -1,17 +1,18 @@
 {
   "name": "storm-kogubako",
-  "type": "module",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
+    "lint": "oxlint . && eslint .",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
     "typecheck": "nuxt typecheck",
-    "check": "npm run lint && npm run typecheck"
+    "check": "npm run lint && npm run fmt:check && npm run typecheck"
   },
   "dependencies": {
     "@nuxt/ui": "^4.2.1",
@@ -22,7 +23,7 @@
     "earcut": "^3.2.3",
     "js-xxhash": "^5.0.1",
     "jszip": "^3.10.1",
-    "nuxt": "^4.2.2",
+    "nuxt": "^4.5.0",
     "polygon-clipping": "^0.15.7",
     "sw-mesh-viewer": "github:Teinishi/sw-mesh-viewer#v0.2.1",
     "three": "^0.185.1",
@@ -35,6 +36,10 @@
     "@types/earcut": "^3.0.0",
     "@types/three": "^0.185.1",
     "eslint": "^10.6.0",
+    "eslint-plugin-oxlint": "^1.75.0",
+    "oxfmt": "^0.60.0",
+    "oxlint": "^1.75.0",
+    "oxlint-tsgolint": "^7.0.2001",
     "ts-essentials": "^10.2.1",
     "typescript": "^6.0.3",
     "vue-tsc": "^3.3.7"

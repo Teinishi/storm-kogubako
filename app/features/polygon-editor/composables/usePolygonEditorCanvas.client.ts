@@ -1,10 +1,12 @@
 import type { Ref } from 'vue';
-import type { PolygonEditor } from './usePolygonEditor';
-import type { CanvasMetrics, PolygonEditorMirror, PolygonEditorPolygon, RenderHooks, ViewTransform } from '../types';
 import type {
-  HitEdge,
-  HitVertex,
-} from '../utils';
+  CanvasMetrics,
+  PolygonEditorMirror,
+  PolygonEditorPolygon,
+  RenderHooks,
+  ViewTransform,
+} from '../types';
+import type { HitEdge, HitVertex } from '../utils';
 import {
   worldToCanvas as worldToCanvasWithBounds,
   getViewTransform,
@@ -12,8 +14,11 @@ import {
   findHitPolygon as findHitPolygonInPolygons,
   findHitVertex as findHitVertexInPolygons,
   GRID_SCALE,
-  HANDLE_HIT_THRESHOLD_PX, withMirroredPolygons, getMirrorCenter,
+  HANDLE_HIT_THRESHOLD_PX,
+  withMirroredPolygons,
+  getMirrorCenter,
 } from '../utils';
+import type { PolygonEditor } from './usePolygonEditor';
 
 export type UsePolygonCanvasOptions = {
   canvasRef: Ref<HTMLCanvasElement | null>;
@@ -21,10 +26,7 @@ export type UsePolygonCanvasOptions = {
 };
 
 export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
-  const {
-    canvasRef,
-    editor,
-  } = options;
+  const { canvasRef, editor } = options;
   const {
     grid,
     logicalBounds,
@@ -97,7 +99,10 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
   }
 
   function findHitPolygon(point: Readonly<Vec2>) {
-    return findHitPolygonInPolygons(point, withMirroredPolygons(editorState.value, logicalBounds.value));
+    return findHitPolygonInPolygons(
+      point,
+      withMirroredPolygons(editorState.value, logicalBounds.value),
+    );
   }
 
   function renderGrid(ctx: CanvasRenderingContext2D, transform: Readonly<ViewTransform>) {
@@ -188,7 +193,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     ctx.save();
     ctx.beginPath();
 
-    drawPolygonOnCanvas(ctx, polygon.vertices, p => worldToCanvas(p, transform));
+    drawPolygonOnCanvas(ctx, polygon.vertices, (p) => worldToCanvas(p, transform));
 
     if (polygon.vertices.length >= 3) {
       ctx.closePath();
@@ -211,8 +216,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       ctx.setLineDash([7, 5]);
       ctx.stroke();
       ctx.setLineDash([]);
-    }
-    else if (stroke) {
+    } else if (stroke) {
       ctx.globalAlpha = 1;
       ctx.strokeStyle = polygon.color;
       ctx.lineWidth = 2.5;
@@ -222,7 +226,8 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
     if (vertices) {
       polygon.vertices.forEach((vertex, index) => {
         const canvasPoint = worldToCanvas(vertex, transform);
-        const isSelectedVertex = selectedPolygonId.value === polygon.id && selectedVertexIndex.value === index;
+        const isSelectedVertex =
+          selectedPolygonId.value === polygon.id && selectedVertexIndex.value === index;
 
         if (isSelectedVertex) {
           ctx.beginPath();
@@ -237,8 +242,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
           ctx.lineWidth = 2.5;
           ctx.fill();
           ctx.stroke();
-        }
-        else {
+        } else {
           ctx.beginPath();
           ctx.arc(canvasPoint.x, canvasPoint.y, 5, 0, Math.PI * 2);
           ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
@@ -270,8 +274,7 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       v1 = { x: center, y: bounds.minY };
       v2 = { x: center, y: bounds.maxY };
       ctx.strokeStyle = 'rgba(225, 61, 61, 0.7)';
-    }
-    else {
+    } else {
       v1 = { x: bounds.minX, y: center };
       v2 = { x: bounds.maxX, y: center };
       ctx.strokeStyle = 'rgba(62, 226, 58, 0.7)';
@@ -319,7 +322,10 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       worldToCanvas: (point: Vec2) => worldToCanvas(point, transform),
       worldRectToCanvas(rect: Rect) {
         let { x: x1, y: y1 } = worldToCanvas(rect, transform);
-        let { x: x2, y: y2 } = worldToCanvas({ x: rect.x + rect.width, y: rect.y + rect.height }, transform);
+        let { x: x2, y: y2 } = worldToCanvas(
+          { x: rect.x + rect.width, y: rect.y + rect.height },
+          transform,
+        );
         if (x2 < x1) {
           [x1, x2] = [x2, x1];
         }
@@ -341,12 +347,14 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
 
     const hasSelectedPolygon = selectedPolygonId.value !== null;
     const selectedPolygonItem = hasSelectedPolygon
-      ? editorState.value.polygons.find(polygon => polygon.id === selectedPolygonId.value) ?? null
+      ? (editorState.value.polygons.find((polygon) => polygon.id === selectedPolygonId.value) ??
+        null)
       : null;
 
     for (const polygon of withMirroredPolygons(editorState.value, logicalBounds.value)) {
       renderPolygon(ctx, transform, polygon, {
-        dimmed: hasSelectedPolygon && (polygon.isMirrorGhost || polygon.id !== selectedPolygonId.value),
+        dimmed:
+          hasSelectedPolygon && (polygon.isMirrorGhost || polygon.id !== selectedPolygonId.value),
       });
     }
 

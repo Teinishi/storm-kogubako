@@ -11,12 +11,16 @@ export interface SessionState {
 }
 
 export function toJson(sessionState: SessionState, pretty?: boolean) {
-  return JSON.stringify({
-    version: VERSION,
-    state: sessionState.state,
-    outsidePolygonEditorValue: sessionState.outsidePolygonEditorValue,
-    insidePolygonEditorValue: sessionState.insidePolygonEditorValue,
-  }, null, pretty ? 4 : undefined);
+  return JSON.stringify(
+    {
+      version: VERSION,
+      state: sessionState.state,
+      outsidePolygonEditorValue: sessionState.outsidePolygonEditorValue,
+      insidePolygonEditorValue: sessionState.insidePolygonEditorValue,
+    },
+    null,
+    pretty ? 4 : undefined,
+  );
 }
 
 // todo: fromJSON

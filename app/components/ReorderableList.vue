@@ -11,25 +11,31 @@ type ItemClickPayload = {
   index: number;
 };
 
-const props = withDefaults(defineProps<{
-  items: T[];
-  itemKey: string;
-  disabled?: boolean;
-  selectedKey?: K | null;
-  handleAriaLabel?: string;
-  containerClass?: string;
-  rowClass?: string;
-  selectedRowClass?: string;
-  defaultRowClass?: string;
-}>(), {
-  disabled: false,
-  selectedKey: null,
-  handleAriaLabel: 'Reorder',
-  containerClass: 'space-y-2',
-  rowClass: 'relative flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition',
-  selectedRowClass: 'border-primary-400 bg-primary-50 dark:border-primary-500 dark:bg-primary-950/30',
-  defaultRowClass: 'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800',
-});
+const props = withDefaults(
+  defineProps<{
+    items: T[];
+    itemKey: string;
+    disabled?: boolean;
+    selectedKey?: K | null;
+    handleAriaLabel?: string;
+    containerClass?: string;
+    rowClass?: string;
+    selectedRowClass?: string;
+    defaultRowClass?: string;
+  }>(),
+  {
+    disabled: false,
+    selectedKey: null,
+    handleAriaLabel: 'Reorder',
+    containerClass: 'space-y-2',
+    rowClass:
+      'relative flex w-full items-center gap-3 rounded-lg border px-3 py-2 text-left transition',
+    selectedRowClass:
+      'border-primary-400 bg-primary-50 dark:border-primary-500 dark:bg-primary-950/30',
+    defaultRowClass:
+      'border-gray-200 bg-white hover:bg-gray-50 dark:border-gray-800 dark:bg-gray-900 dark:hover:bg-gray-800',
+  },
+);
 
 const emit = defineEmits<{
   (event: 'reorder', payload: ReorderPayload): void;
@@ -64,7 +70,7 @@ function handleRowDragOver(event: DragEvent, index: number) {
 
   const target = event.currentTarget as HTMLElement | null;
   const rect = target?.getBoundingClientRect();
-  const isAfter = rect ? (event.clientY - rect.top) >= rect.height / 2 : false;
+  const isAfter = rect ? event.clientY - rect.top >= rect.height / 2 : false;
   const candidate = index + (isAfter ? 1 : 0);
   dragInsertIndex.value = Math.max(0, Math.min(candidate, props.items.length));
 
@@ -147,9 +153,11 @@ function handleListDrop(event: DragEvent) {
 }
 
 function showDragInsertLine(index: number) {
-  return dragInsertIndex.value !== null
-    && draggingFromIndex.value !== null
-    && dragInsertIndex.value === index;
+  return (
+    dragInsertIndex.value !== null &&
+    draggingFromIndex.value !== null &&
+    dragInsertIndex.value === index
+  );
 }
 
 function handleItemClick(item: T, index: number) {
@@ -161,27 +169,14 @@ function handleItemClick(item: T, index: number) {
 </script>
 
 <template>
-  <div
-    :class="containerClass"
-    @dragover="handleListDragOver"
-    @drop="handleListDrop"
-  >
-    <div
-      v-if="showDragInsertLine(0)"
-      class="pointer-events-none h-0 relative"
-    >
-      <span class="absolute inset-x-0 -top-1 h-0.5 rounded-full bg-primary-500" />
+  <div :class="containerClass" @dragover="handleListDragOver" @drop="handleListDrop">
+    <div v-if="showDragInsertLine(0)" class="pointer-events-none relative h-0">
+      <span class="bg-primary-500 absolute inset-x-0 -top-1 h-0.5 rounded-full" />
     </div>
 
-    <template
-      v-for="(item, index) in items"
-      :key="getItemKey(item)"
-    >
+    <template v-for="(item, index) in items" :key="getItemKey(item)">
       <button
-        :class="[
-          rowClass,
-          getItemKey(item) === selectedKey ? selectedRowClass : defaultRowClass,
-        ]"
+        :class="[rowClass, getItemKey(item) === selectedKey ? selectedRowClass : defaultRowClass]"
         data-reorder-row="true"
         type="button"
         @click="handleItemClick(item, index)"
@@ -198,23 +193,15 @@ function handleItemClick(item: T, index: number) {
           @dragend="clearDragState"
         >
           <slot name="handle">
-            <UIcon
-              name="i-lucide-grip-vertical"
-              class="block size-5"
-            />
+            <UIcon name="i-lucide-grip-vertical" class="block size-5" />
           </slot>
         </span>
 
-        <slot
-          name="item"
-          :item="item"
-          :index="index"
-          :key-value="getItemKey(item)"
-        />
+        <slot name="item" :item="item" :index="index" :key-value="getItemKey(item)" />
 
         <span
           v-if="showDragInsertLine(index + 1)"
-          class="pointer-events-none absolute -bottom-1.5 left-0 right-0 h-0.5 rounded-full bg-primary-500"
+          class="bg-primary-500 pointer-events-none absolute right-0 -bottom-1.5 left-0 h-0.5 rounded-full"
         />
       </button>
     </template>

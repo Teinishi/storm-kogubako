@@ -9,14 +9,19 @@ export function useImg2Paint() {
   const glowImageSize = computed(() => getImageSize(state.glowImage));
   const imageSizeMatched = computed(() => {
     if (!baseImageSize.value || !glowImageSize.value) return false;
-    return baseImageSize.value.width === glowImageSize.value.width && baseImageSize.value.height === glowImageSize.value.height;
+    return (
+      baseImageSize.value.width === glowImageSize.value.width &&
+      baseImageSize.value.height === glowImageSize.value.height
+    );
   });
 
-  const baseDrawData = computed(() => getDrawData(
-    state.baseResize.widthPixels,
-    state.baseResize.heightPixels,
-    state.baseResize.anchor,
-  ));
+  const baseDrawData = computed(() =>
+    getDrawData(
+      state.baseResize.widthPixels,
+      state.baseResize.heightPixels,
+      state.baseResize.anchor,
+    ),
+  );
 
   const glowOffset = computed(() => {
     const { x, y } = getAnchorOffset(

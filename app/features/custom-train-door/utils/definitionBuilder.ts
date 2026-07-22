@@ -39,7 +39,9 @@ function splitAttrsAndChildrenOfSurface(surface: DeepReadonly<Surface>) {
       { name: 'is_reverse_normals', value: surface.isReverseNormals },
       { name: 'is_two_sided', value: surface.isTwoSided },
     ],
-    children: surface.position ? [{ tagName: 'position', attrs: vec3ToAttrs(surface.position) }] : [],
+    children: surface.position
+      ? [{ tagName: 'position', attrs: vec3ToAttrs(surface.position) }]
+      : [],
   };
 }
 
@@ -52,7 +54,9 @@ function splitAttrsAndChildrenOfLogicNode(logicNode: DeepReadonly<LogicNode>) {
       { name: 'type', value: logicNode.type },
       { name: 'description', value: logicNode.description },
     ],
-    children: logicNode.position ? [{ tagName: 'position', attrs: vec3ToAttrs(logicNode.position) }] : [],
+    children: logicNode.position
+      ? [{ tagName: 'position', attrs: vec3ToAttrs(logicNode.position) }]
+      : [],
   };
 }
 
@@ -146,7 +150,11 @@ export class DefinitionBuilder {
     });
   }
 
-  private forCuboidSurfaces(from: Readonly<Vec3>, to: Readonly<Vec3>, callback: (from: Vec3, to: Vec3, orientation: number) => void) {
+  private forCuboidSurfaces(
+    from: Readonly<Vec3>,
+    to: Readonly<Vec3>,
+    callback: (from: Vec3, to: Vec3, orientation: number) => void,
+  ) {
     const min = minVec3(from, to);
     const max = maxVec3(from, to);
     callback({ ...min, x: max.x }, max, 0);
@@ -166,17 +174,32 @@ export class DefinitionBuilder {
 
     writer.begin('definition', this.attrs);
 
-    this.writeList(writer, 'surfaces', 'surface', this.surfaces.map(splitAttrsAndChildrenOfSurface));
-    this.writeList(writer, 'buoyancy_surfaces', 'surface', this.buoyancySurfaces.map(splitAttrsAndChildrenOfSurface));
-    this.writeList(writer, 'logic_nodes', 'logic_node', this.logicNodes.map(splitAttrsAndChildrenOfLogicNode));
+    this.writeList(
+      writer,
+      'surfaces',
+      'surface',
+      this.surfaces.map(splitAttrsAndChildrenOfSurface),
+    );
+    this.writeList(
+      writer,
+      'buoyancy_surfaces',
+      'surface',
+      this.buoyancySurfaces.map(splitAttrsAndChildrenOfSurface),
+    );
+    this.writeList(
+      writer,
+      'logic_nodes',
+      'logic_node',
+      this.logicNodes.map(splitAttrsAndChildrenOfLogicNode),
+    );
     this.writeList(writer, 'voxels', 'voxel', this.voxels.map(splitAttrsAndChildrenOfVoxel));
 
     const voxelBounds = this.getVoxelBounds();
     if (voxelBounds) {
-      if (this.elements.findIndex(e => e.tagName === 'voxel_min') === -1) {
+      if (this.elements.findIndex((e) => e.tagName === 'voxel_min') === -1) {
         writer.empty('voxel_min', vec3ToAttrs(voxelBounds.min));
       }
-      if (this.elements.findIndex(e => e.tagName === 'voxel_max') === -1) {
+      if (this.elements.findIndex((e) => e.tagName === 'voxel_max') === -1) {
         writer.empty('voxel_max', vec3ToAttrs(voxelBounds.max));
       }
     }
@@ -194,7 +217,9 @@ export class DefinitionBuilder {
     writer: XmlWriter,
     listName: string,
     itemName: string,
-    items: DeepReadonly<{ attrs?: XmlAttribute[]; children?: { tagName: string; attrs: XmlAttribute[] }[] }[]>,
+    items: DeepReadonly<
+      { attrs?: XmlAttribute[]; children?: { tagName: string; attrs: XmlAttribute[] }[] }[]
+    >,
   ) {
     if (items.length == 0) return;
 
@@ -202,7 +227,7 @@ export class DefinitionBuilder {
 
     for (const { attrs, children } of items) {
       writer.element(itemName, attrs, (writer) => {
-        for (const child of (children ?? [])) {
+        for (const child of children ?? []) {
           writer.empty(child.tagName, child.attrs);
         }
       });

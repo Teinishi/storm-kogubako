@@ -2,13 +2,11 @@ const vehicleXmlColor = ({ r, g, b }: Readonly<Color>, omitBlack: boolean) => {
   if (omitBlack && r === 0 && g === 0 && b === 0) {
     // 黒
     return '';
-  }
-  else if (r === 255 && g === 255 && b === 255) {
+  } else if (r === 255 && g === 255 && b === 255) {
     // 白
     return 'x';
-  }
-  else {
-    return (r << 16 | g << 8 | b).toString(16);
+  } else {
+    return ((r << 16) | (g << 8) | b).toString(16);
   }
 };
 
@@ -33,7 +31,7 @@ export interface PaintableSignConfig {
   minimizeIndicators?: boolean; // 発光しない部分は Indicator にしない
   logicLinks?: boolean;
   electricLinks?: boolean;
-};
+}
 
 export function generatePaintableSignVehicle(
   width: number,
@@ -47,7 +45,8 @@ export function generatePaintableSignVehicle(
   const blockOffsetX = Math.floor(-widthBlocks / 2);
   const blockOffsetZ = Math.floor(heightBlocks / 2);
 
-  let xml = '<?xml version="1.0" encoding="UTF-8"?><vehicle data_version="3" bodies_id="1"><authors/><bodies><body unique_id="1"><components>';
+  let xml =
+    '<?xml version="1.0" encoding="UTF-8"?><vehicle data_version="3" bodies_id="1"><authors/><bodies><body unique_id="1"><components>';
 
   const indicatorPositions: Vec3[] = [];
 
@@ -72,8 +71,7 @@ export function generatePaintableSignVehicle(
           if (!baseColor) {
             // ブロックの最初のピクセルなら色を記憶
             baseColor = color;
-          }
-          else if (isSingleColor) {
+          } else if (isSingleColor) {
             // 単色判定
             isSingleColor &&= colorEquals(baseColor, color);
           }
@@ -94,16 +92,13 @@ export function generatePaintableSignVehicle(
         const sc = colorStr === 'x' ? '6' : `6,x,x,${colorStr},x,x,x`;
         if (xmlVp.length === 0) {
           xml += `<c><o r="1,0,0,0,1,0,0,0,1" sc="${sc}"/></c>`;
-        }
-        else {
+        } else {
           xml += `<c><o r="1,0,0,0,1,0,0,0,1" sc="${sc}">${xmlVp}</o></c>`;
         }
-      }
-      else if (config?.minimizeIndicators && hasNoGlow) {
+      } else if (config?.minimizeIndicators && hasNoGlow) {
         // Paintable Sign を使用
         xml += `<c d="sign_na"><o r="1,0,0,0,1,0,0,0,1" sc="6" gc="${gc.join(',')}">${xmlVp}<logic_slots><slot/></logic_slots></o></c>`;
-      }
-      else {
+      } else {
         // Paintable Indicator を使用
         xml += `<c d="sign"><o r="1,0,0,0,1,0,0,0,1" sc="6" gc="${gc.join(',')}" gca="${gca.join(',')}">${xmlVp}<logic_slots><slot/></logic_slots></o></c>`;
         indicatorPositions.push(pos);
@@ -151,14 +146,12 @@ export function generatePaintableSignVehicle(
   // 配線の XML 生成
   if (logic_links.length === 0) {
     xml += '<logic_node_links/>';
-  }
-  else {
+  } else {
     xml += '<logic_node_links>';
     for (const link of logic_links) {
       if (link.type === 0) {
         xml += '<logic_node_link>';
-      }
-      else {
+      } else {
         xml += `<logic_node_link type="${link.type}">`;
       }
       xml += vehicleXmlVp(link.pos0, 'voxel_pos_0');
@@ -170,9 +163,15 @@ export function generatePaintableSignVehicle(
   xml += '</vehicle>\n';
 
   return xml;
-};
+}
 
-function getPixel(x: number, y: number, width: number, height: number, image: DeepReadonly<ImageDataArray>) {
+function getPixel(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  image: DeepReadonly<ImageDataArray>,
+) {
   if (x < 0 || width <= x || y < 0 || height <= y) {
     return null;
   }

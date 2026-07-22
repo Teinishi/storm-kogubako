@@ -7,7 +7,7 @@ const { t } = useI18n({ useScope: 'local' });
     <section class="space-y-3">
       <ol class="list-decimal space-y-2 pl-5 text-sm leading-6">
         <li>
-          {{ t('install.step1') }}<br>
+          {{ t('install.step1') }}<br />
           {{ t('install.destination') }}
           <CopyableText text="%AppData%\Stormworks\data\vehicles" />
         </li>
@@ -17,52 +17,37 @@ const { t } = useI18n({ useScope: 'local' });
     </section>
 
     <section class="space-y-3">
-      <div class="rounded-lg border border-info-300 bg-info-50 text-info p-4 space-y-3">
+      <div class="border-info-300 bg-info-50 text-info space-y-3 rounded-lg border p-4">
         <div class="flex items-start gap-3">
-          <UIcon
-            name="i-lucide-info"
-            class="mt-0.5 size-5"
-          />
+          <UIcon name="i-lucide-info" class="mt-0.5 size-5" />
           <p class="text-sm">
             {{ t('notes.modded') }}
           </p>
         </div>
 
         <div class="flex items-start gap-3">
-          <UIcon
-            name="i-lucide-eye-off"
-            class="mt-0.5 size-5"
-          />
+          <UIcon name="i-lucide-eye-off" class="mt-0.5 size-5" />
           <p class="text-sm">
             {{ t('notes.invisible') }}
           </p>
         </div>
 
         <div class="flex items-start gap-3">
-          <UIcon
-            name="i-lucide-square-dashed"
-            class="mt-0.5 size-5"
-          />
+          <UIcon name="i-lucide-square-dashed" class="mt-0.5 size-5" />
           <p class="text-sm">
             {{ t('notes.collision') }}
           </p>
         </div>
 
         <div class="flex items-start gap-3">
-          <UIcon
-            name="i-lucide-workflow"
-            class="mt-0.5 size-5"
-          />
+          <UIcon name="i-lucide-workflow" class="mt-0.5 size-5" />
           <p class="text-sm">
             {{ t('notes.position') }}
           </p>
         </div>
 
         <div class="flex items-start gap-3">
-          <UIcon
-            name="i-lucide-check-circle"
-            class="mt-0.5 size-5"
-          />
+          <UIcon name="i-lucide-check-circle" class="mt-0.5 size-5" />
           <p class="text-sm">
             {{ t('notes.bool') }}
           </p>

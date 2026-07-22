@@ -4,7 +4,7 @@ import * as locales from '@nuxt/ui/locale';
 const { locale } = useI18n();
 
 useHead({
-  titleTemplate: titleChunk => titleChunk ? `${titleChunk} - Storm Kogubako` : 'Storm Kogubako',
+  titleTemplate: (titleChunk) => (titleChunk ? `${titleChunk} - Storm Kogubako` : 'Storm Kogubako'),
 });
 </script>
 

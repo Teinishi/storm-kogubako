@@ -41,22 +41,12 @@ watch(file, loadFile);
 
 <template>
   <UFormField :label="props.label">
-    <UFileUpload
-      v-slot="{ open, removeFile }"
-      v-model="file"
-      accept="image/*"
-    >
+    <UFileUpload v-slot="{ open, removeFile }" v-model="file" accept="image/*">
       <div class="flex flex-wrap items-center gap-3">
-        <UAvatar
-          size="lg"
-          :src="imgUrl"
-          icon="i-lucide-image"
-        />
+        <UAvatar size="lg" :src="imgUrl" icon="i-lucide-image" />
 
         <template v-if="file">
-          <span
-            class="text-xs text-muted"
-          >{{ file.name }}</span>
+          <span class="text-muted text-xs">{{ file.name }}</span>
 
           <UButton
             v-if="props.removable"
@@ -64,7 +54,10 @@ watch(file, loadFile);
             icon="i-lucide-trash"
             variant="ghost"
             size="xs"
-            @click="removeFile(); loadFile(null)"
+            @click="
+              removeFile();
+              loadFile(null);
+            "
           />
         </template>
 

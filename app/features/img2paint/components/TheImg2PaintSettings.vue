@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import AnchorSettings from './AnchorSettings.vue';
-import ResizeSettings from './ResizeSettings.vue';
 import type { Img2PaintState } from '../types';
 import { type DrawData, adjustAdditiveImage, convertAdditiveImage } from '../utils';
+import AnchorSettings from './AnchorSettings.vue';
+import ResizeSettings from './ResizeSettings.vue';
 
 const { t } = useI18n({ useScope: 'local' });
 
@@ -23,19 +23,21 @@ const separateSettings = computed(() => state.value.glowImage && !props.imageSiz
 
 const marginExists = computed(() => {
   const { offset, canvasWidth, canvasHeight } = props.baseDrawData;
-  return offset.x !== 0
-    || offset.y !== 0
-    || canvasWidth !== state.value.baseResize.widthPixels
-    || canvasHeight !== state.value.baseResize.heightPixels;
+  return (
+    offset.x !== 0 ||
+    offset.y !== 0 ||
+    canvasWidth !== state.value.baseResize.widthPixels ||
+    canvasHeight !== state.value.baseResize.heightPixels
+  );
 });
 
 // 詳細設定の表示/非表示
 const detailCollapsing = ref<string | string[]>([]);
 watchEffect(() => {
   if (
-    (props.baseImageSize && !props.baseImageSize.isMultiplesOf9)
-    || (props.glowImageSize && !props.glowImageSize.isMultiplesOf9)
-    || separateSettings.value
+    (props.baseImageSize && !props.baseImageSize.isMultiplesOf9) ||
+    (props.glowImageSize && !props.glowImageSize.isMultiplesOf9) ||
+    separateSettings.value
   ) {
     detailCollapsing.value = '0';
   }
@@ -108,12 +110,9 @@ function updateGlowImage(image: HTMLImageElement | null) {
       </FormCard>
     </template>
 
-    <div
-      v-show="state.baseImage"
-      class="flex flex-col gap-4"
-    >
+    <div v-show="state.baseImage" class="flex flex-col gap-4">
       <FormCard>
-        <h2 class="font-bold text-lg">
+        <h2 class="text-lg font-bold">
           {{ t('image_file') }}
         </h2>
 
@@ -131,11 +130,7 @@ function updateGlowImage(image: HTMLImageElement | null) {
             @update:image="updateGlowImage"
           />
 
-          <USwitch
-            v-if="state.glowImage"
-            v-model="state.adjustGlow"
-            :label="t('adjust_glow')"
-          />
+          <USwitch v-if="state.glowImage" v-model="state.adjustGlow" :label="t('adjust_glow')" />
         </div>
 
         <UAlert
@@ -148,10 +143,7 @@ function updateGlowImage(image: HTMLImageElement | null) {
         />
       </FormCard>
 
-      <UAccordion
-        v-model="detailCollapsing"
-        :items="[{ label: t('advanced_settings') }]"
-      >
+      <UAccordion v-model="detailCollapsing" :items="[{ label: t('advanced_settings') }]">
         <template #body>
           <div class="flex flex-col gap-4">
             <ResizeSettings
@@ -176,14 +168,11 @@ function updateGlowImage(image: HTMLImageElement | null) {
                 :image-size="glowImageSize"
               />
 
-              <AnchorSettings
-                v-model="state.glowResize.anchor"
-                :label="t('position_glow')"
-              />
+              <AnchorSettings v-model="state.glowResize.anchor" :label="t('position_glow')" />
             </template>
 
             <FormCard v-show="marginExists">
-              <h2 class="font-bold text-lg">
+              <h2 class="text-lg font-bold">
                 {{ t('background') }}
               </h2>
 
@@ -198,53 +187,31 @@ function updateGlowImage(image: HTMLImageElement | null) {
       </UAccordion>
 
       <UModal :title="t('save_vehicle_xml')">
-        <UButton
-          block
-          size="xl"
-          color="primary"
-          class="mt-auto"
-        >
+        <UButton block size="xl" color="primary" class="mt-auto">
           {{ t('save_vehicle_xml') }}
         </UButton>
 
-        <template
-          #body="{ close }"
-        >
+        <template #body="{ close }">
           <div class="space-y-4">
-            <USwitch
-              v-model="state.minimizeSigns"
-              :label="t('minimize_signs')"
-            />
+            <USwitch v-model="state.minimizeSigns" :label="t('minimize_signs')" />
             <template v-if="state.glowImage">
-              <USwitch
-                v-model="state.minimizeIndicators"
-                :label="t('minimize_indicators')"
-              />
-              <USwitch
-                v-model="state.enableLogicLinks"
-                :label="t('logic_links_enabled')"
-              />
-              <USwitch
-                v-model="state.enableEletricLinks"
-                :label="t('electric_links_enabled')"
-              />
+              <USwitch v-model="state.minimizeIndicators" :label="t('minimize_indicators')" />
+              <USwitch v-model="state.enableLogicLinks" :label="t('logic_links_enabled')" />
+              <USwitch v-model="state.enableEletricLinks" :label="t('electric_links_enabled')" />
             </template>
 
             <div class="flex gap-4">
-              <UFormField
-                class="grow"
-                :label="t('file_name')"
-              >
-                <UInput
-                  v-model="state.saveFileName"
-                  class="w-full"
-                />
+              <UFormField class="grow" :label="t('file_name')">
+                <UInput v-model="state.saveFileName" class="w-full" />
               </UFormField>
 
               <UButton
                 class="self-end"
                 icon="i-lucide-download"
-                @click="emit('saveVehicle'); close()"
+                @click="
+                  emit('saveVehicle');
+                  close();
+                "
               >
                 {{ t('save_file') }}
               </UButton>

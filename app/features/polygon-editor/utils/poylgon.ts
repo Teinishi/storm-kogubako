@@ -1,7 +1,11 @@
 import type { LogicalBounds } from '../types';
 import { clampToLogicalBounds } from './bounds';
 
-export function createRectangleVertices(start: Readonly<Vec2>, end: Readonly<Vec2>, bounds: Readonly<LogicalBounds>) {
+export function createRectangleVertices(
+  start: Readonly<Vec2>,
+  end: Readonly<Vec2>,
+  bounds: Readonly<LogicalBounds>,
+) {
   const clampedStart = clampToLogicalBounds(start, bounds);
   const clampedEnd = clampToLogicalBounds(end, bounds);
   const minX = Math.min(clampedStart.x, clampedEnd.x);

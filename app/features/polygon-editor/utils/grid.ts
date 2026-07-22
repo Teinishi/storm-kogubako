@@ -8,15 +8,18 @@ export interface PolygonEditorGrid {
   minorDivisions: number;
 }
 
-export function snapPointWithGrid(point: Readonly<Vec2>, grid: Readonly<PolygonEditorGrid>, bounds?: Readonly<LogicalBounds>) {
+export function snapPointWithGrid(
+  point: Readonly<Vec2>,
+  grid: Readonly<PolygonEditorGrid>,
+  bounds?: Readonly<LogicalBounds>,
+) {
   let p;
   if (!grid.enabled) {
     p = {
       x: roundCoordinate(point.x),
       y: roundCoordinate(point.y),
     };
-  }
-  else {
+  } else {
     const step = 1 / Math.max(1, grid.minorDivisions);
     p = {
       x: roundCoordinate(Math.round(point.x / step) * step),

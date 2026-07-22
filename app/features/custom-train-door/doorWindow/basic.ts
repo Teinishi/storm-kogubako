@@ -31,7 +31,10 @@ export interface GetSingleWindowPolygonOptions {
   flipWidth?: number;
 }
 
-export function getSingleWindowPolygon(baseRect: Readonly<Rect>, options: DeepReadonly<GetSingleWindowPolygonOptions>): WindowRingSet {
+export function getSingleWindowPolygon(
+  baseRect: Readonly<Rect>,
+  options: DeepReadonly<GetSingleWindowPolygonOptions>,
+): WindowRingSet {
   const frameThickness = options.frameThickness ?? 0;
 
   const rect = getSingleWindowRect(baseRect, options.windowSize, options.offset);
@@ -61,15 +64,18 @@ export function drawWindowsOnCanvas(
   const { ctx } = args;
 
   // 窓描画
-  drawWindows(args, windowRings.map(({ innerRing }) => innerRing));
+  drawWindows(
+    args,
+    windowRings.map(({ innerRing }) => innerRing),
+  );
 
   // 窓枠描画
   ctx.fillStyle = frameColor;
   for (const { innerRing, outerRing } of windowRings) {
     if (!outerRing) continue;
     ctx.beginPath();
-    drawPolygonOnCanvas(ctx, innerRing, args.worldToCanvas);
-    drawPolygonOnCanvas(ctx, outerRing, args.worldToCanvas);
+    drawPolygonOnCanvas(ctx, innerRing, (v) => args.worldToCanvas(v));
+    drawPolygonOnCanvas(ctx, outerRing, (v) => args.worldToCanvas(v));
     ctx.closePath();
     ctx.fill('evenodd');
   }
@@ -87,7 +93,7 @@ export function buildWindowGeometry(
   windowRings: DeepReadonly<WindowRingSet>,
   options: DeepReadonly<BuildWindowGeomtryOptions>,
 ) {
-  const posConversion = options?.coordinateConversion ?? (p => ({ x: p.x, y: p.y, z: 0 }));
+  const posConversion = options?.coordinateConversion ?? ((p) => ({ x: p.x, y: p.y, z: 0 }));
   function ringConversion(ring: readonly Readonly<Vec2>[]) {
     return ring.map(posConversion);
   }

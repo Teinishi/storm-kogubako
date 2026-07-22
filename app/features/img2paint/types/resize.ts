@@ -1,4 +1,8 @@
-import { createDefaultBaseAnchorState, createDefaultGlowAnchorState, type AnchorState } from './anchor';
+import {
+  createDefaultBaseAnchorState,
+  createDefaultGlowAnchorState,
+  type AnchorState,
+} from './anchor';
 
 export interface ResizeState {
   sizeType: 'block' | 'pixel' | 'percent';

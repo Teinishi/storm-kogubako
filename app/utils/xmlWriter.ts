@@ -39,9 +39,7 @@ export class XmlWriter {
     }
 
     if (expected !== name) {
-      throw new Error(
-        `Mismatched closing tag: expected </${expected}> but got </${name}>.`,
-      );
+      throw new Error(`Mismatched closing tag: expected </${expected}> but got </${name}>.`);
     }
 
     this.writeLine(`</${name}>`);
@@ -51,13 +49,16 @@ export class XmlWriter {
     this.writeLine(`<${name}${this.formatAttributes(attributes)}/>`);
   }
 
-  element(name: string, attributes: DeepReadonly<XmlAttribute[]> | undefined, children: (writer: XmlWriter) => void) {
+  element(
+    name: string,
+    attributes: DeepReadonly<XmlAttribute[]> | undefined,
+    children: (writer: XmlWriter) => void,
+  ) {
     const childrenWriter = new XmlWriter(this.pretty, false);
     children(childrenWriter);
     if (childrenWriter.lines.length === 0) {
       this.empty(name, attributes);
-    }
-    else {
+    } else {
       this.begin(name, attributes);
       for (const line of childrenWriter.lines) {
         this.writeLine(line);
@@ -72,9 +73,7 @@ export class XmlWriter {
 
   toString(): string {
     if (this.elementStack.length > 0) {
-      throw new Error(
-        `Unclosed element(s): ${this.elementStack.join(' -> ')}`,
-      );
+      throw new Error(`Unclosed element(s): ${this.elementStack.join(' -> ')}`);
     }
 
     return this.lines.concat('').join(this.pretty ? '\n' : '');
@@ -83,8 +82,7 @@ export class XmlWriter {
   private writeLine(line: string): void {
     if (!this.pretty) {
       this.lines.push(line);
-    }
-    else {
+    } else {
       this.lines.push(this.indentString.repeat(this.elementStack.length) + line);
     }
   }
