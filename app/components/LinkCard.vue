@@ -40,7 +40,7 @@ const description_text = computed(() =>
         <div class="flex justify-end">
           <span class="flex items-center gap-1 text-xs font-medium">
             {{ t('try_now') }}
-            <UIcon name="i-heroicons-arrow-right" class="size-3" />
+            <UIcon name="i-lucide-arrow-right" class="size-3" />
           </span>
         </div>
       </template>
