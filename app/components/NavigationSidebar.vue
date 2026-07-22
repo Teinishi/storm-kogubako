@@ -2,7 +2,7 @@
 import type { NavigationMenuItem } from '@nuxt/ui';
 
 const { t: gt } = useI18n({ useScope: 'global' });
-const { t: t } = useI18n();
+const { t } = useI18n();
 
 const open = useNavMenu();
 

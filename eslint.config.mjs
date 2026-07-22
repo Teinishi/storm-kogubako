@@ -1,3 +1,4 @@
+import oxlint from 'eslint-plugin-oxlint';
 // @ts-check
 import withNuxt from './.nuxt/eslint.config.mjs';
 
@@ -15,4 +16,4 @@ export default withNuxt({
       },
     ],
   },
-});
+}).prepend(oxlint.configs['flat/recommended']);
