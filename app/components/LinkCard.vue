@@ -5,8 +5,11 @@ const props = defineProps<{
   icon: any;
   title: string | Record<string, string>;
   description: string | Record<string, string>;
+  tags?: string[];
+  isBeta?: boolean;
 }>();
 
+const { t: gt } = useI18n({ useScope: 'global' });
 const { t, locale } = useI18n({ useScope: 'local' });
 
 const title_text = computed(() =>
@@ -24,11 +27,16 @@ const description_text = computed(() =>
       :ui="{ root: 'flex flex-col', body: 'flex-1' }"
     >
       <template #header>
-        <div class="flex items-center gap-3">
-          <UIcon :name="icon" class="size-8" />
-          <h3 class="text-lg font-semibold">
-            {{ title_text }}
-          </h3>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <UIcon :name="icon" class="size-8" />
+            <h3 class="text-lg font-semibold">
+              {{ title_text }}
+            </h3>
+            <CommonBadge v-if="isBeta" color="green">{{ gt('beta') }}</CommonBadge>
+          </div>
+
+          <ToolBadges :badges="tags" />
         </div>
       </template>
 

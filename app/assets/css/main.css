@@ -1,18 +1,19 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
+@import './generated-theme.css';
 
 @theme static {
-  --color-stormwork-blue-50: #f1f9fa;
-  --color-stormwork-blue-100: #dbecf2;
-  --color-stormwork-blue-200: #bbdbe6;
-  --color-stormwork-blue-300: #8bc0d5;
-  --color-stormwork-blue-400: #559ebb;
-  --color-stormwork-blue-500: #4091b4;
-  --color-stormwork-blue-600: #326a88;
-  --color-stormwork-blue-700: #2e5870;
-  --color-stormwork-blue-800: #2d4b5d;
-  --color-stormwork-blue-900: #293f50;
-  --color-stormwork-blue-950: #172835;
+  --color-stormworks-blue-50: #f1f9fa;
+  --color-stormworks-blue-100: #dbecf2;
+  --color-stormworks-blue-200: #bbdbe6;
+  --color-stormworks-blue-300: #8bc0d5;
+  --color-stormworks-blue-400: #559ebb;
+  --color-stormworks-blue-500: #4091b4;
+  --color-stormworks-blue-600: #326a88;
+  --color-stormworks-blue-700: #2e5870;
+  --color-stormworks-blue-800: #2d4b5d;
+  --color-stormworks-blue-900: #293f50;
+  --color-stormworks-blue-950: #172835;
 
   --color-stormworks-orange-50: #faf5f2;
   --color-stormworks-orange-100: #f4e9e0;
