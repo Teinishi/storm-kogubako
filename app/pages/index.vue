@@ -23,6 +23,7 @@ const { t } = useI18n({ useScope: 'local' });
         :to="toolData.to"
         :icon="toolData.icon"
         :tags="toolData.tags"
+        :is-beta="toolData.isBeta"
       />
     </div>
 
@@ -41,6 +42,7 @@ const { t } = useI18n({ useScope: 'local' });
         :to="toolData.to"
         :icon="toolData.icon"
         :tags="toolData.tags"
+        :is-beta="toolData.isBeta"
       />
     </div>
   </UContainer>

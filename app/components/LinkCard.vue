@@ -6,6 +6,7 @@ const props = defineProps<{
   title: string | Record<string, string>;
   description: string | Record<string, string>;
   tags?: string[];
+  isBeta?: boolean;
 }>();
 
 const { t, locale } = useI18n({ useScope: 'local' });
@@ -31,6 +32,7 @@ const description_text = computed(() =>
             <h3 class="text-lg font-semibold">
               {{ title_text }}
             </h3>
+            <CommonBadge v-if="isBeta" color="green">Beta</CommonBadge>
           </div>
 
           <ToolBadges :badges="tags" />
