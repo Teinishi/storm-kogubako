@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import tailwindColors from 'tailwindcss/colors';
-import themeColors from '~/themeColors/themeColors.json';
+import themeColors from '~/theme-colors.json';
 
 export type ColorName = keyof typeof themeColors | keyof typeof tailwindColors;
 
@@ -18,7 +18,7 @@ const style = computed(() => {
 
   let c;
   if (colorName === 'primary' || colorName === 'secondary') {
-    c = themeColors[colorName];
+    c = themeColors[colorName].shades;
   } else {
     c = tailwindColors[colorName];
   }

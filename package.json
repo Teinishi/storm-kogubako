@@ -34,6 +34,7 @@
     "@iconify-json/lucide": "^1.2.80",
     "@nuxt/eslint": "^1.12.1",
     "@types/earcut": "^3.0.0",
+    "@types/node": "^26.1.1",
     "@types/three": "^0.185.1",
     "eslint": "^10.6.0",
     "eslint-plugin-oxlint": "^1.75.0",

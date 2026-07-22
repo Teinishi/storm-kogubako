@@ -1,7 +1,7 @@
 export default defineAppConfig({
   ui: {
     colors: {
-      primary: 'stormwork-blue',
+      primary: 'stormworks-blue',
       secondary: 'stormworks-orange',
     },
   },
