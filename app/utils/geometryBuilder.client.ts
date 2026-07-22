@@ -1,5 +1,5 @@
-import { type BufferGeometry, BufferAttribute } from 'three';
 import * as earcut from 'earcut';
+import { type BufferGeometry, BufferAttribute } from 'three';
 import { createMeshFile } from './meshWriter';
 
 const DEFAULT_OPAQUE_COLOR = WHITE;
@@ -49,7 +49,7 @@ function getVertexFromFlat(flatVertices: readonly number[], index: number): Vec3
 }
 
 function vec2RingToTuple(ring: DeepReadonly<Vec2[]>, z?: number) {
-  return ring.map(p => z === undefined ? [p.x, p.y] : [p.x, p.y, z]);
+  return ring.map((p) => (z === undefined ? [p.x, p.y] : [p.x, p.y, z]));
 }
 
 interface GeometryGroup {
@@ -89,7 +89,11 @@ export class GeometryBuilder {
     this.refine = options?.refine ?? false;
   }
 
-  private addCoplanarTriangles(flatVertices: readonly number[], indices: readonly number[], options?: DeepReadonly<AddFaceOptions>) {
+  private addCoplanarTriangles(
+    flatVertices: readonly number[],
+    indices: readonly number[],
+    options?: DeepReadonly<AddFaceOptions>,
+  ) {
     if (indices.length < 3) {
       throw new Error('Indices must have at least 3 vertices.');
     }
@@ -101,11 +105,9 @@ export class GeometryBuilder {
     let color: Color = DEFAULT_OPAQUE_COLOR;
     if (options?.color) {
       color = options.color;
-    }
-    else if (materialIndex === 1) {
+    } else if (materialIndex === 1) {
       color = DEFAULT_GLASS_COLOR;
-    }
-    else if (materialIndex === 2) {
+    } else if (materialIndex === 2) {
       color = DEFAULT_ADDITIVE_COLOR;
     }
     const red = color.r / 255;
@@ -136,8 +138,7 @@ export class GeometryBuilder {
       const tri = indices.slice(i, i + 3);
       if (options?.flip) {
         this.indices.push(base + tri[0]!, base + tri[2]!, base + tri[1]!);
-      }
-      else {
+      } else {
         this.indices.push(base + tri[0]!, base + tri[1]!, base + tri[2]!);
       }
     }
@@ -145,8 +146,7 @@ export class GeometryBuilder {
     const prevGroup = this.groups[this.groups.length - 1];
     if (prevGroup?.materialIndex === materialIndex) {
       prevGroup.length = this.indices.length - prevGroup.start;
-    }
-    else {
+    } else {
       this.groups.push({
         start: groupStart,
         length: this.indices.length - groupStart,
@@ -156,7 +156,10 @@ export class GeometryBuilder {
   }
 
   // 凸多角形面
-  addFace(vertices: DeepReadonly<Vec3[]>, options?: number | Readonly<Color> | DeepReadonly<AddFaceOptions>) {
+  addFace(
+    vertices: DeepReadonly<Vec3[]>,
+    options?: number | Readonly<Color> | DeepReadonly<AddFaceOptions>,
+  ) {
     if (vertices.length < 3) {
       return;
     }
@@ -164,11 +167,9 @@ export class GeometryBuilder {
     const normalizedOptions: AddFaceOptions = {};
     if (typeof options === 'number') {
       normalizedOptions.materialIndex = options;
-    }
-    else if (options !== undefined && 'r' in options) {
+    } else if (options !== undefined && 'r' in options) {
       normalizedOptions.color = options;
-    }
-    else {
+    } else {
       Object.assign(normalizedOptions, options);
     }
 
@@ -177,7 +178,7 @@ export class GeometryBuilder {
       indices.push(0, i + 1, i + 2);
     }
 
-    const flatVertices = vertices.flatMap(v => [v.x, v.y, v.z]);
+    const flatVertices = vertices.flatMap((v) => [v.x, v.y, v.z]);
 
     this.addCoplanarTriangles(flatVertices, indices, normalizedOptions);
   }
@@ -186,7 +187,7 @@ export class GeometryBuilder {
   addPolygon(polygon: DeepReadonly<Vec2[][]>, options?: DeepReadonly<AddPolygonOptions>) {
     const z = options?.z ?? 0;
 
-    const data = earcut.flatten(polygon.map(ring => vec2RingToTuple(ring, z)));
+    const data = earcut.flatten(polygon.map((ring) => vec2RingToTuple(ring, z)));
     const indices = earcut.default(data.vertices, data.holes, data.dimensions);
     if (this.refine) {
       earcut.refine(indices, data.vertices, data.dimensions);
@@ -285,44 +286,44 @@ export class GeometryBuilder {
       });
     }
 
-    const submeshes = this.groups.map(({ start, length, materialIndex }, i) => {
-      let boundsMin, boundsMax;
-      for (const j of indices.slice(start, start + length)) {
-        if (j < 0 || vertexCount <= j) continue;
-        const x = positions[3 * j]!;
-        const y = positions[3 * j + 1]!;
-        const z = positions[3 * j + 2]!;
+    const submeshes = this.groups
+      .map(({ start, length, materialIndex }, i) => {
+        let boundsMin, boundsMax;
+        for (const j of indices.slice(start, start + length)) {
+          if (j < 0 || vertexCount <= j) continue;
+          const x = positions[3 * j]!;
+          const y = positions[3 * j + 1]!;
+          const z = positions[3 * j + 2]!;
 
-        if (!boundsMin) {
-          boundsMin = { x, y, z };
-        }
-        else {
-          boundsMin.x = Math.min(boundsMin.x, x);
-          boundsMin.y = Math.min(boundsMin.y, y);
-          boundsMin.z = Math.min(boundsMin.z, z);
+          if (!boundsMin) {
+            boundsMin = { x, y, z };
+          } else {
+            boundsMin.x = Math.min(boundsMin.x, x);
+            boundsMin.y = Math.min(boundsMin.y, y);
+            boundsMin.z = Math.min(boundsMin.z, z);
+          }
+
+          if (!boundsMax) {
+            boundsMax = { x, y, z };
+          } else {
+            boundsMax.x = Math.max(boundsMax.x, x);
+            boundsMax.y = Math.max(boundsMax.y, y);
+            boundsMax.z = Math.max(boundsMax.z, z);
+          }
         }
 
-        if (!boundsMax) {
-          boundsMax = { x, y, z };
-        }
-        else {
-          boundsMax.x = Math.max(boundsMax.x, x);
-          boundsMax.y = Math.max(boundsMax.y, y);
-          boundsMax.z = Math.max(boundsMax.z, z);
-        }
-      }
+        if (!boundsMin || !boundsMax) return null;
 
-      if (!boundsMin || !boundsMax) return null;
-
-      return {
-        indexBufferStart: start,
-        indexBufferLength: length,
-        shaderId: materialIndex,
-        boundsMin,
-        boundsMax,
-        name: `material-${i}`,
-      };
-    }).filter(v => v !== null);
+        return {
+          indexBufferStart: start,
+          indexBufferLength: length,
+          shaderId: materialIndex,
+          boundsMin,
+          boundsMax,
+          name: `material-${i}`,
+        };
+      })
+      .filter((v) => v !== null);
 
     const data = {
       kind: 'mesh' as const,

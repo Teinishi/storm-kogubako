@@ -8,8 +8,7 @@ export function drawPolygonOnCanvas(
     const p = coordinateConversion ? coordinateConversion(point) : point;
     if (i === 0) {
       ctx.moveTo(p.x, p.y);
-    }
-    else {
+    } else {
       ctx.lineTo(p.x, p.y);
     }
   });

@@ -1,19 +1,22 @@
 <script setup lang="ts">
-import PolygonEditorCanvas from './PolygonEditorCanvas.client.vue';
-import PolygonEditorSidebar from './PolygonEditorSidebar.vue';
 import { usePolygonEditor, providePolygonEditor } from '../composables';
 import type { LogicalBounds, PolygonEditorValue, RenderHooks } from '../types';
 import type { PolygonEditorGrid } from '../utils';
+import PolygonEditorCanvas from './PolygonEditorCanvas.client.vue';
+import PolygonEditorSidebar from './PolygonEditorSidebar.vue';
 
-const props = withDefaults(defineProps<{
-  logicalBounds: LogicalBounds;
-  disabled?: boolean;
-  readonly?: boolean;
-  renderHooks?: RenderHooks;
-}>(), {
-  disabled: false,
-  readonly: false,
-});
+const props = withDefaults(
+  defineProps<{
+    logicalBounds: LogicalBounds;
+    disabled?: boolean;
+    readonly?: boolean;
+    renderHooks?: RenderHooks;
+  }>(),
+  {
+    disabled: false,
+    readonly: false,
+  },
+);
 
 const emit = defineEmits<{
   (event: 'change', value: PolygonEditorValue): void;
@@ -38,7 +41,7 @@ const editor = usePolygonEditor({
   props,
   grid,
   model,
-  emitChange: snapshot => emit('change', snapshot),
+  emitChange: (snapshot) => emit('change', snapshot),
   renderCanvas,
 });
 
@@ -50,18 +53,18 @@ defineExpose({ renderCanvas });
 </script>
 
 <template>
-  <div class="flex flex-col lg:flex-row gap-4">
+  <div class="flex flex-col gap-4 lg:flex-row">
     <ClientOnly>
       <PolygonEditorCanvas
         ref="canvas"
-        class="min-h-80 max-h-[80vh] lg:max-h-none lg:flex-1"
+        class="max-h-[80vh] min-h-80 lg:max-h-none lg:flex-1"
         :render-hooks="renderHooks"
       />
     </ClientOnly>
     <PolygonEditorSidebar
       v-model:grid-enabled="gridEnabled"
       v-model:grid-minior-divisions="gridMiniorDivisions"
-      class="lg:overflow-y-scroll lg:w-88"
+      class="lg:w-88 lg:overflow-y-scroll"
     />
   </div>
 </template>

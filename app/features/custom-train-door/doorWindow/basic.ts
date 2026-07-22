@@ -31,7 +31,10 @@ export interface GetSingleWindowPolygonOptions {
   flipWidth?: number;
 }
 
-export function getSingleWindowPolygon(baseRect: Readonly<Rect>, options: DeepReadonly<GetSingleWindowPolygonOptions>): WindowRingSet {
+export function getSingleWindowPolygon(
+  baseRect: Readonly<Rect>,
+  options: DeepReadonly<GetSingleWindowPolygonOptions>,
+): WindowRingSet {
   const frameThickness = options.frameThickness ?? 0;
 
   const rect = getSingleWindowRect(baseRect, options.windowSize, options.offset);
@@ -61,7 +64,10 @@ export function drawWindowsOnCanvas(
   const { ctx } = args;
 
   // 窓描画
-  drawWindows(args, windowRings.map(({ innerRing }) => innerRing));
+  drawWindows(
+    args,
+    windowRings.map(({ innerRing }) => innerRing),
+  );
 
   // 窓枠描画
   ctx.fillStyle = frameColor;
@@ -87,7 +93,7 @@ export function buildWindowGeometry(
   windowRings: DeepReadonly<WindowRingSet>,
   options: DeepReadonly<BuildWindowGeomtryOptions>,
 ) {
-  const posConversion = options?.coordinateConversion ?? (p => ({ x: p.x, y: p.y, z: 0 }));
+  const posConversion = options?.coordinateConversion ?? ((p) => ({ x: p.x, y: p.y, z: 0 }));
   function ringConversion(ring: readonly Readonly<Vec2>[]) {
     return ring.map(posConversion);
   }

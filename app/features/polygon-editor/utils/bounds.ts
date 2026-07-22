@@ -7,13 +7,18 @@ export function clampToLogicalBounds(point: Readonly<Vec2>, bounds: Readonly<Log
   };
 }
 
-export function clampVerticesToLogicalBounds(vertices: DeepReadonly<Vec2[]>, bounds: Readonly<LogicalBounds>) {
-  return vertices.map(vertex => clampToLogicalBounds(vertex, bounds));
+export function clampVerticesToLogicalBounds(
+  vertices: DeepReadonly<Vec2[]>,
+  bounds: Readonly<LogicalBounds>,
+) {
+  return vertices.map((vertex) => clampToLogicalBounds(vertex, bounds));
 }
 
 export function isWithinLogicalBounds(point: Readonly<Vec2>, bounds: Readonly<LogicalBounds>) {
-  return point.x >= bounds.minX
-    && point.x <= bounds.maxX
-    && point.y >= bounds.minY
-    && point.y <= bounds.maxY;
+  return (
+    point.x >= bounds.minX &&
+    point.x <= bounds.maxX &&
+    point.y >= bounds.minY &&
+    point.y <= bounds.maxY
+  );
 }

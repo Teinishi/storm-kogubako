@@ -1,9 +1,12 @@
 import type { Ref } from 'vue';
-import { clonePolygonEditorValue, type LogicalBounds, type PolygonEditorMirror, type PolygonEditorPolygon, type PolygonEditorValue } from '../types';
-import type {
-  PolygonEditorGrid,
-  HitEdge,
-} from '../utils';
+import {
+  clonePolygonEditorValue,
+  type LogicalBounds,
+  type PolygonEditorMirror,
+  type PolygonEditorPolygon,
+  type PolygonEditorValue,
+} from '../types';
+import type { PolygonEditorGrid, HitEdge } from '../utils';
 import {
   snapPointWithGrid,
   GRID_SCALE,
@@ -88,7 +91,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
       return;
     }
 
-    if (!editorState.value.polygons.some(polygon => polygon.id === selectedPolygonId.value)) {
+    if (!editorState.value.polygons.some((polygon) => polygon.id === selectedPolygonId.value)) {
       selectedPolygonId.value = null;
       selectedVertexIndex.value = null;
     }
@@ -100,7 +103,10 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     }
 
     if (selectedVertexIndex.value === null) return;
-    selectedVertexIndex.value = Math.max(0, Math.min(selectedVertexIndex.value, polygon.vertices.length - 1));
+    selectedVertexIndex.value = Math.max(
+      0,
+      Math.min(selectedVertexIndex.value, polygon.vertices.length - 1),
+    );
   }
 
   // エディタ用の状態
@@ -121,9 +127,13 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
 
   const selectedPolygonIndex = computed(() => {
     if (!selectedPolygonId.value) return -1;
-    return editorState.value.polygons.findIndex(polygon => polygon.id === selectedPolygonId.value);
+    return editorState.value.polygons.findIndex(
+      (polygon) => polygon.id === selectedPolygonId.value,
+    );
   });
-  const selectedPolygon = computed(() => editorState.value.polygons[selectedPolygonIndex.value] ?? null);
+  const selectedPolygon = computed(
+    () => editorState.value.polygons[selectedPolygonIndex.value] ?? null,
+  );
 
   function getNextPolygonId() {
     let nextId = 1;
@@ -199,12 +209,12 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
 
     clearTransientInteraction();
     applyStateChange((state) => {
-      const index = state.polygons.findIndex(item => item.id === id);
+      const index = state.polygons.findIndex((item) => item.id === id);
       const polygon = state.polygons[index];
       if (!polygon) return;
 
       const duplicated = createPolygon(
-        polygon.vertices.map(vertex => ({
+        polygon.vertices.map((vertex) => ({
           x: vertex.x + 0.5,
           y: vertex.y + 0.5,
         })),
@@ -221,7 +231,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
 
     clearTransientInteraction();
     applyStateChange((state) => {
-      const index = state.polygons.findIndex(polygon => polygon.id === id);
+      const index = state.polygons.findIndex((polygon) => polygon.id === id);
       if (index === -1) return;
 
       state.polygons.splice(index, 1);
@@ -233,7 +243,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     if (editingLocked.value) return;
 
     applyStateChange((state) => {
-      const index = state.polygons.findIndex(polygon => polygon.id === polygonId);
+      const index = state.polygons.findIndex((polygon) => polygon.id === polygonId);
       const polygon = state.polygons[index];
       if (!polygon) return;
       if (polygon.vertices.length <= 3) {
@@ -252,7 +262,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     if (editingLocked.value) return;
 
     applyStateChange((state) => {
-      const index = state.polygons.findIndex(polygon => polygon.id === polygonId);
+      const index = state.polygons.findIndex((polygon) => polygon.id === polygonId);
       const polygon = state.polygons[index];
       if (!polygon || polygon.vertices.length < 2) return;
 
@@ -272,7 +282,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
 
   function insertVertexAtEdge(edgeHit: HitEdge) {
     applyStateChange((state) => {
-      const polygon = state.polygons.find(item => item.id === edgeHit.polygonId);
+      const polygon = state.polygons.find((item) => item.id === edgeHit.polygonId);
       if (!polygon) return;
       const insertIndex = (edgeHit.edgeIndex + 1) % polygon.vertices.length;
       polygon.vertices.splice(insertIndex, 0, edgeHit.point);
@@ -280,9 +290,14 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     });
   }
 
-  function updateVertexCoordinateWithoutCommit(polygonId: number, vertexIndex: number, value: { x?: number; y?: number }, state?: PolygonEditorValue) {
+  function updateVertexCoordinateWithoutCommit(
+    polygonId: number,
+    vertexIndex: number,
+    value: { x?: number; y?: number },
+    state?: PolygonEditorValue,
+  ) {
     const s = state ?? editorState.value;
-    const index = s.polygons.findIndex(item => item.id === polygonId);
+    const index = s.polygons.findIndex((item) => item.id === polygonId);
     const polygon = s.polygons[index];
     if (!polygon || !polygon.vertices[vertexIndex]) return;
 
@@ -291,7 +306,11 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
     polygon.vertices[vertexIndex] = clampToLogicalBounds(newVertex, logicalBounds.value);
   }
 
-  function updateVertexCoordinate(polygonId: number, vertexIndex: number, value: { x?: number; y?: number }) {
+  function updateVertexCoordinate(
+    polygonId: number,
+    vertexIndex: number,
+    value: { x?: number; y?: number },
+  ) {
     if (editingLocked.value) return;
 
     applyStateChange((state) => {
@@ -302,7 +321,9 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
   // ポリゴン作成関連
   function clearTransientInteraction() {
     if (dragState.value) {
-      const polygon = editorState.value.polygons.find(item => item.id === dragState.value?.polygonId);
+      const polygon = editorState.value.polygons.find(
+        (item) => item.id === dragState.value?.polygonId,
+      );
       if (polygon && polygon.vertices[dragState.value.vertexIndex]) {
         polygon.vertices[dragState.value.vertexIndex] = cloneVec2(dragState.value.original);
       }
@@ -396,7 +417,9 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
   function cancelCanvasDrag() {
     if (!dragState.value) return;
 
-    const polygon = editorState.value.polygons.find(item => item.id === dragState.value?.polygonId);
+    const polygon = editorState.value.polygons.find(
+      (item) => item.id === dragState.value?.polygonId,
+    );
     if (polygon && polygon.vertices[dragState.value.vertexIndex]) {
       polygon.vertices[dragState.value.vertexIndex] = cloneVec2(dragState.value.original);
     }

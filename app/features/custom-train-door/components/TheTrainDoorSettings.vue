@@ -28,7 +28,7 @@ const state = defineModel<TrainDoorState>({ required: true });
 </script>
 
 <template>
-  <div class="grid lg:grid-cols-2 gap-4">
+  <div class="grid gap-4 lg:grid-cols-2">
     <FormCard :title="t('door_settings')">
       <!-- <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
         <UFormField :label="t('door_type')">
@@ -40,27 +40,17 @@ const state = defineModel<TrainDoorState>({ required: true });
         </UFormField>
       </div> -->
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
+      <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
         <UFormField :label="t('door_width')">
           <div class="flex items-center gap-2">
-            <UInputNumber
-              v-model="state.doorWidth"
-              :step="1"
-              :min="1"
-              class="flex-1"
-            />
+            <UInputNumber v-model="state.doorWidth" :step="1" :min="1" class="flex-1" />
             <span class="text-muted">{{ t('blocks') }}</span>
           </div>
         </UFormField>
 
         <UFormField :label="t('door_height')">
           <div class="flex items-center gap-2">
-            <UInputNumber
-              v-model="state.doorHeight"
-              :step="1"
-              :min="1"
-              class="flex-1"
-            />
+            <UInputNumber v-model="state.doorHeight" :step="1" :min="1" class="flex-1" />
             <span class="text-muted">{{ t('blocks') }}</span>
           </div>
         </UFormField>
@@ -86,18 +76,12 @@ const state = defineModel<TrainDoorState>({ required: true });
           />
         </UFormField>
 
-        <ColorPicker
-          v-model="state.outsideColor"
-          :label="t('outside_color')"
-        />
+        <ColorPicker v-model="state.outsideColor" :label="t('outside_color')" />
 
-        <ColorPicker
-          v-model="state.insideColor"
-          :label="t('inside_color')"
-        />
+        <ColorPicker v-model="state.insideColor" :label="t('inside_color')" />
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
+      <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
         <UFormField :label="t('rubber_thickness')">
           <UInputNumber
             v-model="state.rubberThickness"
@@ -110,15 +94,12 @@ const state = defineModel<TrainDoorState>({ required: true });
           />
         </UFormField>
 
-        <ColorPicker
-          v-model="state.rubberColor"
-          :label="t('rubber_color')"
-        />
+        <ColorPicker v-model="state.rubberColor" :label="t('rubber_color')" />
       </div>
     </FormCard>
 
     <FormCard :title="t('window_settings')">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
+      <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
         <UFormField :label="t('window_x_offset')">
           <UInputNumber
             v-model="state.windowXOffset"
@@ -183,7 +164,7 @@ const state = defineModel<TrainDoorState>({ required: true });
         </UFormField>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
+      <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
         <UFormField :label="t('window_frame_thickness')">
           <UInputNumber
             v-model="state.windowFrameThickness"
@@ -196,10 +177,7 @@ const state = defineModel<TrainDoorState>({ required: true });
           />
         </UFormField>
 
-        <ColorPicker
-          v-model="state.windowFrameColor"
-          :label="t('window_frame_color')"
-        />
+        <ColorPicker v-model="state.windowFrameColor" :label="t('window_frame_color')" />
       </div>
     </FormCard>
   </div>

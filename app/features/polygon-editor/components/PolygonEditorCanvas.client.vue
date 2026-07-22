@@ -98,7 +98,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
     }
 
     selectPolygon(vertexHit.polygonId, vertexHit.vertexIndex);
-    const polygon = editorState.value.polygons.find(item => item.id === vertexHit.polygonId);
+    const polygon = editorState.value.polygons.find((item) => item.id === vertexHit.polygonId);
     if (!polygon) return;
 
     dragState.value = {
@@ -128,8 +128,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
   if (!isWithinLogicalBounds(worldPoint, logicalBounds.value)) {
     if (mode.value === 'select') {
       clearSelection();
-    }
-    else {
+    } else {
       activateSelectMode();
       clearSelection();
     }
@@ -144,8 +143,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
         current: worldPoint,
         color: getNextPolygonColor(),
       };
-    }
-    else {
+    } else {
       draftRectangle.value.current = worldPoint;
     }
 
@@ -188,23 +186,34 @@ function handleCanvasPointerDown(event: PointerEvent) {
 
 function handleCanvasPointerMove(event: PointerEvent) {
   if (mode.value === 'drawRectangle' && draftRectangle.value) {
-    draftRectangle.value.current = clampToLogicalBounds(canvasToWorld(event.clientX, event.clientY), logicalBounds.value);
+    draftRectangle.value.current = clampToLogicalBounds(
+      canvasToWorld(event.clientX, event.clientY),
+      logicalBounds.value,
+    );
     renderCanvasWithHooks();
     return;
   }
 
-  if (!dragState.value || dragState.value.pointerId !== event.pointerId || editingLocked.value) return;
+  if (!dragState.value || dragState.value.pointerId !== event.pointerId || editingLocked.value)
+    return;
 
-  const polygon = editorState.value.polygons.find(item => item.id === dragState.value?.polygonId);
+  const polygon = editorState.value.polygons.find((item) => item.id === dragState.value?.polygonId);
   if (!polygon) return;
 
-  updateVertexCoordinateWithoutCommit(dragState.value.polygonId, dragState.value.vertexIndex, canvasToWorld(event.clientX, event.clientY));
+  updateVertexCoordinateWithoutCommit(
+    dragState.value.polygonId,
+    dragState.value.vertexIndex,
+    canvasToWorld(event.clientX, event.clientY),
+  );
   renderCanvasWithHooks();
 }
 
 function handleCanvasPointerUp(event: PointerEvent) {
   if (mode.value === 'drawRectangle' && draftRectangle.value) {
-    draftRectangle.value.current = clampToLogicalBounds(canvasToWorld(event.clientX, event.clientY), logicalBounds.value);
+    draftRectangle.value.current = clampToLogicalBounds(
+      canvasToWorld(event.clientX, event.clientY),
+      logicalBounds.value,
+    );
     const rectCreated = finalizeRectangleDraft();
     event.preventDefault();
     if (!rectCreated) {
@@ -225,7 +234,13 @@ function handleCanvasPointerLeave() {
 
 function handleKeydown(event: KeyboardEvent) {
   const target = event.target as HTMLElement | null;
-  if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) {
+  if (
+    target &&
+    (target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.tagName === 'SELECT' ||
+      target.isContentEditable)
+  ) {
     return;
   }
 
@@ -278,8 +293,7 @@ function handleKeydown(event: KeyboardEvent) {
     event.preventDefault();
     if (selectedVertexIndex.value !== null) {
       deleteVertex(selectedPolygonId.value, selectedVertexIndex.value);
-    }
-    else {
+    } else {
       deletePolygon(selectedPolygonId.value);
     }
   }
@@ -300,14 +314,14 @@ useResizeObserver(surfaceRef, renderCanvasWithHooks);
   <div
     ref="surfaceRef"
     tabindex="0"
-    class="rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900"
+    class="overflow-hidden rounded-xl bg-gray-50 dark:bg-gray-900"
     :class="editingLocked ? 'cursor-not-allowed' : 'cursor-crosshair'"
     @keydown="handleKeydown"
     @pointerdown="focusSurface"
   >
     <canvas
       ref="canvasRef"
-      class="block h-full w-full select-none touch-none"
+      class="block h-full w-full touch-none select-none"
       @pointerdown="handleCanvasPointerDown"
       @pointermove="handleCanvasPointerMove"
       @pointerup="handleCanvasPointerUp"

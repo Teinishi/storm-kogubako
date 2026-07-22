@@ -7,7 +7,16 @@ export interface VehicleComponent {
   flip?: { x?: boolean; y?: boolean; z?: boolean };
 }
 
-export type VehicleLogicType = 'boolean' | 'number' | 'power' | 'fluid' | 'electric' | 'composite' | 'video' | 'audio' | 'rope';
+export type VehicleLogicType =
+  | 'boolean'
+  | 'number'
+  | 'power'
+  | 'fluid'
+  | 'electric'
+  | 'composite'
+  | 'video'
+  | 'audio'
+  | 'rope';
 
 export interface VehicleLogicLink {
   from: Vec3;
@@ -25,14 +34,14 @@ export class VehicleBuilder {
   private logicLinks: VehicleLogicLink[] = [];
 
   addBody(bodyId: string) {
-    if (this.bodies.findIndex(b => b.id === bodyId) !== -1) {
+    if (this.bodies.findIndex((b) => b.id === bodyId) !== -1) {
       throw new Error(`A body with id "${bodyId}" already exists.`);
     }
     this.bodies.push({ id: bodyId, components: [] });
   }
 
   addComponent(bodyId: string, component: VehicleComponent) {
-    const body = this.bodies.find(b => b.id === bodyId);
+    const body = this.bodies.find((b) => b.id === bodyId);
     if (body === undefined) {
       throw new Error(`No body found with id "${bodyId}".`);
     }
@@ -74,9 +83,7 @@ export class VehicleBuilder {
           { name: 'd', value: component.type },
           { name: 't', value: this.toFlipAttrValue(component.flip) },
         ];
-        const oAttrs = [
-          { name: 'r', value: this.toRotationAttrValue(component.rotation) },
-        ];
+        const oAttrs = [{ name: 'r', value: this.toRotationAttrValue(component.rotation) }];
 
         writer.element('c', cAttrs, (writer) => {
           writer.element('o', oAttrs, (writer) => {
@@ -115,11 +122,9 @@ export class VehicleBuilder {
     let value: Mat3;
     if (rotation === undefined) {
       value = [1, 0, 0, 0, 1, 0, 0, 0, 1];
-    }
-    else if (rotation instanceof Orientation) {
+    } else if (rotation instanceof Orientation) {
       value = rotation.toMatrix3();
-    }
-    else {
+    } else {
       value = rotation;
     }
     if ([0, 0, 1, -1, 0, 0, 0, -1, 0].every((v, i) => v === value[i])) {

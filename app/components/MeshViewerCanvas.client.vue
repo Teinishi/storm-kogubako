@@ -1,21 +1,23 @@
 <script setup lang="ts">
-import * as THREE from 'three';
 import { OrbitControls } from '@tresjs/cientos';
 import { TresCanvas } from '@tresjs/core';
 import type { MeshData } from 'sw-mesh-viewer/parser';
 import { createStormworksLightGroup, type StormworksUniforms } from 'sw-mesh-viewer/viewer';
 import { SwMeshPrimitive } from 'sw-mesh-viewer/vue';
+import * as THREE from 'three';
 import { markRaw } from 'vue';
 
-type MeshViewerCanvasItemProperties = {
-  kind: 'mesh';
-  enablePaintcolor: boolean;
-  paintColor1: string;
-  paintColor2: string;
-  paintColor3: string;
-} | {
-  kind: 'phys';
-};
+type MeshViewerCanvasItemProperties =
+  | {
+      kind: 'mesh';
+      enablePaintcolor: boolean;
+      paintColor1: string;
+      paintColor2: string;
+      paintColor3: string;
+    }
+  | {
+      kind: 'phys';
+    };
 
 interface MeshViewerCanvasItem {
   id: string;
@@ -36,7 +38,7 @@ defineProps<{
 
 const colorMode = useColorMode();
 const lights = markRaw(createStormworksLightGroup());
-const viewerClearColor = computed(() => colorMode.value === 'dark' ? '#111827' : '#f9fafb');
+const viewerClearColor = computed(() => (colorMode.value === 'dark' ? '#111827' : '#f9fafb'));
 const orbitMouseButtons = {
   LEFT: undefined,
   MIDDLE: THREE.MOUSE.PAN,
@@ -50,7 +52,7 @@ function hexToVec4(hex: string): [number, number, number, number] {
 
 function createObjectUniforms(item: DeepReadonly<MeshViewerCanvasItem>): StormworksUniforms {
   return item.properties.kind === 'mesh'
-    ? ({
+    ? {
         opaque: {
           overrideColor: {
             type: 'int' as const,
@@ -69,7 +71,7 @@ function createObjectUniforms(item: DeepReadonly<MeshViewerCanvasItem>): Stormwo
             value: hexToVec4(item.properties.paintColor3),
           },
         },
-      })
+      }
     : {};
 }
 </script>
@@ -79,13 +81,10 @@ function createObjectUniforms(item: DeepReadonly<MeshViewerCanvasItem>): Stormwo
     :clear-color="viewerClearColor"
     :antialias="true"
     :window-size="false"
-    class="w-full h-full"
+    class="h-full w-full"
   >
     <TresPerspectiveCamera />
-    <OrbitControls
-      :enable-damping="false"
-      :mouse-buttons="orbitMouseButtons"
-    />
+    <OrbitControls :enable-damping="false" :mouse-buttons="orbitMouseButtons" />
     <primitive :object="lights" />
     <!-- @vue-expect-error -->
     <TresGroup

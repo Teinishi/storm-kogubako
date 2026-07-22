@@ -13,8 +13,7 @@ function drawResizedImage(
   if (resizeState.resizeAlgo === 'smooth') {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
-  }
-  else {
+  } else {
     ctx.imageSmoothingEnabled = false;
     offsetX = Math.round(offsetX);
     offsetY = Math.round(offsetY);
@@ -55,8 +54,7 @@ export function paintCanvas(
 
   if (isPreview) {
     gCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-  }
-  else {
+  } else {
     gCtx.fillStyle = '#000';
     gCtx.fillRect(0, 0, canvasWidth, canvasHeight);
   }
@@ -69,8 +67,7 @@ export function paintCanvas(
       drawResizedImage(bCtx, state.glowImageDisplay, state.glowResize, glowOffset);
       drawResizedImage(gCtx, state.glowImageDisplay, state.glowResize, glowOffset);
     }
-  }
-  else if (state.glowImage) {
+  } else if (state.glowImage) {
     drawResizedImage(gCtx, state.glowImage, state.glowResize, glowOffset);
   }
 }

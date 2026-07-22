@@ -3,7 +3,7 @@ const { t: gt } = useI18n({ useScope: 'global' });
 
 const route = useRoute();
 
-const currentTool = computed(() => WEB_TOOLS.find(t => t.to === route.path));
+const currentTool = computed(() => WEB_TOOLS.find((t) => t.to === route.path));
 
 const props = defineProps<{
   title?: string;
@@ -25,13 +25,9 @@ const title = computed(() => {
 </script>
 
 <template>
-  <div class="h-16 p-4 flex items-center gap-2">
+  <div class="flex h-16 items-center gap-2 p-4">
     <NavigationMenuButton />
-    <UIcon
-      v-if="icon"
-      :name="icon"
-      class="size-6"
-    />
+    <UIcon v-if="icon" :name="icon" class="size-6" />
     <h1 class="text-lg font-bold">
       {{ title }}
     </h1>

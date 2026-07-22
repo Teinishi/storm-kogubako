@@ -44,7 +44,7 @@ const selectedPolygonColorProxy = computed({
   set: (value: string) => {
     if (!selectedPolygon.value) return;
     applyStateChange((state) => {
-      const polygon = state.polygons.find(item => item.id === selectedPolygonId.value);
+      const polygon = state.polygons.find((item) => item.id === selectedPolygonId.value);
       if (!polygon) return;
       polygon.color = value;
     });
@@ -77,8 +77,7 @@ function handleListItemClick(payload: Readonly<{ key: string | number }>) {
 
   if (selectedPolygonId.value === polygonId) {
     clearSelection();
-  }
-  else {
+  } else {
     selectPolygon(polygonId, null);
   }
 }
@@ -176,7 +175,7 @@ const mirrorOffset = computed({
         </UTooltip>
       </div>
 
-      <div class="grid sm:grid-cols-3 gap-2">
+      <div class="grid gap-2 sm:grid-cols-3">
         <UButton
           :label="t('select_tool')"
           icon="i-lucide-mouse-pointer-2"
@@ -203,13 +202,9 @@ const mirrorOffset = computed({
         />
       </div>
 
-      <div class="grid sm:grid-cols-2 gap-2 items-end">
+      <div class="grid items-end gap-2 sm:grid-cols-2">
         <div class="py-1.5">
-          <USwitch
-            v-model="gridEnabled"
-            :disabled="editingLocked"
-            :label="t('grid_visible')"
-          />
+          <USwitch v-model="gridEnabled" :disabled="editingLocked" :label="t('grid_visible')" />
         </div>
 
         <UFormField :label="t('minor_divisions')">
@@ -223,22 +218,18 @@ const mirrorOffset = computed({
       </div>
 
       <div class="py-1.5">
-        <USwitch
-          v-model="mirrorEnabled"
-          :disabled="editingLocked"
-          :label="t('mirror')"
-        />
+        <USwitch v-model="mirrorEnabled" :disabled="editingLocked" :label="t('mirror')" />
       </div>
 
-      <div
-        v-if="mirrorEnabled"
-        class="-mt-4 grid sm:grid-cols-2 gap-2 items-end"
-      >
+      <div v-if="mirrorEnabled" class="-mt-4 grid items-end gap-2 sm:grid-cols-2">
         <URadioGroup
           v-model="mirrorAxis"
           orientation="horizontal"
           variant="table"
-          :items="[{ label: 'X', value: 'x' }, { label: 'Y', value: 'y' }]"
+          :items="[
+            { label: 'X', value: 'x' },
+            { label: 'Y', value: 'y' },
+          ]"
         />
 
         <UFormField :label="t('mirror_offset')">
@@ -252,17 +243,9 @@ const mirrorOffset = computed({
       </div>
     </FormCard>
 
-    <UAlert
-      v-if="draftPolygon"
-      :title="t('polygon_draw_hint')"
-      variant="subtle"
-    />
+    <UAlert v-if="draftPolygon" :title="t('polygon_draw_hint')" variant="subtle" />
 
-    <UAlert
-      v-if="draftRectangle"
-      :title="t('rectangle_draw_hint')"
-      variant="subtle"
-    />
+    <UAlert v-if="draftRectangle" :title="t('rectangle_draw_hint')" variant="subtle" />
 
     <FormCard>
       <div class="mb-3 flex items-center justify-between gap-2">
@@ -281,10 +264,7 @@ const mirrorOffset = computed({
         {{ t('polygon_empty') }}
       </div>
 
-      <div
-        v-else
-        class="space-y-2"
-      >
+      <div v-else class="space-y-2">
         <ReorderableList
           :items="polygonsForList"
           item-key="id"
@@ -322,7 +302,11 @@ const mirrorOffset = computed({
             color="neutral"
             variant="ghost"
             size="xs"
-            :disabled="editingLocked || selectedPolygonIndex < 0 || selectedPolygonIndex >= editorState.polygons.length - 1"
+            :disabled="
+              editingLocked ||
+              selectedPolygonIndex < 0 ||
+              selectedPolygonIndex >= editorState.polygons.length - 1
+            "
             @click="moveSelectedPolygon(1)"
           />
           <UButton
@@ -337,7 +321,7 @@ const mirrorOffset = computed({
       </div>
 
       <div class="space-y-3">
-        <div class="grid sm:grid-cols-2 gap-2">
+        <div class="grid gap-2 sm:grid-cols-2">
           <UButton
             :label="t('duplicate')"
             icon="i-lucide-copy"
@@ -370,7 +354,9 @@ const mirrorOffset = computed({
         </div>
 
         <div class="rounded-lg border border-gray-200 dark:border-gray-800">
-          <div class="border-b border-gray-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:border-gray-800 dark:text-gray-400">
+          <div
+            class="border-b border-gray-200 px-3 py-2 text-xs font-semibold tracking-wide text-gray-500 uppercase dark:border-gray-800 dark:text-gray-400"
+          >
             {{ t('vertices') }}
           </div>
 
@@ -381,7 +367,11 @@ const mirrorOffset = computed({
           >
             <button
               class="rounded px-2 py-1 text-xs font-medium"
-              :class="selectedVertexIndex === index ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/50 dark:text-primary-200' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'"
+              :class="
+                selectedVertexIndex === index
+                  ? 'bg-primary-100 text-primary-800 dark:bg-primary-900/50 dark:text-primary-200'
+                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300'
+              "
               type="button"
               @click="selectVertex(index)"
             >
@@ -418,7 +408,10 @@ const mirrorOffset = computed({
               variant="ghost"
               size="xs"
               :disabled="editingLocked"
-              @click="selectVertex(index); deleteSelectedVertex()"
+              @click="
+                selectVertex(index);
+                deleteSelectedVertex();
+              "
             />
           </div>
         </div>

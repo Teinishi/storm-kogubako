@@ -10,7 +10,7 @@ export const ANCHOR_POSITIONS = [
   { value: 'bottom-right', icon: 'i-heroicons-arrow-down-right' },
 ] as const;
 
-export type AnchorPosition = typeof ANCHOR_POSITIONS[number]['value'];
+export type AnchorPosition = (typeof ANCHOR_POSITIONS)[number]['value'];
 
 export interface AnchorState {
   anchorPosition: AnchorPosition;

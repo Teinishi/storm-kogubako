@@ -24,7 +24,9 @@ export function clonePolygon(polygon: DeepReadonly<PolygonEditorPolygon>): Polyg
   };
 }
 
-export function clonePolygonEditorValue(value: DeepReadonly<PolygonEditorValue>): PolygonEditorValue {
+export function clonePolygonEditorValue(
+  value: DeepReadonly<PolygonEditorValue>,
+): PolygonEditorValue {
   return {
     mirror: { ...value.mirror },
     polygons: value.polygons.map(clonePolygon),
