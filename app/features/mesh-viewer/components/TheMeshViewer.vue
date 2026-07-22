@@ -5,15 +5,17 @@ const { t } = useI18n({ useScope: 'local' });
 
 const toast = useToast();
 
-type ItemProperties = {
-  kind: 'mesh';
-  enablePaintcolor: boolean;
-  paintColor1: string;
-  paintColor2: string;
-  paintColor3: string;
-} | {
-  kind: 'phys';
-};
+type ItemProperties =
+  | {
+      kind: 'mesh';
+      enablePaintcolor: boolean;
+      paintColor1: string;
+      paintColor2: string;
+      paintColor3: string;
+    }
+  | {
+      kind: 'phys';
+    };
 
 interface Vec3 {
   x: number;
@@ -43,8 +45,7 @@ function getMeshStats(data: DeepReadonly<MeshData>) {
   if (data.kind === 'mesh') {
     vertexCount = data.vertices.length;
     triangleCount = Math.floor(data.indices.length / 3);
-  }
-  else {
+  } else {
     for (const subphys of data.subPhysMeshes) {
       vertexCount += subphys.vertices.length;
       triangleCount += Math.floor(subphys.indices.length / 3);
@@ -58,7 +59,7 @@ const fileUploadModel = ref<File[] | null>(null);
 let nextMeshFileId = 1;
 
 function removeMeshFile(id: string) {
-  const i = meshFiles.value.findIndex(v => v.id === id);
+  const i = meshFiles.value.findIndex((v) => v.id === id);
   if (i !== -1) meshFiles.value.splice(i, 1);
 }
 
@@ -85,18 +86,18 @@ async function addMeshFiles(files: File[] | File | null | undefined) {
           y: 0,
           z: 0,
         },
-        properties: kind === 'mesh'
-          ? {
-              kind,
-              enablePaintcolor: false,
-              paintColor1: '#FFFFFF',
-              paintColor2: '#FFFFFF',
-              paintColor3: '#FFFFFF',
-            }
-          : { kind },
+        properties:
+          kind === 'mesh'
+            ? {
+                kind,
+                enablePaintcolor: false,
+                paintColor1: '#FFFFFF',
+                paintColor2: '#FFFFFF',
+                paintColor3: '#FFFFFF',
+              }
+            : { kind },
       });
-    }
-    catch (error) {
+    } catch (error) {
       console.error('Failed to parse mesh file:', file.name, error);
 
       toast.add({
@@ -127,11 +128,11 @@ function formatFileSize(size: number) {
 </script>
 
 <template>
-  <div class="h-full grid sm:grid-cols-[24rem_1fr]">
-    <div class="min-w-0 h-screen flex flex-col">
+  <div class="grid h-full sm:grid-cols-[24rem_1fr]">
+    <div class="flex h-screen min-w-0 flex-col">
       <AppTitle />
 
-      <div class="grow flex flex-col px-4 pt-0 pb-18 sm:pb-4 gap-4 overflow-y-auto">
+      <div class="flex grow flex-col gap-4 overflow-y-auto px-4 pt-0 pb-18 sm:pb-4">
         <FormCard>
           <UFileUpload
             v-model="fileUploadModel"
@@ -152,10 +153,7 @@ function formatFileSize(size: number) {
             :description="t('no_files_description')"
           />
 
-          <div
-            v-else
-            class="space-y-2"
-          >
+          <div v-else class="space-y-2">
             <div
               v-for="item in meshFiles"
               :key="item.id"
@@ -177,7 +175,7 @@ function formatFileSize(size: number) {
                   <div class="truncate text-sm font-medium">
                     {{ item.fileName }}
                   </div>
-                  <div class="text-xs text-muted">
+                  <div class="text-muted text-xs">
                     {{ formatFileSize(item.fileSize) }}
                   </div>
                 </div>
@@ -209,24 +207,18 @@ function formatFileSize(size: number) {
                 v-if="item.detailsOpen"
                 class="space-y-4 border-t border-gray-200 p-3 dark:border-gray-700"
               >
-                <div class="text-sm text-muted">
+                <div class="text-muted text-sm">
                   {{ t('mesh_stats', item.stats) }}
                 </div>
 
-                <USwitch
-                  v-model="item.wireframe"
-                  :label="t('wireframe')"
-                />
+                <USwitch v-model="item.wireframe" :label="t('wireframe')" />
 
                 <div class="space-y-2">
                   <div class="text-sm font-medium">
                     {{ t('offset') }}
                   </div>
                   <div class="grid grid-cols-3 gap-2">
-                    <UFormField
-                      label="X"
-                      size="sm"
-                    >
+                    <UFormField label="X" size="sm">
                       <UInputNumber
                         v-model="item.offset.x"
                         class="w-full"
@@ -235,10 +227,7 @@ function formatFileSize(size: number) {
                         :step="0.125"
                       />
                     </UFormField>
-                    <UFormField
-                      label="Y"
-                      size="sm"
-                    >
+                    <UFormField label="Y" size="sm">
                       <UInputNumber
                         v-model="item.offset.y"
                         class="w-full"
@@ -247,10 +236,7 @@ function formatFileSize(size: number) {
                         :step="0.125"
                       />
                     </UFormField>
-                    <UFormField
-                      label="Z"
-                      size="sm"
-                    >
+                    <UFormField label="Z" size="sm">
                       <UInputNumber
                         v-model="item.offset.z"
                         class="w-full"
@@ -263,15 +249,9 @@ function formatFileSize(size: number) {
                 </div>
 
                 <template v-if="item.properties.kind === 'mesh'">
-                  <USwitch
-                    v-model="item.properties.enablePaintcolor"
-                    :label="t('paint_colors')"
-                  />
+                  <USwitch v-model="item.properties.enablePaintcolor" :label="t('paint_colors')" />
 
-                  <div
-                    v-if="item.properties.enablePaintcolor"
-                    class="space-y-2"
-                  >
+                  <div v-if="item.properties.enablePaintcolor" class="space-y-2">
                     <div class="grid grid-cols-1 gap-2 sm:grid-cols-3">
                       <ColorPicker
                         v-model="item.properties.paintColor1"
@@ -295,15 +275,9 @@ function formatFileSize(size: number) {
       </div>
     </div>
 
-    <ResponsivePanel
-      icon="i-lucide-box"
-      :label="t('viewer')"
-      :disabled="meshFiles.length === 0"
-    >
+    <ResponsivePanel icon="i-lucide-box" :label="t('viewer')" :disabled="meshFiles.length === 0">
       <ClientOnly>
-        <MeshViewerCanvas
-          :items="meshFiles"
-        />
+        <MeshViewerCanvas :items="meshFiles" />
       </ClientOnly>
     </ResponsivePanel>
   </div>

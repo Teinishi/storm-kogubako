@@ -30,22 +30,19 @@ watch(props, () => {
     >
       <div
         v-show="isSm || show"
-        class="fixed sm:static w-screen h-screen sm:w-auto flex items-center justify-center overflow-hidden bg-gray-50 dark:bg-gray-900 sm:border-l border-gray-200 dark:border-gray-700"
+        class="fixed flex h-screen w-screen items-center justify-center overflow-hidden border-gray-200 bg-gray-50 sm:static sm:w-auto sm:border-l dark:border-gray-700 dark:bg-gray-900"
       >
         <slot />
       </div>
     </transition>
 
-    <Teleport
-      v-if="!isSm"
-      to="body"
-    >
+    <Teleport v-if="!isSm" to="body">
       <UButton
         :icon="show ? 'i-lucide-x' : icon"
         :label="label"
         :disabled="disabled"
         size="xl"
-        class="fixed right-4 bottom-4 shadow-lg rounded-full"
+        class="fixed right-4 bottom-4 rounded-full shadow-lg"
         @click="toggle"
       />
     </Teleport>

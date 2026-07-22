@@ -116,10 +116,6 @@ export class Orientation {
       }
     };
 
-    return [
-      ...row(this.x),
-      ...row(this.y),
-      ...row(this.z),
-    ];
+    return [...row(this.x), ...row(this.y), ...row(this.z)];
   }
 }

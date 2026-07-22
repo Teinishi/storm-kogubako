@@ -1,9 +1,9 @@
 <template>
-  <div class="flex flex-1 h-screen">
+  <div class="flex h-screen flex-1">
     <NuxtRouteAnnouncer />
     <NavigationSidebar />
 
-    <div class="flex-1 h-full">
+    <div class="h-full flex-1">
       <slot />
     </div>
   </div>

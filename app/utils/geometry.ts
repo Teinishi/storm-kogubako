@@ -1,4 +1,8 @@
-export function distanceToSegment(point: Readonly<Vec2>, start: Readonly<Vec2>, end: Readonly<Vec2>) {
+export function distanceToSegment(
+  point: Readonly<Vec2>,
+  start: Readonly<Vec2>,
+  end: Readonly<Vec2>,
+) {
   const deltaX = end.x - start.x;
   const deltaY = end.y - start.y;
   const lengthSquared = deltaX * deltaX + deltaY * deltaY;
@@ -28,12 +32,20 @@ export function pointInPolygon(point: Readonly<Vec2>, vertices: DeepReadonly<Vec
   if (vertices.length < 3) return false;
 
   let inside = false;
-  for (let index = 0, previous = vertices.length - 1; index < vertices.length; previous = index, index += 1) {
+  for (
+    let index = 0, previous = vertices.length - 1;
+    index < vertices.length;
+    previous = index, index += 1
+  ) {
     const current = vertices[index];
     const previousVertex = vertices[previous];
     if (!current || !previousVertex) continue;
-    const intersects = ((current.y > point.y) !== (previousVertex.y > point.y))
-      && (point.x < ((previousVertex.x - current.x) * (point.y - current.y)) / ((previousVertex.y - current.y) || 1e-12) + current.x);
+    const intersects =
+      current.y > point.y !== previousVertex.y > point.y &&
+      point.x <
+        ((previousVertex.x - current.x) * (point.y - current.y)) /
+          (previousVertex.y - current.y || 1e-12) +
+          current.x;
     if (intersects) inside = !inside;
   }
 

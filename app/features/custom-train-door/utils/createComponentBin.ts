@@ -3,7 +3,11 @@ export interface ComponentBinAsset {
   data: string | Uint8Array;
 }
 
-export function createComponentBin(filename: string, definition: string, assets: DeepReadonly<ComponentBinAsset[]> = []) {
+export function createComponentBin(
+  filename: string,
+  definition: string,
+  assets: DeepReadonly<ComponentBinAsset[]> = [],
+) {
   const name = replaceExtension(filename, '');
   const binName = name + '.bin';
 
@@ -21,8 +25,7 @@ export function createComponentBin(filename: string, definition: string, assets:
       writer.withSize(4, (writer) => {
         if (typeof asset.data === 'string') {
           writer.utf8(asset.data, true);
-        }
-        else {
+        } else {
           writer.bytes(asset.data);
         }
       });

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import AnchorPositionSelect from './AnchorPositionSelect.vue';
 import type { AnchorState } from '../types';
+import AnchorPositionSelect from './AnchorPositionSelect.vue';
 
 const { t } = useI18n({ useScope: 'local' });
 
@@ -11,7 +11,9 @@ const props = defineProps<{
 
 const modelValue = defineModel<AnchorState>({ required: true });
 
-const isOffsetZero = computed(() => modelValue.value.offsetX === 0 && modelValue.value.offsetY === 0);
+const isOffsetZero = computed(
+  () => modelValue.value.offsetX === 0 && modelValue.value.offsetY === 0,
+);
 
 const reset = () => {
   modelValue.value.offsetX = 0;
@@ -29,20 +31,11 @@ const reset = () => {
       />
 
       <UFormField :label="t('x_position')">
-        <UInputNumber
-          v-model="modelValue.offsetX"
-          class="w-full"
-        />
+        <UInputNumber v-model="modelValue.offsetX" class="w-full" />
       </UFormField>
 
-      <UFormField
-        :label="t('y_position')"
-        class="self-end"
-      >
-        <UInputNumber
-          v-model="modelValue.offsetY"
-          class="w-full"
-        />
+      <UFormField :label="t('y_position')" class="self-end">
+        <UInputNumber v-model="modelValue.offsetY" class="w-full" />
       </UFormField>
 
       <UButton

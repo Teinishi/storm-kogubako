@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { BufferGeometry } from 'three';
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
+import { BufferGeometry } from 'three';
 import type { PolygonEditorPolygon } from '~/features/polygon-editor';
-import type { TrainDoorState } from '../types';
 import { buildDoorGeometry } from '../doorTypes';
+import type { TrainDoorState } from '../types';
 
 const props = defineProps<{
   state: TrainDoorState;

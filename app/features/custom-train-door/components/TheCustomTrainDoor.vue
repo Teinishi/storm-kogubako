@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { getMirrorMergedPolygons, PolygonEditor } from '~/features/polygon-editor';
-import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
-import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
-import UsageInstructions from './UsageInstructions.vue';
 import { useCustomTrainDoor } from '../composables';
+import { createDoorUnitVehicle, getFilenames } from '../doorTypes';
 import {
   getFingerprint as getFingerprintFromJson,
   toJson,
@@ -12,7 +10,9 @@ import {
   createVisualComponentFiles,
   createCollisionComponentFile,
 } from '../utils';
-import { createDoorUnitVehicle, getFilenames } from '../doorTypes';
+import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
+import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
+import UsageInstructions from './UsageInstructions.vue';
 
 const { t } = useI18n({ useScope: 'local' });
 
@@ -68,22 +68,22 @@ const {
   editorLogicalBounds,
 } = useCustomTrainDoor();
 
-const outsidePaint = computed(() => getMirrorMergedPolygons(
-  outsidePolygonEditorValue.value,
-  editorLogicalBounds.value,
-));
+const outsidePaint = computed(() =>
+  getMirrorMergedPolygons(outsidePolygonEditorValue.value, editorLogicalBounds.value),
+);
 
-const insidePaint = computed(() => getMirrorMergedPolygons(
-  insidePolygonEditorValue.value,
-  editorLogicalBounds.value,
-));
+const insidePaint = computed(() =>
+  getMirrorMergedPolygons(insidePolygonEditorValue.value, editorLogicalBounds.value),
+);
 
 function getFingerprint() {
-  return getFingerprintFromJson(toJson({
-    state,
-    outsidePolygonEditorValue: outsidePolygonEditorValue.value,
-    insidePolygonEditorValue: insidePolygonEditorValue.value,
-  }));
+  return getFingerprintFromJson(
+    toJson({
+      state,
+      outsidePolygonEditorValue: outsidePolygonEditorValue.value,
+      insidePolygonEditorValue: insidePolygonEditorValue.value,
+    }),
+  );
 }
 
 function saveMeshClicked() {
@@ -126,11 +126,10 @@ function saveVisualComponentBinClicked() {
       insidePaint.value,
       fingerprint,
     );
-    const { file: binFile } = createComponentBin(
-      files.definition.filename,
-      files.definition.data,
-      [files.script, ...files.meshes],
-    );
+    const { file: binFile } = createComponentBin(files.definition.filename, files.definition.data, [
+      files.script,
+      ...files.meshes,
+    ]);
     saveFile(binFile);
   });
 }
@@ -205,8 +204,8 @@ function saveDoorUnitClicked() {
 </script>
 
 <template>
-  <div class="h-full grid sm:grid-cols-[7fr_5fr]">
-    <div class="h-screen flex flex-col">
+  <div class="grid h-full sm:grid-cols-[7fr_5fr]">
+    <div class="flex h-screen flex-col">
       <AppTitle />
 
       <div class="grow px-4 sm:min-h-0">
@@ -218,7 +217,7 @@ function saveDoorUnitClicked() {
         >
           <template #settings>
             <TheTrainDoorSettings v-model="state" />
-            <div class="mt-4 flex gap-4 flex-wrap md:flex-nowrap">
+            <div class="mt-4 flex flex-wrap gap-4 md:flex-nowrap">
               <UButton
                 block
                 size="xl"
@@ -227,10 +226,7 @@ function saveDoorUnitClicked() {
                 @click="saveDoorUnitClicked"
               />
 
-              <UModal
-                :title="t('usage_title')"
-                :ui="{ content: 'sm:max-w-3xl' }"
-              >
+              <UModal :title="t('usage_title')" :ui="{ content: 'sm:max-w-3xl' }">
                 <UButton
                   block
                   size="xl"
@@ -280,10 +276,7 @@ function saveDoorUnitClicked() {
       </div>
     </div>
 
-    <ResponsivePanel
-      icon="i-lucide-box"
-      :label="t('preview')"
-    >
+    <ResponsivePanel icon="i-lucide-box" :label="t('preview')">
       <ClientOnly>
         <TheTrainDoorPreviewClient
           :state="state"

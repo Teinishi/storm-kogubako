@@ -4,9 +4,9 @@ const { t } = useI18n({ useScope: 'local' });
 </script>
 
 <template>
-  <UContainer class="py-8 space-y-8">
+  <UContainer class="space-y-8 py-8">
     <div class="text-center">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+      <h1 class="mb-4 text-3xl font-bold text-gray-900 dark:text-white">
         {{ gt('web_tools_for_stormworks') }}
       </h1>
       <p class="text-gray-600 dark:text-gray-400">
@@ -14,7 +14,7 @@ const { t } = useI18n({ useScope: 'local' });
       </p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <LinkCard
         v-for="(tool_data, index) in WEB_TOOLS"
         :key="index"
@@ -25,13 +25,13 @@ const { t } = useI18n({ useScope: 'local' });
       />
     </div>
 
-    <div class="text-center pt-8">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+    <div class="pt-8 text-center">
+      <h1 class="mb-4 text-3xl font-bold text-gray-900 dark:text-white">
         {{ gt('other_tools') }}
       </h1>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <LinkCard
         v-for="(tool_data, index) in OTHER_TOOLS"
         :key="index"

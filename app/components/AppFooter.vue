@@ -1,9 +1,7 @@
 <template>
   <UFooter>
     <template #left>
-      <p class="text-muted text-sm">
-        © 2026 Teinishi
-      </p>
+      <p class="text-muted text-sm">© 2026 Teinishi</p>
       <UButton
         color="neutral"
         variant="ghost"

@@ -1,11 +1,11 @@
 import polygonClipping from 'polygon-clipping';
 
 function forPolygonClipping(polygon: DeepReadonly<Vec2[][]>): polygonClipping.Polygon {
-  return polygon.map(ring => ring.map(v => [v.x, v.y]));
+  return polygon.map((ring) => ring.map((v) => [v.x, v.y]));
 }
 
 function toVec2Polygon(polygon: DeepReadonly<polygonClipping.Polygon>): Vec2[][] {
-  return polygon.map(ring => ring.map(v => ({ x: v[0], y: v[1] })));
+  return polygon.map((ring) => ring.map((v) => ({ x: v[0], y: v[1] })));
 }
 
 export function rectToRing(rect: Readonly<Rect>): Vec2[] {
@@ -47,8 +47,7 @@ export function createRoundedRectPolygon(
   if (typeof radius === 'number') {
     rx = radius;
     ry = radius;
-  }
-  else {
+  } else {
     rx = radius.x;
     ry = radius.y;
   }
@@ -101,10 +100,7 @@ export function createRoundedRectPolygon(
 }
 
 // ポリゴンを太らせる
-export function offsetRing(
-  ring: DeepReadonly<Vec2[]>,
-  distance: number,
-): Vec2[] {
+export function offsetRing(ring: DeepReadonly<Vec2[]>, distance: number): Vec2[] {
   const normalSign = ringWindingDirection(ring) === 'CCW' ? -1 : 1;
   const n = ring.length;
 
@@ -169,8 +165,7 @@ export function offsetRing(
 
     if (p) {
       result.push(p);
-    }
-    else {
+    } else {
       // 平行なら法線の平均方向へ移動
       const nx = n1.x + n2.x;
       const ny = n1.y + n2.y;
@@ -181,8 +176,7 @@ export function offsetRing(
           x: curr.x + n1.x * distance,
           y: curr.y + n1.y * distance,
         });
-      }
-      else {
+      } else {
         result.push({
           x: curr.x + (nx / len) * distance,
           y: curr.y + (ny / len) * distance,
@@ -218,7 +212,7 @@ export function eliminatePolygonOverlap<T>(
   const holes = options?.holes ?? [];
 
   const basePolygon = base ? forPolygonClipping(base?.polygon) : undefined;
-  const masks: polygonClipping.Polygon[] = holes.map(ring => forPolygonClipping([ring]));
+  const masks: polygonClipping.Polygon[] = holes.map((ring) => forPolygonClipping([ring]));
   const disjointPolygons: {
     id: DeepReadonly<T>;
     multiPolygon: polygonClipping.MultiPolygon;
@@ -253,7 +247,7 @@ export function eliminatePolygonOverlap<T>(
   }
 
   return disjointPolygons.flatMap(({ id, multiPolygon }) => {
-    return multiPolygon.map(polygon => ({
+    return multiPolygon.map((polygon) => ({
       id,
       polygon: toVec2Polygon(polygon),
     }));

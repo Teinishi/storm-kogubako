@@ -1,9 +1,9 @@
 import type { Reactive } from 'vue';
 import type { RenderHooks, PolygonEditorPolygon } from '~/features/polygon-editor';
+import type { RenderHooksSet } from '.';
+import { drawWindowsOnCanvas, getSingleWindowPolygon } from '../doorWindow/basic';
 import type { TrainDoorState } from '../types';
 import { drawBackground, buildSlidingDoorGeometry } from '../utils';
-import { drawWindowsOnCanvas, getSingleWindowPolygon } from '../doorWindow/basic';
-import type { RenderHooksSet } from '.';
 
 function getBaseRect(state: DeepReadonly<TrainDoorState>): Rect {
   const rubber = state.rubberThickness / 0.25;
@@ -44,19 +44,21 @@ function createRenderHook(state: Reactive<TrainDoorState>, isInside: boolean): R
       // 戸先ゴム描画
       const rubber = state.rubberThickness / 0.25;
       ctx.fillStyle = state.rubberColor;
-      const r = args.worldRectToCanvas(isInside
-        ? {
-            x: 0,
-            y: 0,
-            width: rubber,
-            height: state.doorHeight,
-          }
-        : {
-            x: state.doorWidth,
-            y: 0,
-            width: -rubber,
-            height: state.doorHeight,
-          });
+      const r = args.worldRectToCanvas(
+        isInside
+          ? {
+              x: 0,
+              y: 0,
+              width: rubber,
+              height: state.doorHeight,
+            }
+          : {
+              x: state.doorWidth,
+              y: 0,
+              width: -rubber,
+              height: state.doorHeight,
+            },
+      );
       ctx.fillRect(r.x, r.y, r.width, r.height);
     },
   };
@@ -96,9 +98,7 @@ export function buildGeometry(
   return [{ id: 'main', builder }];
 }
 
-export function createLuaScript(
-  state: DeepReadonly<TrainDoorState>,
-) {
+export function createLuaScript(state: DeepReadonly<TrainDoorState>) {
   const motionRange = state.doorWidth * 0.25;
 
   const script = `local MOTION_RANGE = ${motionRange}

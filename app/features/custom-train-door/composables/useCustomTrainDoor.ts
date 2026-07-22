@@ -1,7 +1,10 @@
 import { reactive } from 'vue';
-import { createDefaultPolygonEditorValue, type PolygonEditorValue } from '~/features/polygon-editor';
-import { type TrainDoorState, createDefaultTrainDoorState } from '../types';
+import {
+  createDefaultPolygonEditorValue,
+  type PolygonEditorValue,
+} from '~/features/polygon-editor';
 import { createRenderHooks } from '../doorTypes';
+import { type TrainDoorState, createDefaultTrainDoorState } from '../types';
 
 export function useCustomTrainDoor() {
   const state = reactive<TrainDoorState>(createDefaultTrainDoorState());

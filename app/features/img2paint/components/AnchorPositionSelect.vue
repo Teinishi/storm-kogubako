@@ -16,11 +16,13 @@ function onClick(newValue: AnchorPosition) {
 
 <template>
   <div class="flex flex-col gap-1">
-    <div class="text-sm font-medium text-default">
+    <div class="text-default text-sm font-medium">
       {{ t('anchor_position') }}
     </div>
 
-    <div class="grow p-2 bg-default rounded-lg ring ring-inset ring-accented border-0 border-gray-200 dark:border-gray-700 w-full grid grid-cols-[repeat(3,auto)] justify-between content-between gap-2">
+    <div
+      class="bg-default ring-accented grid w-full grow grid-cols-[repeat(3,auto)] content-between justify-between gap-2 rounded-lg border-0 border-gray-200 p-2 ring ring-inset dark:border-gray-700"
+    >
       <UButton
         v-for="pos in ANCHOR_POSITIONS"
         :key="pos.value"

@@ -17,7 +17,7 @@ async function onClick() {
 </script>
 
 <template>
-  <div class="rounded bg-muted p-3 font-mono text-sm relative">
+  <div class="bg-muted relative rounded p-3 font-mono text-sm">
     {{ text }}
     <UButton
       :icon="copied ? 'i-lucide-check' : 'i-lucide-copy'"

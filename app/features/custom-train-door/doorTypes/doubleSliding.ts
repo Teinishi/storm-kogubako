@@ -1,9 +1,16 @@
 import type { Reactive } from 'vue';
 import type { RenderHooks, PolygonEditorPolygon } from '~/features/polygon-editor';
-import type { TrainDoorState } from '../types';
-import { drawBackground, buildSlidingDoorGeometry, DefinitionBuilder, getVoxelRange, getVoxelVolume, VehicleBuilder } from '../utils';
-import { drawWindowsOnCanvas, getSingleWindowPolygon } from '../doorWindow/basic';
 import type { DoorUnitFileNameSet, RenderHooksSet } from '.';
+import { drawWindowsOnCanvas, getSingleWindowPolygon } from '../doorWindow/basic';
+import type { TrainDoorState } from '../types';
+import {
+  drawBackground,
+  buildSlidingDoorGeometry,
+  DefinitionBuilder,
+  getVoxelRange,
+  getVoxelVolume,
+  VehicleBuilder,
+} from '../utils';
 
 function getBaseRects(state: DeepReadonly<TrainDoorState>) {
   const rubber = state.rubberThickness / 0.25;
@@ -205,20 +212,19 @@ export function createVisualComponent(
     description: 'Controls the collision component to synchronize with the visual.',
   });
 
-  builder.addElement(
-    'tooltip_properties',
-    [{
+  builder.addElement('tooltip_properties', [
+    {
       name: 'short_description',
       value: 'Sliding door that can be opened and closed using a number input.',
-    }],
-  );
+    },
+  ]);
 
   return builder.toXml();
 }
 
 // 見た目用コンポーネントの Lua を生成
 export function createLuaScript(state: DeepReadonly<TrainDoorState>) {
-  const motionRange = state.doorWidth / 2 * 0.25;
+  const motionRange = (state.doorWidth / 2) * 0.25;
 
   const script = `local MOTION_RANGE = ${motionRange}
 
@@ -295,7 +301,8 @@ export function createCollisionComponent(state: DeepReadonly<TrainDoorState>, fi
     label: 'Open/Close',
     mode: 1,
     type: 0,
-    description: 'Opens the door when receiving an on signal, and closes it when receiving an off signal.',
+    description:
+      'Opens the door when receiving an on signal, and closes it when receiving an off signal.',
   });
   builder.addLogicNode({
     label: 'Electric',
@@ -304,13 +311,12 @@ export function createCollisionComponent(state: DeepReadonly<TrainDoorState>, fi
     description: 'Electrical power connection.',
   });
 
-  builder.addElement(
-    'tooltip_properties',
-    [{
+  builder.addElement('tooltip_properties', [
+    {
       name: 'short_description',
       value: 'Sliding door that can be opened and closed using an on/off signal.',
-    }],
-  );
+    },
+  ]);
 
   return builder.toXml();
 }
@@ -348,10 +354,18 @@ export function createDoorUnitVehicle(
     { x: -1, y: 0, z: voxelRange.min.z - 1 },
     { x: -1, y: 0, z: voxelRange.max.z + 1 },
   );
-  builder.addComponent('root', { position: { x: -1, y: voxelRange.min.y - 1, z: voxelRange.min.z - 1 } });
-  builder.addComponent('root', { position: { x: -1, y: voxelRange.min.y - 1, z: voxelRange.max.z + 1 } });
-  builder.addComponent('root', { position: { x: -1, y: voxelRange.max.y + 1, z: voxelRange.min.z - 1 } });
-  builder.addComponent('root', { position: { x: -1, y: voxelRange.max.y + 1, z: voxelRange.max.z + 1 } });
+  builder.addComponent('root', {
+    position: { x: -1, y: voxelRange.min.y - 1, z: voxelRange.min.z - 1 },
+  });
+  builder.addComponent('root', {
+    position: { x: -1, y: voxelRange.min.y - 1, z: voxelRange.max.z + 1 },
+  });
+  builder.addComponent('root', {
+    position: { x: -1, y: voxelRange.max.y + 1, z: voxelRange.min.z - 1 },
+  });
+  builder.addComponent('root', {
+    position: { x: -1, y: voxelRange.max.y + 1, z: voxelRange.max.z + 1 },
+  });
 
   builder.addLogicLink(visualPos, collisionRightPos, 'boolean');
   builder.addLogicLink(visualPos, collisionLeftPos, 'boolean');

@@ -3,13 +3,16 @@ import type { ResizeState } from '../types';
 
 const { t } = useI18n({ useScope: 'local' });
 
-const props = withDefaults(defineProps<{
-  label: string;
-  roundDigit?: number;
-  imageSize: { width: number; height: number };
-}>(), {
-  roundDigit: 3,
-});
+const props = withDefaults(
+  defineProps<{
+    label: string;
+    roundDigit?: number;
+    imageSize: { width: number; height: number };
+  }>(),
+  {
+    roundDigit: 3,
+  },
+);
 
 const modelValue = defineModel<ResizeState>({ required: true });
 
@@ -18,14 +21,19 @@ const sizeUnitLabel = computed(() => t(`size_type_unit_${modelValue.value.sizeTy
 const widthBlocks = computed(() => Math.ceil(modelValue.value.widthPixels / 9));
 const heightBlocks = computed(() => Math.ceil(modelValue.value.heightPixels / 9));
 const widthPercent = computed(() => round(modelValue.value.widthPixels / props.imageSize.width, 3));
-const heightPercent = computed(() => round(modelValue.value.heightPixels / props.imageSize.height, 3));
+const heightPercent = computed(() =>
+  round(modelValue.value.heightPixels / props.imageSize.height, 3),
+);
 
 function updateWidthPixels(value: number | null) {
   if (value !== null) {
     modelValue.value.sizePriority = 'width';
     modelValue.value.widthPixels = value;
     if (modelValue.value.keepAspect && props.imageSize) {
-      modelValue.value.heightPixels = round(value * props.imageSize.height / props.imageSize.width, 3);
+      modelValue.value.heightPixels = round(
+        (value * props.imageSize.height) / props.imageSize.width,
+        3,
+      );
     }
   }
 }
@@ -34,7 +42,10 @@ function updateHeightPixels(value: number | null) {
     modelValue.value.sizePriority = 'height';
     modelValue.value.heightPixels = value;
     if (modelValue.value.keepAspect && props.imageSize) {
-      modelValue.value.widthPixels = round(value * props.imageSize.width / props.imageSize.height, 3);
+      modelValue.value.widthPixels = round(
+        (value * props.imageSize.width) / props.imageSize.height,
+        3,
+      );
     }
   }
 }
@@ -63,7 +74,10 @@ function updateHeightPercent(value: number | null) {
 
 const isOriginalSize = computed(() => {
   if (!props.imageSize) return false;
-  return props.imageSize.width === modelValue.value.widthPixels && props.imageSize.height === modelValue.value.heightPixels;
+  return (
+    props.imageSize.width === modelValue.value.widthPixels &&
+    props.imageSize.height === modelValue.value.heightPixels
+  );
 });
 const setSizeOriginal = () => {
   if (!props.imageSize) return;
@@ -71,34 +85,36 @@ const setSizeOriginal = () => {
   modelValue.value.heightPixels = props.imageSize.height;
 };
 
-watch(modelValue, (newValue, oldValue) => {
-  if (newValue.sizeType === oldValue.sizeType && newValue.sizePriority === oldValue.sizePriority) return;
-  if (modelValue.value.sizeType === 'block') {
-    if (modelValue.value.sizePriority === 'width') {
-      updateWidthBlocks(widthBlocks.value);
+watch(
+  modelValue,
+  (newValue, oldValue) => {
+    if (newValue.sizeType === oldValue.sizeType && newValue.sizePriority === oldValue.sizePriority)
+      return;
+    if (modelValue.value.sizeType === 'block') {
+      if (modelValue.value.sizePriority === 'width') {
+        updateWidthBlocks(widthBlocks.value);
+      } else {
+        updateHeightBlocks(heightBlocks.value);
+      }
+    } else {
+      if (modelValue.value.sizePriority === 'width') {
+        updateWidthPixels(modelValue.value.widthPixels);
+      } else {
+        updateHeightPixels(modelValue.value.heightPixels);
+      }
     }
-    else {
-      updateHeightBlocks(heightBlocks.value);
-    }
-  }
-  else {
-    if (modelValue.value.sizePriority === 'width') {
-      updateWidthPixels(modelValue.value.widthPixels);
-    }
-    else {
-      updateHeightPixels(modelValue.value.heightPixels);
-    }
-  }
-}, { deep: true });
+  },
+  { deep: true },
+);
 </script>
 
 <template>
   <FormCard>
-    <h2 class="font-bold text-lg">
+    <h2 class="text-lg font-bold">
       {{ props.label }}
     </h2>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-start">
+    <div class="grid grid-cols-1 items-start gap-4 sm:grid-cols-2">
       <div class="space-y-4">
         <UFormField :label="t('size_type')">
           <USelect
@@ -112,13 +128,10 @@ watch(modelValue, (newValue, oldValue) => {
           />
         </UFormField>
 
-        <USwitch
-          v-model="modelValue.keepAspect"
-          :label="t('keep_aspect')"
-        />
+        <USwitch v-model="modelValue.keepAspect" :label="t('keep_aspect')" />
       </div>
 
-      <div class="row-span-2 h-full flex flex-col gap-4 justify-between">
+      <div class="row-span-2 flex h-full flex-col justify-between gap-4">
         <UFormField :label="`${t('width')} (${sizeUnitLabel})`">
           <UInputNumber
             v-if="modelValue.sizeType === 'block'"
@@ -166,19 +179,19 @@ watch(modelValue, (newValue, oldValue) => {
         </UFormField>
 
         <div
-          class="grid grid-cols-2 text-xs bg-gray-200 dark:bg-gray-700 rounded p-1"
+          class="grid grid-cols-2 rounded bg-gray-200 p-1 text-xs dark:bg-gray-700"
           :style="{ visibility: modelValue.keepAspect ? 'visible' : 'hidden' }"
         >
           <button
-            :class="{ 'bg-white dark:bg-gray-600 shadow': modelValue.sizePriority === 'width' }"
-            class="px-2 py-1 rounded transition"
+            :class="{ 'bg-white shadow dark:bg-gray-600': modelValue.sizePriority === 'width' }"
+            class="rounded px-2 py-1 transition"
             @click="modelValue.sizePriority = 'width'"
           >
             {{ t('prioritize_width') }}
           </button>
           <button
-            :class="{ 'bg-white dark:bg-gray-600 shadow': modelValue.sizePriority === 'height' }"
-            class="px-2 py-1 rounded transition"
+            :class="{ 'bg-white shadow dark:bg-gray-600': modelValue.sizePriority === 'height' }"
+            class="rounded px-2 py-1 transition"
             @click="modelValue.sizePriority = 'height'"
           >
             {{ t('prioritize_height') }}
@@ -186,7 +199,7 @@ watch(modelValue, (newValue, oldValue) => {
         </div>
       </div>
 
-      <div class="self-end space-y-4">
+      <div class="space-y-4 self-end">
         <UButton
           v-if="props.imageSize"
           :disabled="isOriginalSize"

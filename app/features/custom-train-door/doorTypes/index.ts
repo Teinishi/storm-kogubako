@@ -55,7 +55,10 @@ export interface DoorUnitFileNameSet {
   visualComponentZip: string;
 }
 
-export function getFilenames(state: DeepReadonly<TrainDoorState>, fingerprint: string): DoorUnitFileNameSet {
+export function getFilenames(
+  state: DeepReadonly<TrainDoorState>,
+  fingerprint: string,
+): DoorUnitFileNameSet {
   const { doorType } = state;
   switch (doorType) {
     case 'double_sliding':
@@ -70,7 +73,11 @@ export function getFilenames(state: DeepReadonly<TrainDoorState>, fingerprint: s
   }
 }
 
-export function createVisualComponent(state: DeepReadonly<TrainDoorState>, fingerprint: string, filenames: DeepReadonly<DoorUnitFileNameSet>) {
+export function createVisualComponent(
+  state: DeepReadonly<TrainDoorState>,
+  fingerprint: string,
+  filenames: DeepReadonly<DoorUnitFileNameSet>,
+) {
   const { doorType } = state;
   switch (doorType) {
     case 'double_sliding':
@@ -123,7 +130,11 @@ export function createDoorUnitVehicle(
   const { doorType } = state;
   switch (doorType) {
     case 'double_sliding':
-      return doubleSliding.createDoorUnitVehicle(state, visualComponentName, collisionComponentName);
+      return doubleSliding.createDoorUnitVehicle(
+        state,
+        visualComponentName,
+        collisionComponentName,
+      );
     case 'single_sliding_left':
       throw new Error('Unimplemented');
     case 'single_sliding_right':
