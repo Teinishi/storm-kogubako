@@ -12,5 +12,6 @@
   "saved_file_toast": "Saved \"{name}\"",
   "saved_file_toast_message": "Please check your download folder.",
   "error_occured": "Error",
+  "confirm_leave": "Leaving this page may cause your changes to be lost. Continue?",
   "stormskey": "Stormskey"
 }

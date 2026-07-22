@@ -12,5 +12,6 @@
   "saved_file_toast": "\"{name}\" を保存しました",
   "saved_file_toast_message": "ダウンロードフォルダをご確認ください",
   "error_occured": "エラーが発生しました",
+  "confirm_leave": "ページを離れると入力内容が失われる可能性があります。続行しますか？",
   "stormskey": "すとーむすきー"
 }
