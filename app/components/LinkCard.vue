@@ -9,6 +9,7 @@ const props = defineProps<{
   isBeta?: boolean;
 }>();
 
+const { t: gt } = useI18n({ useScope: 'global' });
 const { t, locale } = useI18n({ useScope: 'local' });
 
 const title_text = computed(() =>
@@ -32,7 +33,7 @@ const description_text = computed(() =>
             <h3 class="text-lg font-semibold">
               {{ title_text }}
             </h3>
-            <CommonBadge v-if="isBeta" color="green">Beta</CommonBadge>
+            <CommonBadge v-if="isBeta" color="green">{{ gt('beta') }}</CommonBadge>
           </div>
 
           <ToolBadges :badges="tags" />

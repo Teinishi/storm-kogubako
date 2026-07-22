@@ -31,6 +31,6 @@ const title = computed(() => {
     <h1 class="text-lg font-bold">
       {{ title }}
     </h1>
-    <CommonBadge v-if="currentTool?.isBeta" color="green">Beta</CommonBadge>
+    <CommonBadge v-if="currentTool?.isBeta" color="green">{{ gt('beta') }}</CommonBadge>
   </div>
 </template>

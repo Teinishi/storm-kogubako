@@ -14,6 +14,8 @@ const props = defineProps<{
   badges?: string[];
 }>();
 
+const { t } = useI18n({ useScope: 'local' });
+
 const items = computed<{ key: string; label: string; color: ColorName }[]>(
   () =>
     props.badges?.map((key) => {
@@ -36,7 +38,24 @@ const items = computed<{ key: string; label: string; color: ColorName }[]>(
 <template>
   <div v-if="items.length > 0" class="flex flex-wrap gap-2">
     <CommonBadge v-for="item in items" :key="item.key" :color="item.color">
-      {{ item.label }}
+      {{ t(item.key) }}
     </CommonBadge>
   </div>
 </template>
+
+<i18n lang="json">
+{
+  "en": {
+    "vanilla": "Vanilla",
+    "vehicle": "Vehicle",
+    "mod": "Mod",
+    "development": "Development"
+  },
+  "ja": {
+    "vanilla": "Vanilla",
+    "vehicle": "Vehicle",
+    "mod": "Mod",
+    "development": "Development"
+  }
+}
+</i18n>
