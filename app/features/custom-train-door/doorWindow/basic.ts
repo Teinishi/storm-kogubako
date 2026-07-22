@@ -74,8 +74,8 @@ export function drawWindowsOnCanvas(
   for (const { innerRing, outerRing } of windowRings) {
     if (!outerRing) continue;
     ctx.beginPath();
-    drawPolygonOnCanvas(ctx, innerRing, args.worldToCanvas);
-    drawPolygonOnCanvas(ctx, outerRing, args.worldToCanvas);
+    drawPolygonOnCanvas(ctx, innerRing, (v) => args.worldToCanvas(v));
+    drawPolygonOnCanvas(ctx, outerRing, (v) => args.worldToCanvas(v));
     ctx.closePath();
     ctx.fill('evenodd');
   }

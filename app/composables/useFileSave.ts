@@ -70,7 +70,7 @@ export function useFileSave() {
       return;
     }
 
-    saveZip(
+    await saveZip(
       files.map((entry) => ({ type: 'file', entry })),
       zipFilename,
     );
