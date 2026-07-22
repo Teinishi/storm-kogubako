@@ -1,12 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: [
-    '@nuxt/ui',
-    '@nuxt/eslint',
-    '@nuxtjs/i18n',
-    '@tresjs/nuxt',
-    '@vueuse/nuxt',
-  ],
+  modules: ['@nuxt/ui', '@nuxt/eslint', '@nuxtjs/i18n', '@tresjs/nuxt', '@vueuse/nuxt'],
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   experimental: {
@@ -26,11 +20,7 @@ export default defineNuxtConfig({
   vite: {
     vue: { features: { optionsAPI: false } },
     optimizeDeps: {
-      entries: [
-        'pages/**/*.vue',
-        'layouts/**/*.vue',
-        'components/**/*.vue',
-      ],
+      entries: ['pages/**/*.vue', 'layouts/**/*.vue', 'components/**/*.vue'],
       include: [
         '@vue/devtools-core',
         '@vue/devtools-kit',
@@ -44,11 +34,7 @@ export default defineNuxtConfig({
   },
   eslint: {
     config: {
-      stylistic: {
-        indent: 2,
-        quotes: 'single',
-        semi: true,
-      },
+      stylistic: false,
     },
   },
   i18n: {
