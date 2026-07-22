@@ -5,6 +5,7 @@ const props = defineProps<{
   icon: any;
   title: string | Record<string, string>;
   description: string | Record<string, string>;
+  tags?: string[];
 }>();
 
 const { t, locale } = useI18n({ useScope: 'local' });
@@ -24,11 +25,15 @@ const description_text = computed(() =>
       :ui="{ root: 'flex flex-col', body: 'flex-1' }"
     >
       <template #header>
-        <div class="flex items-center gap-3">
-          <UIcon :name="icon" class="size-8" />
-          <h3 class="text-lg font-semibold">
-            {{ title_text }}
-          </h3>
+        <div class="space-y-3">
+          <div class="flex items-center gap-3">
+            <UIcon :name="icon" class="size-8" />
+            <h3 class="text-lg font-semibold">
+              {{ title_text }}
+            </h3>
+          </div>
+
+          <ToolBadges :badges="tags" />
         </div>
       </template>
 

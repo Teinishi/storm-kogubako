@@ -16,12 +16,13 @@ const { t } = useI18n({ useScope: 'local' });
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <LinkCard
-        v-for="(tool_data, index) in WEB_TOOLS"
+        v-for="(toolData, index) in WEB_TOOLS"
         :key="index"
-        :title="gt(tool_data.key)"
-        :description="gt(`${tool_data.key}_description`)"
-        :to="tool_data.to"
-        :icon="tool_data.icon"
+        :title="gt(toolData.key)"
+        :description="gt(`${toolData.key}_description`)"
+        :to="toolData.to"
+        :icon="toolData.icon"
+        :tags="toolData.tags"
       />
     </div>
 
@@ -33,12 +34,13 @@ const { t } = useI18n({ useScope: 'local' });
 
     <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
       <LinkCard
-        v-for="(tool_data, index) in OTHER_TOOLS"
+        v-for="(toolData, index) in OTHER_TOOLS"
         :key="index"
-        :title="gt(tool_data.key)"
-        :description="gt(`${tool_data.key}_description`)"
-        :to="tool_data.to"
-        :icon="tool_data.icon"
+        :title="gt(toolData.key)"
+        :description="gt(`${toolData.key}_description`)"
+        :to="toolData.to"
+        :icon="toolData.icon"
+        :tags="toolData.tags"
       />
     </div>
   </UContainer>
