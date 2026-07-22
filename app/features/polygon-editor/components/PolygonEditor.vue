@@ -15,6 +15,7 @@ const props = withDefaults(
   {
     disabled: false,
     readonly: false,
+    renderHooks: undefined,
   },
 );
 
