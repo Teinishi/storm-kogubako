@@ -39,22 +39,27 @@ const tabItems = computed(() => [
 const advancedItems = computed(() => [
   {
     label: t('save_mesh'),
+    icon: 'i-lucide-box',
     onSelect: saveMeshClicked,
   },
   {
     label: t('save_visual_component_source'),
+    icon: 'i-lucide-code-xml',
     onSelect: saveVisualComponentSourceClicked,
   },
   {
     label: t('save_visual_component_bin'),
+    icon: 'i-lucide-binary',
     onSelect: saveVisualComponentBinClicked,
   },
   {
     label: t('save_collision_component_source'),
+    icon: 'i-lucide-code-xml',
     onSelect: saveCollisionComponentSourceClicked,
   },
   {
     label: t('save_collision_component_bin'),
+    icon: 'i-lucide-binary',
     onSelect: saveCollisionComponentBinClicked,
   },
 ]);
@@ -222,6 +227,7 @@ function saveDoorUnitClicked() {
                 block
                 size="xl"
                 color="primary"
+                icon="i-lucide-download"
                 :label="t('save_door_unit')"
                 @click="saveDoorUnitClicked"
               />
