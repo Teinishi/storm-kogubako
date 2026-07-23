@@ -9,7 +9,7 @@ useHead({
 </script>
 
 <template>
-  <UApp :locale="locales[locale]">
+  <UApp :locale="locales[locale]" :toaster="{ position: 'top-right' }">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
