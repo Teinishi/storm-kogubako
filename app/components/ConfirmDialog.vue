@@ -1,10 +1,14 @@
 <script setup lang="ts">
-defineProps<{
+export interface ConfirmDialogProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon?: any;
   title: string;
   description: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
-}>();
+  cancelLabel: string;
+  confirmLabel: string;
+}
+
+defineProps<ConfirmDialogProps>();
 
 const emit = defineEmits<{
   close: [boolean];
@@ -22,6 +26,7 @@ function cancel() {
 <template>
   <UModal :dismissible="false">
     <template #header>
+      <UIcon v-if="icon" :name="icon" class="size-6" />
       <h2 class="text-lg font-semibold">
         {{ title }}
       </h2>

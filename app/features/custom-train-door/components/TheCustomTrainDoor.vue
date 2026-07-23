@@ -21,7 +21,7 @@ const STORAGE_KEY = 'custom-train-door' as const;
 const { t } = useI18n({ useScope: 'local' });
 
 const toast = useToast();
-const conformDialog = useConfirmDialog();
+const { confirm: confirmDialog, input: inputDialog } = useDialog();
 
 // 汎用ファイル保存ユーティリティ
 const { saveFile, saveFiles, saveZip, handleError } = useFileSave();
@@ -59,11 +59,12 @@ const { open: openJsonSelectDialog, onChange: onJsonSelect } = useFileDialog({
 });
 
 async function newProject() {
-  const ok = await conformDialog({
-    title: t('dialog.newProject.title'),
-    description: t('dialog.newProject.description'),
-    confirmLabel: t('dialog.newProject.confirm'),
-    cancelLabel: t('dialog.newProject.cancel'),
+  const ok = await confirmDialog({
+    icon: 'i-lucide-file-plus-corner',
+    title: t('dialog.new_project.title'),
+    description: t('dialog.new_project.description'),
+    cancelLabel: t('dialog.new_project.cancel'),
+    confirmLabel: t('dialog.new_project.confirm'),
   });
 
   if (!ok) return;
@@ -72,11 +73,12 @@ async function newProject() {
 }
 
 async function openProject() {
-  const ok = await conformDialog({
-    title: t('dialog.openProject.title'),
-    description: t('dialog.openProject.description'),
-    confirmLabel: t('dialog.openProject.confirm'),
-    cancelLabel: t('dialog.openProject.cancel'),
+  const ok = await confirmDialog({
+    icon: 'i-lucide-folder-open',
+    title: t('dialog.open_project.title'),
+    description: t('dialog.open_project.description'),
+    cancelLabel: t('dialog.open_project.cancel'),
+    confirmLabel: t('dialog.open_project.confirm'),
   });
 
   if (!ok) return;
@@ -103,11 +105,25 @@ onJsonSelect(async (files) => {
   }
 });
 
-function saveEditingState() {
+async function saveEditingState() {
+  const data = toJson(state.value);
+  const fingerprint = getFingerprintFromJson(data);
+  const defaultValue = `custom-train-door-${fingerprint}.json`;
+
+  const filename = await inputDialog({
+    icon: 'i-lucide-save',
+    title: t('dialog.save_project.title'),
+    description: t('dialog.save_project.description'),
+    label: t('dialog.save_project.label'),
+    placeholder: t('dialog.save_project.placeholder'),
+    defaultValue,
+    cancelLabel: t('dialog.save_project.cancel'),
+    confirmLabel: t('dialog.save_project.confirm'),
+  });
+
+  if (!filename) return;
+
   handleError(() => {
-    const data = toJson(state.value);
-    const fingerprint = getFingerprintFromJson(data);
-    const filename = `train_door_${fingerprint}.json`;
     saveFile({
       filename,
       data,
@@ -416,17 +432,25 @@ const otherMenuItems = computed(() => [
       }
     },
     "dialog": {
-      "newProject": {
+      "new_project": {
         "title": "New Project",
         "description": "Your current changes will be lost. Create a new project?",
         "cancel": "Cancel",
         "confirm": "Create"
       },
-      "openProject": {
+      "open_project": {
         "title": "Open Project",
         "description": "Your current changes will be lost. Do you want to open another project?",
         "cancel": "Cancel",
         "confirm": "Open"
+      },
+      "save_project": {
+        "title": "Save Project",
+        "description": "Enter a file name for the project.",
+        "label": "File name",
+        "placeholder": "MyDoor",
+        "cancel": "Cancel",
+        "confirm": "Save"
       }
     }
   },
@@ -465,17 +489,25 @@ const otherMenuItems = computed(() => [
       }
     },
     "dialog": {
-      "newProject": {
+      "new_project": {
         "title": "新規プロジェクト",
         "description": "現在の編集内容は失われます。新しいプロジェクトを作成しますか？",
         "cancel": "キャンセル",
         "confirm": "作成"
       },
-      "openProject": {
+      "open_project": {
         "title": "プロジェクトを開く",
         "description": "現在の編集内容は失われます。プロジェクトを読み込みますか？",
         "cancel": "キャンセル",
         "confirm": "読み込む"
+      },
+      "save_project": {
+        "title": "プロジェクトを保存",
+        "description": "保存するプロジェクト名を入力してください。",
+        "label": "ファイル名",
+        "placeholder": "MyDoor",
+        "cancel": "キャンセル",
+        "confirm": "保存"
       }
     }
   }
