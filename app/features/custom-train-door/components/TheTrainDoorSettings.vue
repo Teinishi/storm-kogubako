@@ -9,20 +9,20 @@ const FORMAT_OPTIONS_METER = {
 
 const { t } = useI18n({ useScope: 'local' });
 
-/*const _doorTypeItems = computed(() => [
+const directionItems = computed(() => [
   {
-    label: t('double_sliding'),
-    value: 'double_sliding',
+    label: t('direction.double'),
+    value: 'double',
   },
   {
-    label: t('single_sliding_left'),
-    value: 'single_sliding_left',
+    label: t('direction.left'),
+    value: 'left',
   },
   {
-    label: t('single_sliding_right'),
-    value: 'single_sliding_right',
+    label: t('direction.right'),
+    value: 'right',
   },
-]);*/
+]);
 
 const state = defineModel<TrainDoorOptions>({ required: true });
 </script>
@@ -30,15 +30,11 @@ const state = defineModel<TrainDoorOptions>({ required: true });
 <template>
   <div class="grid gap-4 @2xl:grid-cols-2">
     <FormCard :title="t('door_settings')">
-      <!-- <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-        <UFormField :label="t('door_type')">
-          <USelect
-            v-model="state.doorType"
-            :items="doorTypeItems"
-            class="w-full"
-          />
+      <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2">
+        <UFormField :label="t('direction.label')">
+          <USelect v-model="state.direction" :items="directionItems" class="w-full" />
         </UFormField>
-      </div> -->
+      </div>
 
       <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
         <UFormField :label="t('door_width')">
@@ -189,9 +185,12 @@ const state = defineModel<TrainDoorOptions>({ required: true });
     "blocks": "Blocks",
     "door_settings": "Door Settings",
     "door_type": "Door Type",
-    "double_sliding": "Double Sliding",
-    "single_sliding_left": "Single Sliding (Left)",
-    "single_sliding_right": "Single Sliding (Right)",
+    "direction": {
+      "label": "Direction",
+      "double": "Double",
+      "left": "Left",
+      "right": "Right"
+    },
     "door_width": "Width",
     "door_height": "Height",
     "door_thickness": "Thickness",
@@ -214,9 +213,12 @@ const state = defineModel<TrainDoorOptions>({ required: true });
     "blocks": "ブロック",
     "door_settings": "ドア設定",
     "door_type": "タイプ",
-    "double_sliding": "両開き",
-    "single_sliding_left": "片開き (左)",
-    "single_sliding_right": "片開き (右)",
+    "direction": {
+      "label": "向き",
+      "double": "両開き",
+      "left": "左",
+      "right": "右"
+    },
     "door_width": "幅",
     "door_height": "高さ",
     "door_thickness": "厚み",

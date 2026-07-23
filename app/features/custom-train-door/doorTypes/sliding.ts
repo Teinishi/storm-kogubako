@@ -13,23 +13,31 @@ import {
 } from '../utils';
 
 function getBaseRects(options: DeepReadonly<TrainDoorOptions>) {
+  const notRight = options.direction !== 'right';
+  const notLeft = options.direction !== 'left';
+
   const rubber = options.rubberThickness / 0.25;
-  const width = options.doorWidth / 2 - rubber;
+  const width =
+    (options.direction === 'double' ? options.doorWidth / 2 : options.doorWidth) - rubber;
   const height = options.doorHeight;
 
   return {
-    left: normalizeRect({
-      x: 0,
-      y: 0,
-      width,
-      height,
-    }),
-    right: normalizeRect({
-      x: options.doorWidth,
-      y: 0,
-      width: -width,
-      height,
-    }),
+    left: notRight
+      ? normalizeRect({
+          x: 0,
+          y: 0,
+          width,
+          height,
+        })
+      : undefined,
+    right: notLeft
+      ? normalizeRect({
+          x: options.doorWidth,
+          y: 0,
+          width: -width,
+          height,
+        })
+      : undefined,
   };
 }
 
@@ -46,10 +54,15 @@ function getWindowRings(options: DeepReadonly<TrainDoorOptions>, flip?: boolean)
     flipWidth: options.doorWidth,
   };
 
-  const left = getSingleWindowPolygon(rects.left, polygonOptions);
+  let left, right;
+  if (rects.left) {
+    left = getSingleWindowPolygon(rects.left, polygonOptions);
+  }
 
-  polygonOptions.offset.x *= -1;
-  const right = getSingleWindowPolygon(rects.right, polygonOptions);
+  if (rects.right) {
+    polygonOptions.offset.x *= -1;
+    right = getSingleWindowPolygon(rects.right, polygonOptions);
+  }
 
   return { left, right };
 }
@@ -65,17 +78,44 @@ function createRenderHook(options: Reactive<TrainDoorOptions>, isInside: boolean
       ctx.globalAlpha = hasSelection ? 0.6 : 1;
 
       const windowRings = getWindowRings(options, isInside);
-      drawWindowsOnCanvas(args, [windowRings.left, windowRings.right], options.windowFrameColor);
+      drawWindowsOnCanvas(
+        args,
+        [windowRings.left, windowRings.right].filter((v) => v !== undefined),
+        options.windowFrameColor,
+      );
 
       // 戸先ゴム描画
+      const { direction } = options;
       const rubber = options.rubberThickness / 0.25;
-      ctx.fillStyle = options.rubberColor;
+
+      let rubberLocation: 'left' | 'center' | 'right';
+      switch (direction) {
+        case 'double':
+          rubberLocation = 'center';
+          break;
+        case 'left':
+          rubberLocation = isInside ? 'left' : 'right';
+          break;
+        case 'right':
+          rubberLocation = isInside ? 'right' : 'left';
+          break;
+        default:
+          direction satisfies never;
+          throw new Error('Unreachable');
+      }
+
+      const rx = {
+        left: { x: 0, width: rubber },
+        center: { x: options.doorWidth / 2 - rubber, width: rubber },
+        right: { x: options.doorWidth, width: -rubber },
+      }[rubberLocation];
       const r = args.worldRectToCanvas({
-        x: options.doorWidth / 2 - rubber,
+        ...rx,
         y: 0,
-        width: rubber * 2,
         height: options.doorHeight,
       });
+
+      ctx.fillStyle = options.rubberColor;
       ctx.fillRect(r.x, r.y, r.width, r.height);
     },
   };
@@ -105,45 +145,49 @@ export function buildGeometry(
   const baseRects = getBaseRects(options);
   const windowRings = getWindowRings(options);
 
-  const leftBuilder = new GeometryBuilder(builderOptions);
-  const rightBuilder = new GeometryBuilder(builderOptions);
+  const objects = [];
 
-  buildSlidingDoorGeometry(leftBuilder, {
-    baseRect: baseRects.left,
-    outsidePaint: state.outsidePaint,
-    insidePaint: state.insidePaint,
-    doorSize,
-    frontZ,
-    backZ,
-    frontColor,
-    backColor,
-    direction: 'left',
-    rubberThickness,
-    rubberColor,
-    windowRings: [windowRings.left],
-    windowFrameColor: options.windowFrameColor,
-  });
+  if (baseRects.left && windowRings.left) {
+    const builder = new GeometryBuilder(builderOptions);
+    buildSlidingDoorGeometry(builder, {
+      baseRect: baseRects.left,
+      outsidePaint: state.outsidePaint,
+      insidePaint: state.insidePaint,
+      doorSize,
+      frontZ,
+      backZ,
+      frontColor,
+      backColor,
+      direction: 'left',
+      rubberThickness,
+      rubberColor,
+      windowRings: [windowRings.left],
+      windowFrameColor: options.windowFrameColor,
+    });
+    objects.push({ id: 'left', builder });
+  }
 
-  buildSlidingDoorGeometry(rightBuilder, {
-    baseRect: baseRects.right,
-    outsidePaint: state.outsidePaint,
-    insidePaint: state.insidePaint,
-    doorSize,
-    frontZ,
-    backZ,
-    frontColor,
-    backColor,
-    direction: 'right',
-    rubberThickness,
-    rubberColor,
-    windowRings: [windowRings.right],
-    windowFrameColor: options.windowFrameColor,
-  });
+  if (baseRects.right && windowRings.right) {
+    const builder = new GeometryBuilder(builderOptions);
+    buildSlidingDoorGeometry(builder, {
+      baseRect: baseRects.right,
+      outsidePaint: state.outsidePaint,
+      insidePaint: state.insidePaint,
+      doorSize,
+      frontZ,
+      backZ,
+      frontColor,
+      backColor,
+      direction: 'right',
+      rubberThickness,
+      rubberColor,
+      windowRings: [windowRings.right],
+      windowFrameColor: options.windowFrameColor,
+    });
+    objects.push({ id: 'right', builder });
+  }
 
-  return [
-    { id: 'left', builder: leftBuilder },
-    { id: 'right', builder: rightBuilder },
-  ];
+  return objects;
 }
 
 export function getFilenames(_state: DeepReadonly<TrainDoorOptions>, fingerprint: string) {
