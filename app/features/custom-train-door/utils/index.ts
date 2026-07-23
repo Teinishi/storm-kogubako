@@ -3,6 +3,7 @@ export * from './createComponentBin';
 export * from './createDefinition';
 export * from './definitionBuilder';
 export * from './geometry';
+export * from './lua';
 export * from './renderHook.client';
 export * from './saveFile';
 export * from './saveSession';

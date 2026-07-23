@@ -11,6 +11,7 @@ import {
   getVoxelVolume,
   VehicleBuilder,
 } from '../utils';
+import { withIndent } from '../utils/lua';
 
 function getBaseRects(options: DeepReadonly<TrainDoorOptions>) {
   const notRight = options.direction !== 'right';
@@ -209,19 +210,22 @@ export function getFilenames(_state: DeepReadonly<TrainDoorOptions>, fingerprint
 
 // 見た目用コンポーネントの Definition XML を生成
 export function createVisualComponent(
-  state: DeepReadonly<TrainDoorOptions>,
+  options: DeepReadonly<TrainDoorOptions>,
   fingerprint: string,
   filenames: DeepReadonly<DoorUnitFileNameSet>,
 ) {
-  if (state.doorWidth < 3) {
+  if (options.doorWidth < 3) {
     throw new Error('The width for double sliding door must be at least 3.');
   }
 
-  const voxelRange = getVoxelRange(state.doorWidth, state.doorHeight);
+  const { direction } = options;
+  const notRight = direction !== 'right';
+  const notLeft = direction !== 'left';
+  const voxelRange = getVoxelRange(options.doorWidth, options.doorHeight);
 
   // 左右1マスは当たり判定コンポーネントのために空ける
-  voxelRange.min.z += 1;
-  voxelRange.max.z -= 1;
+  if (notLeft) voxelRange.min.z += 1;
+  if (notRight) voxelRange.max.z -= 1;
 
   const volume = getVoxelVolume(voxelRange.min, voxelRange.max);
 
@@ -234,8 +238,23 @@ export function createVisualComponent(
   builder.addAttribute('value', 4 * volume);
   builder.addAttribute('flags', 0);
   builder.addAttribute('tags', 'mod,train,door');
-  builder.addAttribute('mesh_0_name', filenames.meshes.left);
-  builder.addAttribute('mesh_1_name', filenames.meshes.right);
+
+  switch (direction) {
+    case 'double':
+      builder.addAttribute('mesh_0_name', filenames.meshes.left);
+      builder.addAttribute('mesh_1_name', filenames.meshes.right);
+      break;
+    case 'left':
+      builder.addAttribute('mesh_0_name', filenames.meshes.left);
+      break;
+    case 'right':
+      builder.addAttribute('mesh_0_name', filenames.meshes.right);
+      break;
+    default:
+      direction satisfies never;
+      throw new Error('Unreachable');
+  }
+
   builder.addAttribute('lua_filename', filenames.script);
 
   builder.addSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1, 2, 3, 4, 5], { shape: 0 });
@@ -267,20 +286,52 @@ export function createVisualComponent(
 }
 
 // 見た目用コンポーネントの Lua を生成
-export function createLuaScript(state: DeepReadonly<TrainDoorOptions>) {
-  const motionRange = (state.doorWidth / 2) * 0.25;
+export function createLuaScript(options: DeepReadonly<TrainDoorOptions>) {
+  const { direction } = options;
+
+  let motionRange, fragments;
+  switch (direction) {
+    case 'double':
+      motionRange = (options.doorWidth / 2) * 0.25;
+      fragments = {
+        def: ['local transform1 = matrix.identity()', 'local transform2 = matrix.identity()'],
+        tick: [
+          'transform1 = matrix.translation(0, 0, x)',
+          'transform2 = matrix.translation(0, 0, -x)',
+        ],
+        render: ['component.renderMesh0(transform1)', 'component.renderMesh1(transform2)'],
+      };
+      break;
+    case 'left':
+      motionRange = options.doorWidth * 0.25;
+      fragments = {
+        def: ['local transform = matrix.identity()'],
+        tick: ['transform = matrix.translation(0, 0, x)'],
+        render: ['component.renderMesh0(transform)'],
+      };
+      break;
+    case 'right':
+      motionRange = options.doorWidth * 0.25;
+      fragments = {
+        def: ['local transform = matrix.identity()'],
+        tick: ['transform = matrix.translation(0, 0, -x)'],
+        render: ['component.renderMesh0(transform)'],
+      };
+      break;
+    default:
+      direction satisfies never;
+      throw new Error('Unreachable');
+  }
 
   const script = `local MOTION_RANGE = ${motionRange}
 
-local transform1 = matrix.identity()
-local transform2 = matrix.identity()
+${withIndent(fragments.def)}
 local collisionPos = 0
 
 function onTick()
   local value, _ = component.getInputLogicSlotFloat(0)
   local x = MOTION_RANGE * math.min(math.max(value, 0), 1)
-  transform1 = matrix.translation(0, 0, x)
-  transform2 = matrix.translation(0, 0, -x)
+  ${withIndent(fragments.tick, 1)}
 
   local control = (value >= 1) or (60 * x > collisionPos)
   if control then
@@ -293,8 +344,7 @@ function onTick()
 end
 
 function onRender()
-  component.renderMesh0(transform1)
-  component.renderMesh1(transform2)
+  ${withIndent(fragments.render, 1)}
 end
 `;
 
@@ -303,17 +353,13 @@ end
 
 // 当たり判定用コンポーネントの Definition XML を生成
 export function createCollisionComponent(
-  state: DeepReadonly<TrainDoorOptions>,
+  options: DeepReadonly<TrainDoorOptions>,
   fingerprint: string,
 ) {
-  if (state.doorWidth < 3) {
-    throw new Error('The width for double sliding door must be at least 3.');
-  }
+  const width = options.direction === 'double' ? options.doorWidth / 2 : options.doorWidth;
+  const height = options.doorHeight;
 
-  const width = state.doorWidth / 2;
-  const height = state.doorHeight;
-
-  const voxelRange = getVoxelRange(state.doorWidth, state.doorHeight);
+  const voxelRange = getVoxelRange(options.doorWidth, options.doorHeight);
   voxelRange.min.z = 0;
   voxelRange.max.z = 0;
 
@@ -370,11 +416,11 @@ export function createCollisionComponent(
 
 // ドアユニットビークルを生成
 export function createDoorUnitVehicle(
-  state: DeepReadonly<TrainDoorOptions>,
+  options: DeepReadonly<TrainDoorOptions>,
   visualComponentName: string,
   collisionComponentName: string,
 ) {
-  const voxelRange = getVoxelRange(state.doorWidth, state.doorHeight);
+  const voxelRange = getVoxelRange(options.doorWidth, options.doorHeight);
 
   const visualPos = { x: 0, y: 0, z: 0 };
   const collisionRightPos = { x: 0, y: 0, z: voxelRange.min.z };
@@ -386,15 +432,21 @@ export function createDoorUnitVehicle(
     type: visualComponentName,
     position: visualPos,
   });
-  builder.addComponent('root', {
-    type: collisionComponentName,
-    position: collisionRightPos,
-  });
-  builder.addComponent('root', {
-    type: collisionComponentName,
-    position: collisionLeftPos,
-    flip: { z: true },
-  });
+  if (options.direction !== 'left') {
+    builder.addComponent('root', {
+      type: collisionComponentName,
+      position: collisionRightPos,
+    });
+    builder.addLogicLink(visualPos, collisionRightPos, 'boolean');
+  }
+  if (options.direction !== 'right') {
+    builder.addComponent('root', {
+      type: collisionComponentName,
+      position: collisionLeftPos,
+      flip: { z: true },
+    });
+    builder.addLogicLink(visualPos, collisionLeftPos, 'boolean');
+  }
 
   builder.addCuboid(
     'root',
@@ -413,9 +465,6 @@ export function createDoorUnitVehicle(
   builder.addComponent('root', {
     position: { x: -1, y: voxelRange.max.y + 1, z: voxelRange.max.z + 1 },
   });
-
-  builder.addLogicLink(visualPos, collisionRightPos, 'boolean');
-  builder.addLogicLink(visualPos, collisionLeftPos, 'boolean');
 
   return builder.toXml();
 }
