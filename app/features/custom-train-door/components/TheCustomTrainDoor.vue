@@ -21,6 +21,7 @@ const STORAGE_KEY = 'custom-train-door' as const;
 const { t } = useI18n({ useScope: 'local' });
 
 const toast = useToast();
+const conformDialog = useConfirmDialog();
 
 // 汎用ファイル保存ユーティリティ
 const { saveFile, saveFiles, saveZip, handleError } = useFileSave();
@@ -56,6 +57,32 @@ const { open: openJsonSelectDialog, onChange: onJsonSelect } = useFileDialog({
   accept: 'json',
   multiple: false,
 });
+
+async function newProject() {
+  const ok = await conformDialog({
+    title: t('dialog.newProject.title'),
+    description: t('dialog.newProject.description'),
+    confirmLabel: t('dialog.newProject.confirm'),
+    cancelLabel: t('dialog.newProject.cancel'),
+  });
+
+  if (!ok) return;
+
+  state.value = createDefaultEditTrainDoorState();
+}
+
+async function openProject() {
+  const ok = await conformDialog({
+    title: t('dialog.openProject.title'),
+    description: t('dialog.openProject.description'),
+    confirmLabel: t('dialog.openProject.confirm'),
+    cancelLabel: t('dialog.openProject.cancel'),
+  });
+
+  if (!ok) return;
+
+  openJsonSelectDialog();
+}
 
 onJsonSelect(async (files) => {
   const file = files?.item(0);
@@ -219,14 +246,17 @@ const tabItems = computed(() => [
 const otherMenuItems = computed(() => [
   [
     {
-      label: t('other_menu.state.open'),
-      icon: 'i-lucide-folder-open',
-      onSelect() {
-        openJsonSelectDialog();
-      },
+      label: t('other_menu.project.new'),
+      icon: 'i-lucide-file-plus-corner',
+      onSelect: newProject,
     },
     {
-      label: t('other_menu.state.save'),
+      label: t('other_menu.project.open'),
+      icon: 'i-lucide-folder-open',
+      onSelect: openProject,
+    },
+    {
+      label: t('other_menu.project.save'),
       icon: 'i-lucide-save',
       onSelect: saveEditingState,
     },
@@ -370,9 +400,10 @@ const otherMenuItems = computed(() => [
     },
     "other_menu": {
       "label": "More",
-      "state": {
-        "open": "Open project",
-        "save": "Save project"
+      "project": {
+        "new": "New Project",
+        "open": "Open project...",
+        "save": "Save project..."
       },
       "advanced": {
         "label": "Advanced Export",
@@ -381,6 +412,20 @@ const otherMenuItems = computed(() => [
         "save_visual_component_bin": "Save Visual Component (.bin)",
         "save_collision_component_source": "Save Collision Component (.xml)",
         "save_collision_component_bin": "Save Collision Component (.bin)"
+      }
+    },
+    "dialog": {
+      "newProject": {
+        "title": "New Project",
+        "description": "Your current changes will be lost. Create a new project?",
+        "cancel": "Cancel",
+        "confirm": "Create"
+      },
+      "openProject": {
+        "title": "Open Project",
+        "description": "Your current changes will be lost. Do you want to open another project?",
+        "cancel": "Cancel",
+        "confirm": "Open"
       }
     }
   },
@@ -404,9 +449,10 @@ const otherMenuItems = computed(() => [
     },
     "other_menu": {
       "label": "その他",
-      "state": {
-        "open": "編集データを開く",
-        "save": "編集データを保存"
+      "project": {
+        "new": "新規プロジェクト",
+        "open": "プロジェクトを開く...",
+        "save": "プロジェクトを保存..."
       },
       "advanced": {
         "label": "Mod開発者向け",
@@ -415,6 +461,20 @@ const otherMenuItems = computed(() => [
         "save_visual_component_bin": "表示コンポーネントを保存 (.bin)",
         "save_collision_component_source": "当たり判定コンポーネントを保存 (.xml)",
         "save_collision_component_bin": "当たり判定コンポーネントを保存 (.bin)"
+      }
+    },
+    "dialog": {
+      "newProject": {
+        "title": "新規プロジェクト",
+        "description": "現在の編集内容は失われます。新しいプロジェクトを作成しますか？",
+        "cancel": "キャンセル",
+        "confirm": "作成"
+      },
+      "openProject": {
+        "title": "プロジェクトを開く",
+        "description": "現在の編集内容は失われます。プロジェクトを読み込みますか？",
+        "cancel": "キャンセル",
+        "confirm": "読み込む"
       }
     }
   }
