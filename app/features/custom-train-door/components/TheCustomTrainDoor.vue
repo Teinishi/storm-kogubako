@@ -26,6 +26,9 @@ const { confirm: confirmDialog, input: inputDialog } = useDialog();
 // 汎用ファイル保存ユーティリティ
 const { saveFile, saveFiles, saveZip, handleError } = useFileSave();
 
+// 状態が未保存
+const isDirty = ref(false);
+
 // 状態 (localStorage に自動保存)
 const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
   initOnMounted: true,
@@ -34,6 +37,7 @@ const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
       const result = fromJson(raw);
 
       if (result.success) {
+        isDirty.value = true;
         return result.data;
       } else {
         console.error(result.error);
@@ -43,11 +47,23 @@ const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
           color: 'error',
         });
 
+        isDirty.value = false;
         return createDefaultEditTrainDoorState();
       }
     },
     write: toJson,
   },
+});
+
+onMounted(async () => {
+  await nextTick(); // onMounted で localStorage から読み込まれるので、それを待ってから watch
+  watch(
+    state,
+    () => {
+      isDirty.value = true;
+    },
+    { deep: true },
+  );
 });
 
 const { outsideEditorProps, insideEditorProps, editorLogicalBounds } = useCustomTrainDoor(state);
@@ -59,29 +75,35 @@ const { open: openJsonSelectDialog, onChange: onJsonSelect } = useFileDialog({
 });
 
 async function newProject() {
-  const ok = await confirmDialog({
-    icon: 'i-lucide-file-plus-corner',
-    title: t('dialog.new_project.title'),
-    description: t('dialog.new_project.description'),
-    cancelLabel: t('dialog.new_project.cancel'),
-    confirmLabel: t('dialog.new_project.confirm'),
-  });
+  if (isDirty.value) {
+    const ok = await confirmDialog({
+      icon: 'i-lucide-file-plus-corner',
+      title: t('dialog.new_project.title'),
+      description: t('dialog.new_project.description'),
+      cancelLabel: t('dialog.new_project.cancel'),
+      confirmLabel: t('dialog.new_project.confirm'),
+    });
 
-  if (!ok) return;
+    if (!ok) return;
+  }
 
   state.value = createDefaultEditTrainDoorState();
+  await nextTick();
+  isDirty.value = false;
 }
 
 async function openProject() {
-  const ok = await confirmDialog({
-    icon: 'i-lucide-folder-open',
-    title: t('dialog.open_project.title'),
-    description: t('dialog.open_project.description'),
-    cancelLabel: t('dialog.open_project.cancel'),
-    confirmLabel: t('dialog.open_project.confirm'),
-  });
+  if (isDirty.value) {
+    const ok = await confirmDialog({
+      icon: 'i-lucide-folder-open',
+      title: t('dialog.open_project.title'),
+      description: t('dialog.open_project.description'),
+      cancelLabel: t('dialog.open_project.cancel'),
+      confirmLabel: t('dialog.open_project.confirm'),
+    });
 
-  if (!ok) return;
+    if (!ok) return;
+  }
 
   openJsonSelectDialog();
 }
@@ -95,6 +117,8 @@ onJsonSelect(async (files) => {
 
   if (result.success) {
     state.value = result.data;
+    await nextTick();
+    isDirty.value = false;
   } else {
     console.error(result.error);
     toast.add({
@@ -129,6 +153,8 @@ async function saveEditingState() {
       data,
       mimetype: 'application/json',
     });
+
+    isDirty.value = false;
   });
 }
 
