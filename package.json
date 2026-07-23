@@ -28,7 +28,8 @@
     "sw-mesh-viewer": "github:Teinishi/sw-mesh-viewer#v0.2.1",
     "three": "^0.185.1",
     "vue": "^3.5.25",
-    "vue-router": "^5.1.0"
+    "vue-router": "^5.1.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.80",
