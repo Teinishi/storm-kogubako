@@ -40,32 +40,49 @@ const tabItems = computed(() => [
   },
 ]);
 
-const advancedItems = computed(() => [
-  {
-    label: t('save_mesh'),
-    icon: 'i-lucide-box',
-    onSelect: saveMeshClicked,
-  },
-  {
-    label: t('save_visual_component_source'),
-    icon: 'i-lucide-code-xml',
-    onSelect: saveVisualComponentSourceClicked,
-  },
-  {
-    label: t('save_visual_component_bin'),
-    icon: 'i-lucide-binary',
-    onSelect: saveVisualComponentBinClicked,
-  },
-  {
-    label: t('save_collision_component_source'),
-    icon: 'i-lucide-code-xml',
-    onSelect: saveCollisionComponentSourceClicked,
-  },
-  {
-    label: t('save_collision_component_bin'),
-    icon: 'i-lucide-binary',
-    onSelect: saveCollisionComponentBinClicked,
-  },
+const otherMenuItems = computed(() => [
+  [
+    {
+      label: t('other_menu.state.open'),
+      icon: 'i-lucide-folder-open',
+    },
+    {
+      label: t('other_menu.state.save'),
+      icon: 'i-lucide-save',
+    },
+  ],
+  [
+    {
+      label: t('other_menu.advanced.title'),
+      children: [
+        {
+          label: t('other_menu.advanced.save_mesh'),
+          icon: 'i-lucide-box',
+          onSelect: saveMeshClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_visual_component_source'),
+          icon: 'i-lucide-code-xml',
+          onSelect: saveVisualComponentSourceClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_visual_component_bin'),
+          icon: 'i-lucide-binary',
+          onSelect: saveVisualComponentBinClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_collision_component_source'),
+          icon: 'i-lucide-code-xml',
+          onSelect: saveCollisionComponentSourceClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_collision_component_bin'),
+          icon: 'i-lucide-binary',
+          onSelect: saveCollisionComponentBinClicked,
+        },
+      ],
+    },
+  ],
 ]);
 
 const toast = useToast();
@@ -242,14 +259,14 @@ function saveDoorUnitClicked() {
                 </template>
               </UModal>
 
-              <UDropdownMenu :items="advancedItems">
+              <UDropdownMenu :items="otherMenuItems">
                 <UButton
                   block
                   size="xl"
                   color="primary"
                   variant="outline"
-                  icon="i-lucide-chevron-down"
-                  :label="t('advanced')"
+                  icon="i-lucide-ellipsis"
+                  :label="t('other_menu.title')"
                   class="flex-1"
                 />
               </UDropdownMenu>
@@ -289,35 +306,53 @@ function saveDoorUnitClicked() {
 {
   "en": {
     "state_restore_error": "Failed to restore data",
+    "other_menu": {
+      "title": "More",
+      "state": {
+        "open": "Open saved data",
+        "save": "Save editing data"
+      },
+      "advanced": {
+        "title": "Advanced Export",
+        "save_mesh": "Save Mesh (.mesh)",
+        "save_visual_component_xml": "Save Visual Component (.xml, .lua, .mesh)",
+        "save_visual_component_bin": "Save Visual Component (.bin)",
+        "save_collision_component_xml": "Save Collision Component (.xml)",
+        "save_collision_component_bin": "Save Collision Component (.bin)"
+      }
+    },
     "settings": "Settings",
     "outside_paint": "Outside Paint",
     "inside_paint": "Inside Paint",
     "preview": "Preview",
     "save_door_unit": "Save Door Unit",
     "usage": "Usage",
-    "usage_title": "Installing the Door Unit",
-    "advanced": "Advanced",
-    "save_mesh": "Save Mesh (.mesh)",
-    "save_visual_component_xml": "Save Visual Component (.xml, .lua, .mesh)",
-    "save_visual_component_bin": "Save Visual Component (.bin)",
-    "save_collision_component_xml": "Save Collision Component (.xml)",
-    "save_collision_component_bin": "Save Collision Component (.bin)"
+    "usage_title": "Installing the Door Unit"
   },
   "ja": {
     "state_restore_error": "入力内容を復元できませんでした",
+    "other_menu": {
+      "title": "その他",
+      "state": {
+        "open": "編集データを開く",
+        "save": "編集データを保存"
+      },
+      "advanced": {
+        "title": "Mod開発者向け",
+        "save_mesh": "メッシュを保存 (.mesh)",
+        "save_visual_component_source": "表示コンポーネントを保存 (.xml, .lua, .mesh)",
+        "save_visual_component_bin": "表示コンポーネントを保存 (.bin)",
+        "save_collision_component_source": "当たり判定コンポーネントを保存 (.xml)",
+        "save_collision_component_bin": "当たり判定コンポーネントを保存 (.bin)"
+      }
+    },
     "settings": "設定",
     "outside_paint": "外側ペイント",
     "inside_paint": "内側ペイント",
     "preview": "プレビュー",
     "save_door_unit": "ドアユニットを保存",
     "usage": "使い方",
-    "usage_title": "ドアユニットの導入方法",
-    "advanced": "Mod 開発者向け",
-    "save_mesh": "メッシュを保存 (.mesh)",
-    "save_visual_component_source": "表示コンポーネントを保存 (.xml, .lua, .mesh)",
-    "save_visual_component_bin": "表示コンポーネントを保存 (.bin)",
-    "save_collision_component_source": "当たり判定コンポーネントを保存 (.xml)",
-    "save_collision_component_bin": "当たり判定コンポーネントを保存 (.bin)"
+    "usage_title": "ドアユニットの導入方法"
   }
 }
 </i18n>
