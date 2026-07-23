@@ -305,11 +305,12 @@ const otherMenuItems = computed(() => [
         <UTabs
           :items="tabItems"
           :unmount-on-hide="false"
-          :ui="{ root: 'gap-4', content: 'grow min-h-0 pb-18 sm:pb-4' }"
+          :ui="{ root: 'gap-4', content: 'grow min-h-0 pb-18 sm:pb-4 @container' }"
           class="h-full"
         >
           <template #settings>
             <TheTrainDoorSettings v-model="state.options" />
+
             <div class="mt-4 flex flex-wrap gap-4 md:flex-nowrap">
               <UButton
                 block

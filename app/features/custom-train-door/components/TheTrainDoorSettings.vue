@@ -28,7 +28,7 @@ const state = defineModel<TrainDoorOptions>({ required: true });
 </script>
 
 <template>
-  <div class="grid gap-4 lg:grid-cols-2">
+  <div class="grid gap-4 @2xl:grid-cols-2">
     <FormCard :title="t('door_settings')">
       <!-- <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
         <UFormField :label="t('door_type')">
