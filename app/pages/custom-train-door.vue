@@ -5,8 +5,6 @@ const { t: gt } = useI18n({ useScope: 'global' });
 
 useHead({ title: gt('custom_train_door') });
 definePageMeta({ layout: 'app' });
-
-useUnsavedChanges();
 </script>
 
 <template>
