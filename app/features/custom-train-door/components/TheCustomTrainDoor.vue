@@ -24,17 +24,17 @@ const { saveFile, saveFiles, saveZip, handleError } = useFileSave();
 
 const tabItems = computed(() => [
   {
-    label: t('settings'),
+    label: t('tabs.settings'),
     icon: 'i-lucide-wrench',
     slot: 'settings' as const,
   },
   {
-    label: t('outside_paint'),
+    label: t('tabs.outside_paint'),
     icon: 'i-lucide-brush',
     slot: 'outside' as const,
   },
   {
-    label: t('inside_paint'),
+    label: t('tabs.inside_paint'),
     icon: 'i-lucide-brush',
     slot: 'inside' as const,
   },
@@ -53,7 +53,7 @@ const otherMenuItems = computed(() => [
   ],
   [
     {
-      label: t('other_menu.advanced.title'),
+      label: t('other_menu.advanced.label'),
       children: [
         {
           label: t('other_menu.advanced.save_mesh'),
@@ -99,7 +99,7 @@ const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
         console.error(result.error);
         toast.add({
           icon: 'i-lucide-circle-alert',
-          title: t('state_restore_error'),
+          title: t('error.restoring_state'),
           color: 'error',
         });
 
@@ -240,18 +240,18 @@ function saveDoorUnitClicked() {
                 size="xl"
                 color="primary"
                 icon="i-lucide-download"
-                :label="t('save_door_unit')"
+                :label="t('save.door_unit')"
                 @click="saveDoorUnitClicked"
               />
 
-              <UModal :title="t('usage_title')" :ui="{ content: 'sm:max-w-3xl' }">
+              <UModal :title="t('usage.title')" :ui="{ content: 'sm:max-w-3xl' }">
                 <UButton
                   block
                   size="xl"
                   color="primary"
                   variant="subtle"
                   icon="i-lucide-circle-question-mark"
-                  :label="t('usage')"
+                  :label="t('usage.label')"
                   class="flex-1"
                 />
                 <template #body>
@@ -266,7 +266,7 @@ function saveDoorUnitClicked() {
                   color="primary"
                   variant="outline"
                   icon="i-lucide-ellipsis"
-                  :label="t('other_menu.title')"
+                  :label="t('other_menu.label')"
                   class="flex-1"
                 />
               </UDropdownMenu>
@@ -305,54 +305,70 @@ function saveDoorUnitClicked() {
 <i18n lang="json">
 {
   "en": {
-    "state_restore_error": "Failed to restore data",
+    "error": {
+      "restoring_state": "Failed to restore data"
+    },
+    "tabs": {
+      "settings": "Settings",
+      "outside_paint": "Outside Paint",
+      "inside_paint": "Inside Paint"
+    },
+    "preview": "Preview",
+    "save": {
+      "door_unit": "Save Door Unit"
+    },
+    "usage": {
+      "label": "Usage",
+      "title": "Installing the Door Unit"
+    },
     "other_menu": {
-      "title": "More",
+      "label": "More",
       "state": {
         "open": "Open saved data",
         "save": "Save editing data"
       },
       "advanced": {
-        "title": "Advanced Export",
+        "label": "Advanced Export",
         "save_mesh": "Save Mesh (.mesh)",
-        "save_visual_component_xml": "Save Visual Component (.xml, .lua, .mesh)",
+        "save_visual_component_source": "Save Visual Component (.xml, .lua, .mesh)",
         "save_visual_component_bin": "Save Visual Component (.bin)",
-        "save_collision_component_xml": "Save Collision Component (.xml)",
+        "save_collision_component_source": "Save Collision Component (.xml)",
         "save_collision_component_bin": "Save Collision Component (.bin)"
       }
-    },
-    "settings": "Settings",
-    "outside_paint": "Outside Paint",
-    "inside_paint": "Inside Paint",
-    "preview": "Preview",
-    "save_door_unit": "Save Door Unit",
-    "usage": "Usage",
-    "usage_title": "Installing the Door Unit"
+    }
   },
   "ja": {
-    "state_restore_error": "入力内容を復元できませんでした",
+    "error": {
+      "restoring_state": "入力内容を復元できませんでした"
+    },
+    "tabs": {
+      "settings": "設定",
+      "outside_paint": "外側ペイント",
+      "inside_paint": "内側ペイント"
+    },
+    "preview": "プレビュー",
+    "save": {
+      "door_unit": "ドアユニットを保存"
+    },
+    "usage": {
+      "label": "使い方",
+      "title": "ドアユニットの導入方法"
+    },
     "other_menu": {
-      "title": "その他",
+      "label": "その他",
       "state": {
         "open": "編集データを開く",
         "save": "編集データを保存"
       },
       "advanced": {
-        "title": "Mod開発者向け",
+        "label": "Mod開発者向け",
         "save_mesh": "メッシュを保存 (.mesh)",
         "save_visual_component_source": "表示コンポーネントを保存 (.xml, .lua, .mesh)",
         "save_visual_component_bin": "表示コンポーネントを保存 (.bin)",
         "save_collision_component_source": "当たり判定コンポーネントを保存 (.xml)",
         "save_collision_component_bin": "当たり判定コンポーネントを保存 (.bin)"
       }
-    },
-    "settings": "設定",
-    "outside_paint": "外側ペイント",
-    "inside_paint": "内側ペイント",
-    "preview": "プレビュー",
-    "save_door_unit": "ドアユニットを保存",
-    "usage": "使い方",
-    "usage_title": "ドアユニットの導入方法"
+    }
   }
 }
 </i18n>
