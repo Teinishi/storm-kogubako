@@ -20,73 +20,12 @@ const STORAGE_KEY = 'custom-train-door' as const;
 
 const { t } = useI18n({ useScope: 'local' });
 
-const { saveFile, saveFiles, saveZip, handleError } = useFileSave();
-
-const tabItems = computed(() => [
-  {
-    label: t('tabs.settings'),
-    icon: 'i-lucide-wrench',
-    slot: 'settings' as const,
-  },
-  {
-    label: t('tabs.outside_paint'),
-    icon: 'i-lucide-brush',
-    slot: 'outside' as const,
-  },
-  {
-    label: t('tabs.inside_paint'),
-    icon: 'i-lucide-brush',
-    slot: 'inside' as const,
-  },
-]);
-
-const otherMenuItems = computed(() => [
-  [
-    {
-      label: t('other_menu.state.open'),
-      icon: 'i-lucide-folder-open',
-    },
-    {
-      label: t('other_menu.state.save'),
-      icon: 'i-lucide-save',
-    },
-  ],
-  [
-    {
-      label: t('other_menu.advanced.label'),
-      children: [
-        {
-          label: t('other_menu.advanced.save_mesh'),
-          icon: 'i-lucide-box',
-          onSelect: saveMeshClicked,
-        },
-        {
-          label: t('other_menu.advanced.save_visual_component_source'),
-          icon: 'i-lucide-code-xml',
-          onSelect: saveVisualComponentSourceClicked,
-        },
-        {
-          label: t('other_menu.advanced.save_visual_component_bin'),
-          icon: 'i-lucide-binary',
-          onSelect: saveVisualComponentBinClicked,
-        },
-        {
-          label: t('other_menu.advanced.save_collision_component_source'),
-          icon: 'i-lucide-code-xml',
-          onSelect: saveCollisionComponentSourceClicked,
-        },
-        {
-          label: t('other_menu.advanced.save_collision_component_bin'),
-          icon: 'i-lucide-binary',
-          onSelect: saveCollisionComponentBinClicked,
-        },
-      ],
-    },
-  ],
-]);
-
 const toast = useToast();
 
+// 汎用ファイル保存ユーティリティ
+const { saveFile, saveFiles, saveZip, handleError } = useFileSave();
+
+// 状態 (localStorage に自動保存)
 const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
   initOnMounted: true,
   serializer: {
@@ -99,7 +38,7 @@ const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
         console.error(result.error);
         toast.add({
           icon: 'i-lucide-circle-alert',
-          title: t('error.restoring_state'),
+          title: t('error.restore_state'),
           color: 'error',
         });
 
@@ -112,6 +51,45 @@ const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
 
 const { outsideEditorProps, insideEditorProps, editorLogicalBounds } = useCustomTrainDoor(state);
 
+// JSON保存・読み込み関連
+const { open: openJsonSelectDialog, onChange: onJsonSelect } = useFileDialog({
+  accept: 'json',
+  multiple: false,
+});
+
+onJsonSelect(async (files) => {
+  const file = files?.item(0);
+  if (!file) return;
+
+  const text = await file.text();
+  const result = fromJson(text);
+
+  if (result.success) {
+    state.value = result.data;
+  } else {
+    console.error(result.error);
+    toast.add({
+      icon: 'i-lucide-circle-alert',
+      title: t('error.load_state'),
+      color: 'error',
+    });
+  }
+});
+
+function saveEditingState() {
+  handleError(() => {
+    const data = toJson(state.value);
+    const fingerprint = getFingerprintFromJson(data);
+    const filename = `train_door_${fingerprint}.json`;
+    saveFile({
+      filename,
+      data,
+      mimetype: 'application/json',
+    });
+  });
+}
+
+// エクスポートまわり
 const outputState = computed<DeepReadonly<OutputTrainDoorState>>(() => ({
   options: state.value.options,
   outsidePaint: getMirrorMergedPolygons(state.value.outsidePaint, editorLogicalBounds.value),
@@ -218,6 +196,74 @@ function saveDoorUnitClicked() {
     saveZip(vehicle, replaceExtension(filenames.doorUnitVehicleName, '.zip'));
   });
 }
+
+// UI
+const tabItems = computed(() => [
+  {
+    label: t('tabs.settings'),
+    icon: 'i-lucide-wrench',
+    slot: 'settings' as const,
+  },
+  {
+    label: t('tabs.outside_paint'),
+    icon: 'i-lucide-brush',
+    slot: 'outside' as const,
+  },
+  {
+    label: t('tabs.inside_paint'),
+    icon: 'i-lucide-brush',
+    slot: 'inside' as const,
+  },
+]);
+
+const otherMenuItems = computed(() => [
+  [
+    {
+      label: t('other_menu.state.open'),
+      icon: 'i-lucide-folder-open',
+      onSelect() {
+        openJsonSelectDialog();
+      },
+    },
+    {
+      label: t('other_menu.state.save'),
+      icon: 'i-lucide-save',
+      onSelect: saveEditingState,
+    },
+  ],
+  [
+    {
+      label: t('other_menu.advanced.label'),
+      children: [
+        {
+          label: t('other_menu.advanced.save_mesh'),
+          icon: 'i-lucide-box',
+          onSelect: saveMeshClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_visual_component_source'),
+          icon: 'i-lucide-code-xml',
+          onSelect: saveVisualComponentSourceClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_visual_component_bin'),
+          icon: 'i-lucide-binary',
+          onSelect: saveVisualComponentBinClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_collision_component_source'),
+          icon: 'i-lucide-code-xml',
+          onSelect: saveCollisionComponentSourceClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_collision_component_bin'),
+          icon: 'i-lucide-binary',
+          onSelect: saveCollisionComponentBinClicked,
+        },
+      ],
+    },
+  ],
+]);
 </script>
 
 <template>
@@ -306,7 +352,8 @@ function saveDoorUnitClicked() {
 {
   "en": {
     "error": {
-      "restoring_state": "Failed to restore data"
+      "restore_state": "Failed to restore data",
+      "load_state": "Failed to load project file"
     },
     "tabs": {
       "settings": "Settings",
@@ -324,8 +371,8 @@ function saveDoorUnitClicked() {
     "other_menu": {
       "label": "More",
       "state": {
-        "open": "Open saved data",
-        "save": "Save editing data"
+        "open": "Open project",
+        "save": "Save project"
       },
       "advanced": {
         "label": "Advanced Export",
@@ -339,7 +386,8 @@ function saveDoorUnitClicked() {
   },
   "ja": {
     "error": {
-      "restoring_state": "入力内容を復元できませんでした"
+      "restore_state": "入力内容を復元できませんでした",
+      "load_state": "編集データを読み込めませんでした"
     },
     "tabs": {
       "settings": "設定",
