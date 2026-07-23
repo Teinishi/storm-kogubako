@@ -1,4 +1,3 @@
-import type { PolygonEditorPolygon } from '~/features/polygon-editor';
 import {
   buildDoorGeometry,
   getFilenames,
@@ -7,18 +6,16 @@ import {
   createCollisionComponent,
   type DoorUnitFileNameSet,
 } from '../doorTypes';
-import type { TrainDoorState } from '../types';
+import type { TrainDoorOptions, OutputTrainDoorState } from '../types';
 
 export function createMeshFiles(
-  state: DeepReadonly<TrainDoorState>,
-  outsidePaint: DeepReadonly<PolygonEditorPolygon[]>,
-  insidePaint: DeepReadonly<PolygonEditorPolygon[]>,
+  state: DeepReadonly<OutputTrainDoorState>,
   fingerprint: string,
   meshNames?: Record<string, string>,
 ) {
-  const filenames = meshNames ?? getFilenames(state, fingerprint).meshes ?? {};
+  const filenames = meshNames ?? getFilenames(state.options, fingerprint).meshes ?? {};
 
-  const objects = buildDoorGeometry(state, outsidePaint, insidePaint, { refine: true });
+  const objects = buildDoorGeometry(state, { refine: true });
 
   return objects.map(({ id, builder }) => {
     builder.transform(Orientation.RotateY270);
@@ -33,15 +30,13 @@ export function createMeshFiles(
 }
 
 export function createVisualComponentFiles(
-  state: DeepReadonly<TrainDoorState>,
-  outsidePaint: DeepReadonly<PolygonEditorPolygon[]>,
-  insidePaint: DeepReadonly<PolygonEditorPolygon[]>,
+  state: DeepReadonly<OutputTrainDoorState>,
   fingerprint: string,
   filenames?: DeepReadonly<DoorUnitFileNameSet>,
 ) {
-  filenames = filenames ?? getFilenames(state, fingerprint);
-  const definition = createVisualComponent(state, fingerprint, filenames);
-  const script = createLuaScript(state);
+  filenames = filenames ?? getFilenames(state.options, fingerprint);
+  const definition = createVisualComponent(state.options, fingerprint, filenames);
+  const script = createLuaScript(state.options);
 
   return {
     definition: {
@@ -54,17 +49,17 @@ export function createVisualComponentFiles(
       data: script,
       mimetype: 'text/plain',
     },
-    meshes: createMeshFiles(state, outsidePaint, insidePaint, fingerprint, filenames.meshes),
+    meshes: createMeshFiles(state, fingerprint, filenames.meshes),
   };
 }
 
 export function createCollisionComponentFile(
-  state: DeepReadonly<TrainDoorState>,
+  options: DeepReadonly<TrainDoorOptions>,
   fingerprint: string,
   filename?: string,
 ) {
-  filename = filename ?? getFilenames(state, fingerprint).collisionDefinition;
-  const definition = createCollisionComponent(state, fingerprint);
+  filename = filename ?? getFilenames(options, fingerprint).collisionDefinition;
+  const definition = createCollisionComponent(options, fingerprint);
 
   return {
     filename,

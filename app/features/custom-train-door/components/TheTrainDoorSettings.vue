@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { TrainDoorState } from '../types';
+import type { TrainDoorOptions } from '../types';
 
 const FORMAT_OPTIONS_METER = {
   maximumFractionDigits: 5,
@@ -24,7 +24,7 @@ const { t } = useI18n({ useScope: 'local' });
   },
 ]);*/
 
-const state = defineModel<TrainDoorState>({ required: true });
+const state = defineModel<TrainDoorOptions>({ required: true });
 </script>
 
 <template>

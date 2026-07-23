@@ -2,6 +2,7 @@
 import { getMirrorMergedPolygons, PolygonEditor } from '~/features/polygon-editor';
 import { useCustomTrainDoor } from '../composables';
 import { createDoorUnitVehicle, getFilenames } from '../doorTypes';
+import { createDefaultEditTrainDoorState, type OutputTrainDoorState } from '../types/state.ts';
 import {
   getFingerprint as getFingerprintFromJson,
   toJson,
@@ -64,44 +65,25 @@ const advancedItems = computed(() => [
   },
 ]);
 
-const {
-  state,
-  outsidePolygonEditorValue,
-  insidePolygonEditorValue,
-  outsideEditorProps,
-  insideEditorProps,
-  editorLogicalBounds,
-} = useCustomTrainDoor();
+const state = ref(createDefaultEditTrainDoorState());
 
-const outsidePaint = computed(() =>
-  getMirrorMergedPolygons(outsidePolygonEditorValue.value, editorLogicalBounds.value),
-);
+const { outsideEditorProps, insideEditorProps, editorLogicalBounds } = useCustomTrainDoor(state);
 
-const insidePaint = computed(() =>
-  getMirrorMergedPolygons(insidePolygonEditorValue.value, editorLogicalBounds.value),
-);
+const outputState = computed<DeepReadonly<OutputTrainDoorState>>(() => ({
+  options: state.value.options,
+  outsidePaint: getMirrorMergedPolygons(state.value.outsidePaint, editorLogicalBounds.value),
+  insidePaint: getMirrorMergedPolygons(state.value.insidePaint, editorLogicalBounds.value),
+}));
 
 function getFingerprint() {
-  return getFingerprintFromJson(
-    toJson({
-      state,
-      outsidePolygonEditorValue: outsidePolygonEditorValue.value,
-      insidePolygonEditorValue: insidePolygonEditorValue.value,
-    }),
-  );
+  return getFingerprintFromJson(toJson(state.value));
 }
 
 function saveMeshClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const filenames = getFilenames(state, fingerprint);
-    const files = createMeshFiles(
-      state,
-      outsidePaint.value,
-      insidePaint.value,
-      fingerprint,
-      filenames.meshes,
-    );
+    const filenames = getFilenames(outputState.value.options, fingerprint);
+    const files = createMeshFiles(outputState.value, fingerprint, filenames.meshes);
     saveFiles(files, filenames.meshesZip);
   });
 }
@@ -109,14 +91,8 @@ function saveMeshClicked() {
 function saveVisualComponentSourceClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const filenames = getFilenames(state, fingerprint);
-    const files = createVisualComponentFiles(
-      state,
-      outsidePaint.value,
-      insidePaint.value,
-      fingerprint,
-      filenames,
-    );
+    const filenames = getFilenames(outputState.value.options, fingerprint);
+    const files = createVisualComponentFiles(outputState.value, fingerprint, filenames);
     const zipName = replaceExtension(files.definition.filename, '.zip');
     saveFiles([files.definition, files.script, ...files.meshes], zipName);
   });
@@ -125,12 +101,7 @@ function saveVisualComponentSourceClicked() {
 function saveVisualComponentBinClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const files = createVisualComponentFiles(
-      state,
-      outsidePaint.value,
-      insidePaint.value,
-      fingerprint,
-    );
+    const files = createVisualComponentFiles(outputState.value, fingerprint);
     const { file: binFile } = createComponentBin(files.definition.filename, files.definition.data, [
       files.script,
       ...files.meshes,
@@ -142,7 +113,7 @@ function saveVisualComponentBinClicked() {
 function saveCollisionComponentSourceClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const file = createCollisionComponentFile(state, fingerprint);
+    const file = createCollisionComponentFile(outputState.value.options, fingerprint);
     saveFile(file);
   });
 }
@@ -150,7 +121,7 @@ function saveCollisionComponentSourceClicked() {
 function saveCollisionComponentBinClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const file = createCollisionComponentFile(state, fingerprint);
+    const file = createCollisionComponentFile(outputState.value.options, fingerprint);
     const { file: binFile } = createComponentBin(file.filename, file.data);
     saveFile(binFile);
   });
@@ -159,25 +130,23 @@ function saveCollisionComponentBinClicked() {
 function saveDoorUnitClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const filenames = getFilenames(state, fingerprint);
+    const filenames = getFilenames(outputState.value.options, fingerprint);
 
-    const visualFiles = createVisualComponentFiles(
-      state,
-      outsidePaint.value,
-      insidePaint.value,
-      fingerprint,
-      filenames,
-    );
+    const visualFiles = createVisualComponentFiles(outputState.value, fingerprint, filenames);
     const visualComponent = createComponentBin(
       visualFiles.definition.filename,
       visualFiles.definition.data,
       [visualFiles.script, ...visualFiles.meshes],
     );
 
-    const collisionFile = createCollisionComponentFile(state, fingerprint);
+    const collisionFile = createCollisionComponentFile(outputState.value.options, fingerprint);
     const collisionComponent = createComponentBin(collisionFile.filename, collisionFile.data);
 
-    const vehicleData = createDoorUnitVehicle(state, visualComponent.name, collisionComponent.name);
+    const vehicleData = createDoorUnitVehicle(
+      outputState.value.options,
+      visualComponent.name,
+      collisionComponent.name,
+    );
     const vehicle: SaveZipNode[] = [
       {
         type: 'file',
@@ -221,7 +190,7 @@ function saveDoorUnitClicked() {
           class="h-full"
         >
           <template #settings>
-            <TheTrainDoorSettings v-model="state" />
+            <TheTrainDoorSettings v-model="state.options" />
             <div class="mt-4 flex flex-wrap gap-4 md:flex-nowrap">
               <UButton
                 block
@@ -264,7 +233,7 @@ function saveDoorUnitClicked() {
           <template #outside>
             <PolygonEditor
               ref="outsideEditor"
-              v-model="outsidePolygonEditorValue"
+              v-model="state.outsidePaint"
               v-bind="outsideEditorProps"
               class="h-full overflow-y-auto"
             />
@@ -273,7 +242,7 @@ function saveDoorUnitClicked() {
           <template #inside>
             <PolygonEditor
               ref="insideEditor"
-              v-model="insidePolygonEditorValue"
+              v-model="state.insidePaint"
               v-bind="insideEditorProps"
               class="h-full overflow-y-auto"
             />
@@ -284,11 +253,7 @@ function saveDoorUnitClicked() {
 
     <ResponsivePanel icon="i-lucide-box" :label="t('preview')">
       <ClientOnly>
-        <TheTrainDoorPreviewClient
-          :state="state"
-          :outside-paint="outsidePaint"
-          :inside-paint="insidePaint"
-        />
+        <TheTrainDoorPreviewClient :state="outputState" />
       </ClientOnly>
     </ResponsivePanel>
   </div>

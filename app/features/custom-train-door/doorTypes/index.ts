@@ -1,18 +1,18 @@
 import type { Reactive } from 'vue';
-import type { RenderHooks, PolygonEditorPolygon } from '~/features/polygon-editor';
-import type { TrainDoorState } from '../types';
-import * as doubleSliding from './doubleSliding';
+import type { RenderHooks } from '~/features/polygon-editor';
+import type { OutputTrainDoorState, TrainDoorOptions } from '../types';
+import * as sliding from './sliding';
 
 export interface RenderHooksSet {
   outside: RenderHooks;
   inside: RenderHooks;
 }
 
-export function createRenderHooks(state: Reactive<TrainDoorState>): RenderHooksSet {
-  const { doorType } = state;
+export function createRenderHooks(options: Reactive<TrainDoorOptions>): RenderHooksSet {
+  const { doorType } = options;
   switch (doorType) {
     case 'sliding':
-      return doubleSliding.createRenderHooks(state);
+      return sliding.createRenderHooks(options);
     default:
       doorType satisfies never;
       throw new Error('Unreachable');
@@ -20,15 +20,13 @@ export function createRenderHooks(state: Reactive<TrainDoorState>): RenderHooksS
 }
 
 export function buildDoorGeometry(
-  state: DeepReadonly<TrainDoorState>,
-  outsidePaint: DeepReadonly<PolygonEditorPolygon[]>,
-  insidePaint: DeepReadonly<PolygonEditorPolygon[]>,
+  state: DeepReadonly<OutputTrainDoorState>,
   builderOptions?: DeepReadonly<GeometryBuilderOptions>,
 ) {
-  const { doorType } = state;
+  const { doorType } = state.options;
   switch (doorType) {
     case 'sliding':
-      return doubleSliding.buildGeometry(state, outsidePaint, insidePaint, builderOptions);
+      return sliding.buildGeometry(state, builderOptions);
     default:
       doorType satisfies never;
       throw new Error('Unreachable');
@@ -46,13 +44,13 @@ export interface DoorUnitFileNameSet {
 }
 
 export function getFilenames(
-  state: DeepReadonly<TrainDoorState>,
+  options: DeepReadonly<TrainDoorOptions>,
   fingerprint: string,
 ): DoorUnitFileNameSet {
-  const { doorType } = state;
+  const { doorType } = options;
   switch (doorType) {
     case 'sliding':
-      return doubleSliding.getFilenames(state, fingerprint);
+      return sliding.getFilenames(options, fingerprint);
     default:
       doorType satisfies never;
       throw new Error('Unreachable');
@@ -60,36 +58,39 @@ export function getFilenames(
 }
 
 export function createVisualComponent(
-  state: DeepReadonly<TrainDoorState>,
+  options: DeepReadonly<TrainDoorOptions>,
   fingerprint: string,
   filenames: DeepReadonly<DoorUnitFileNameSet>,
 ) {
-  const { doorType } = state;
+  const { doorType } = options;
   switch (doorType) {
     case 'sliding':
-      return doubleSliding.createVisualComponent(state, fingerprint, filenames);
+      return sliding.createVisualComponent(options, fingerprint, filenames);
     default:
       doorType satisfies never;
       throw new Error('Unreachable');
   }
 }
 
-export function createLuaScript(state: DeepReadonly<TrainDoorState>) {
-  const { doorType } = state;
+export function createLuaScript(options: DeepReadonly<TrainDoorOptions>) {
+  const { doorType } = options;
   switch (doorType) {
     case 'sliding':
-      return doubleSliding.createLuaScript(state);
+      return sliding.createLuaScript(options);
     default:
       doorType satisfies never;
       throw new Error('Unreachable');
   }
 }
 
-export function createCollisionComponent(state: DeepReadonly<TrainDoorState>, fingerprint: string) {
-  const { doorType } = state;
+export function createCollisionComponent(
+  options: DeepReadonly<TrainDoorOptions>,
+  fingerprint: string,
+) {
+  const { doorType } = options;
   switch (doorType) {
     case 'sliding':
-      return doubleSliding.createCollisionComponent(state, fingerprint);
+      return sliding.createCollisionComponent(options, fingerprint);
     default:
       doorType satisfies never;
       throw new Error('Unreachable');
@@ -97,18 +98,14 @@ export function createCollisionComponent(state: DeepReadonly<TrainDoorState>, fi
 }
 
 export function createDoorUnitVehicle(
-  state: DeepReadonly<TrainDoorState>,
+  options: DeepReadonly<TrainDoorOptions>,
   visualComponentName: string,
   collisionComponentName: string,
 ) {
-  const { doorType } = state;
+  const { doorType } = options;
   switch (doorType) {
     case 'sliding':
-      return doubleSliding.createDoorUnitVehicle(
-        state,
-        visualComponentName,
-        collisionComponentName,
-      );
+      return sliding.createDoorUnitVehicle(options, visualComponentName, collisionComponentName);
     default:
       doorType satisfies never;
       throw new Error('Unreachable');

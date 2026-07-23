@@ -1,22 +1,13 @@
 import { xxHash32 } from 'js-xxhash';
-import type { PolygonEditorValue } from '~/features/polygon-editor';
-import type { TrainDoorState } from '../types';
+import type { EditTrainDoorState } from '../types';
 
 const VERSION = 0;
 
-export interface SessionState {
-  state: TrainDoorState;
-  outsidePolygonEditorValue: PolygonEditorValue;
-  insidePolygonEditorValue: PolygonEditorValue;
-}
-
-export function toJson(sessionState: SessionState, pretty?: boolean) {
+export function toJson(sessionState: EditTrainDoorState, pretty?: boolean) {
   return JSON.stringify(
     {
       version: VERSION,
-      state: sessionState.state,
-      outsidePolygonEditorValue: sessionState.outsidePolygonEditorValue,
-      insidePolygonEditorValue: sessionState.insidePolygonEditorValue,
+      data: sessionState,
     },
     null,
     pretty ? 4 : undefined,

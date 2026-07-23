@@ -1,6 +1,12 @@
+import {
+  createDefaultPolygonEditorValue,
+  type PolygonEditorPolygon,
+  type PolygonEditorValue,
+} from '~/features/polygon-editor';
+
 export type DoorTypes = 'sliding';
 
-export interface TrainDoorState {
+export interface TrainDoorOptions {
   doorType: DoorTypes;
   direction: 'double' | 'left' | 'right';
   doorWidth: number;
@@ -21,7 +27,19 @@ export interface TrainDoorState {
   windowFrameColor: string;
 }
 
-export function createDefaultTrainDoorState(): TrainDoorState {
+export interface EditTrainDoorState {
+  options: TrainDoorOptions;
+  outsidePaint: PolygonEditorValue;
+  insidePaint: PolygonEditorValue;
+}
+
+export interface OutputTrainDoorState {
+  options: TrainDoorOptions;
+  outsidePaint: PolygonEditorPolygon[];
+  insidePaint: PolygonEditorPolygon[];
+}
+
+export function createDefaultTrainDoorOptions(): TrainDoorOptions {
   return {
     doorType: 'sliding',
     direction: 'double',
@@ -41,5 +59,13 @@ export function createDefaultTrainDoorState(): TrainDoorState {
     windowCornerDivisions: 1,
     windowFrameThickness: 0.02,
     windowFrameColor: '#545454',
+  };
+}
+
+export function createDefaultEditTrainDoorState(): EditTrainDoorState {
+  return {
+    options: createDefaultTrainDoorOptions(),
+    outsidePaint: createDefaultPolygonEditorValue(),
+    insidePaint: createDefaultPolygonEditorValue(),
   };
 }
