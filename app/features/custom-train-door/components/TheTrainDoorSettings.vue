@@ -9,55 +9,81 @@ const FORMAT_OPTIONS_METER = {
 
 const { t } = useI18n({ useScope: 'local' });
 
-/*const _doorTypeItems = computed(() => [
+const directionItems = computed(() => [
   {
-    label: t('double_sliding'),
-    value: 'double_sliding',
+    label: t('direction.double'),
+    value: 'double',
   },
   {
-    label: t('single_sliding_left'),
-    value: 'single_sliding_left',
+    label: t('direction.left'),
+    value: 'left',
   },
   {
-    label: t('single_sliding_right'),
-    value: 'single_sliding_right',
+    label: t('direction.right'),
+    value: 'right',
   },
-]);*/
+]);
 
-const state = defineModel<TrainDoorOptions>({ required: true });
+const options = defineModel<TrainDoorOptions>({ required: true });
+
+// USelect で direction が変更されたときだけ、doorWidth を変更
+let fromSelect = false;
+
+function onDirectionUpdate() {
+  fromSelect = true;
+}
+
+watch(
+  () => options.value.direction,
+  async (newValue, oldValue) => {
+    await nextTick();
+    if (!fromSelect) return;
+
+    const isNewDouble = newValue === 'double';
+    const isOldDouble = oldValue === 'double';
+    if (isNewDouble && !isOldDouble) {
+      options.value.doorWidth *= 2;
+    } else if (!isNewDouble && isOldDouble) {
+      options.value.doorWidth = Math.ceil(options.value.doorWidth / 2);
+    }
+
+    fromSelect = false;
+  },
+);
 </script>
 
 <template>
   <div class="grid gap-4 @2xl:grid-cols-2">
     <FormCard :title="t('door_settings')">
-      <!-- <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-        <UFormField :label="t('door_type')">
+      <div class="grid grid-cols-1 items-end gap-4 sm:grid-cols-2">
+        <UFormField :label="t('direction.label')">
           <USelect
-            v-model="state.doorType"
-            :items="doorTypeItems"
+            v-model="options.direction"
+            :items="directionItems"
             class="w-full"
+            @update:model-value="onDirectionUpdate"
           />
         </UFormField>
-      </div> -->
+      </div>
 
       <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
         <UFormField :label="t('door_width')">
           <div class="flex items-center gap-2">
-            <UInputNumber v-model="state.doorWidth" :step="1" :min="1" class="flex-1" />
+            <UInputNumber v-model="options.doorWidth" :step="1" :min="1" class="flex-1" />
             <span class="text-muted">{{ t('blocks') }}</span>
           </div>
         </UFormField>
 
         <UFormField :label="t('door_height')">
           <div class="flex items-center gap-2">
-            <UInputNumber v-model="state.doorHeight" :step="1" :min="1" class="flex-1" />
+            <UInputNumber v-model="options.doorHeight" :step="1" :min="1" class="flex-1" />
             <span class="text-muted">{{ t('blocks') }}</span>
           </div>
         </UFormField>
 
         <UFormField :label="t('door_thickness')">
           <UInputNumber
-            v-model="state.doorThickness"
+            v-model="options.doorThickness"
             :step="0.05"
             :step-snapping="false"
             :min="0.05"
@@ -68,7 +94,7 @@ const state = defineModel<TrainDoorOptions>({ required: true });
 
         <UFormField :label="t('door_z_offset')">
           <UInputNumber
-            v-model="state.doorZOffset"
+            v-model="options.doorZOffset"
             :step="0.05"
             :step-snapping="false"
             class="w-full"
@@ -76,15 +102,15 @@ const state = defineModel<TrainDoorOptions>({ required: true });
           />
         </UFormField>
 
-        <ColorPicker v-model="state.outsideColor" :label="t('outside_color')" />
+        <ColorPicker v-model="options.outsideColor" :label="t('outside_color')" />
 
-        <ColorPicker v-model="state.insideColor" :label="t('inside_color')" />
+        <ColorPicker v-model="options.insideColor" :label="t('inside_color')" />
       </div>
 
       <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
         <UFormField :label="t('rubber_thickness')">
           <UInputNumber
-            v-model="state.rubberThickness"
+            v-model="options.rubberThickness"
             :step="0.01"
             :step-snapping="false"
             :min="0"
@@ -94,7 +120,7 @@ const state = defineModel<TrainDoorOptions>({ required: true });
           />
         </UFormField>
 
-        <ColorPicker v-model="state.rubberColor" :label="t('rubber_color')" />
+        <ColorPicker v-model="options.rubberColor" :label="t('rubber_color')" />
       </div>
     </FormCard>
 
@@ -102,7 +128,7 @@ const state = defineModel<TrainDoorOptions>({ required: true });
       <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
         <UFormField :label="t('window_x_offset')">
           <UInputNumber
-            v-model="state.windowXOffset"
+            v-model="options.windowXOffset"
             :step="0.005"
             :step-snapping="false"
             class="w-full"
@@ -112,7 +138,7 @@ const state = defineModel<TrainDoorOptions>({ required: true });
 
         <UFormField :label="t('window_y_offset')">
           <UInputNumber
-            v-model="state.windowYOffset"
+            v-model="options.windowYOffset"
             :step="0.005"
             :step-snapping="false"
             class="w-full"
@@ -122,7 +148,7 @@ const state = defineModel<TrainDoorOptions>({ required: true });
 
         <UFormField :label="t('window_width')">
           <UInputNumber
-            v-model="state.windowWidth"
+            v-model="options.windowWidth"
             :step="0.01"
             :step-snapping="false"
             :min="0.01"
@@ -133,7 +159,7 @@ const state = defineModel<TrainDoorOptions>({ required: true });
 
         <UFormField :label="t('window_height')">
           <UInputNumber
-            v-model="state.windowHeight"
+            v-model="options.windowHeight"
             :step="0.01"
             :step-snapping="false"
             :min="0.01"
@@ -144,7 +170,7 @@ const state = defineModel<TrainDoorOptions>({ required: true });
 
         <UFormField :label="t('window_corner_radius')">
           <UInputNumber
-            v-model="state.windowCornerRadius"
+            v-model="options.windowCornerRadius"
             :step="0.01"
             :step-snapping="false"
             :min="0"
@@ -155,7 +181,7 @@ const state = defineModel<TrainDoorOptions>({ required: true });
 
         <UFormField :label="t('window_corner_divisions')">
           <UInputNumber
-            v-model="state.windowCornerDivisions"
+            v-model="options.windowCornerDivisions"
             :step="1"
             :min="1"
             :max="5"
@@ -167,7 +193,7 @@ const state = defineModel<TrainDoorOptions>({ required: true });
       <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
         <UFormField :label="t('window_frame_thickness')">
           <UInputNumber
-            v-model="state.windowFrameThickness"
+            v-model="options.windowFrameThickness"
             :step="0.01"
             :step-snapping="false"
             :min="0"
@@ -177,7 +203,7 @@ const state = defineModel<TrainDoorOptions>({ required: true });
           />
         </UFormField>
 
-        <ColorPicker v-model="state.windowFrameColor" :label="t('window_frame_color')" />
+        <ColorPicker v-model="options.windowFrameColor" :label="t('window_frame_color')" />
       </div>
     </FormCard>
   </div>
@@ -189,9 +215,12 @@ const state = defineModel<TrainDoorOptions>({ required: true });
     "blocks": "Blocks",
     "door_settings": "Door Settings",
     "door_type": "Door Type",
-    "double_sliding": "Double Sliding",
-    "single_sliding_left": "Single Sliding (Left)",
-    "single_sliding_right": "Single Sliding (Right)",
+    "direction": {
+      "label": "Direction",
+      "double": "Double",
+      "left": "Left",
+      "right": "Right"
+    },
     "door_width": "Width",
     "door_height": "Height",
     "door_thickness": "Thickness",
@@ -214,9 +243,12 @@ const state = defineModel<TrainDoorOptions>({ required: true });
     "blocks": "ブロック",
     "door_settings": "ドア設定",
     "door_type": "タイプ",
-    "double_sliding": "両開き",
-    "single_sliding_left": "片開き (左)",
-    "single_sliding_right": "片開き (右)",
+    "direction": {
+      "label": "向き",
+      "double": "両開き",
+      "left": "左",
+      "right": "右"
+    },
     "door_width": "幅",
     "door_height": "高さ",
     "door_thickness": "厚み",
