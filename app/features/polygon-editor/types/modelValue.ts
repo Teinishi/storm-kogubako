@@ -36,17 +36,6 @@ export function clonePolygonEditorValue(
   };
 }
 
-export function createDefaultPolygonEditorValue(): PolygonEditorValue {
-  return {
-    mirror: {
-      enabled: false,
-      axis: 'x',
-      centerOffset: 0,
-    },
-    polygons: [],
-  };
-}
-
 export function transformPolygons(
   polygons: DeepReadonly<PolygonEditorPolygon[]>,
   coordinateConversion: (p: Readonly<Vec2>) => Vec2,

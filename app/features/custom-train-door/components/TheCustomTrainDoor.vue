@@ -10,12 +10,13 @@ import {
   createMeshFiles,
   createVisualComponentFiles,
   createCollisionComponentFile,
+  fromJson,
 } from '../utils';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import UsageInstructions from './UsageInstructions.vue';
 
-//const STORAGE_KEY = 'custom-train-door' as const;
+const STORAGE_KEY = 'custom-train-door' as const;
 
 const { t } = useI18n({ useScope: 'local' });
 
@@ -67,16 +68,13 @@ const advancedItems = computed(() => [
   },
 ]);
 
-/*useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
+const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
+  initOnMounted: true,
   serializer: {
-    read(raw) {
-      const data = JSON.parse(raw);
-    },
-    write(value) {},
+    read: fromJson,
+    write: toJson,
   },
-});*/
-
-const state = ref(createDefaultEditTrainDoorState());
+});
 
 const { outsideEditorProps, insideEditorProps, editorLogicalBounds } = useCustomTrainDoor(state);
 
