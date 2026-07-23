@@ -9,7 +9,7 @@ const FORMAT_OPTIONS_METER = {
 
 const { t } = useI18n({ useScope: 'local' });
 
-const _doorTypeItems = computed(() => [
+/*const _doorTypeItems = computed(() => [
   {
     label: t('double_sliding'),
     value: 'double_sliding',
@@ -22,7 +22,7 @@ const _doorTypeItems = computed(() => [
     label: t('single_sliding_right'),
     value: 'single_sliding_right',
   },
-]);
+]);*/
 
 const state = defineModel<TrainDoorState>({ required: true });
 </script>
