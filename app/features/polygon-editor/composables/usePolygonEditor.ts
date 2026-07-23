@@ -110,7 +110,7 @@ export function usePolygonEditor(options: UsePolygonEditorOptions) {
   }
 
   // エディタ用の状態
-  const selectedPolygonId = ref<number | null>(editorState.value.polygons[0]?.id ?? null);
+  const selectedPolygonId = ref<number | null>(null);
   const selectedVertexIndex = ref<number | null>(null);
   const mode = ref<PolygonEditorMode>('select');
   const draftPolygon = ref<PolygonEditorPolygon | null>(null);

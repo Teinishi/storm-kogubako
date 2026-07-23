@@ -1,8 +1,8 @@
 import type { Reactive } from 'vue';
-import type { RenderHooks, PolygonEditorPolygon } from '~/features/polygon-editor';
+import type { RenderHooks } from '~/features/polygon-editor';
 import type { DoorUnitFileNameSet, RenderHooksSet } from '.';
 import { drawWindowsOnCanvas, getSingleWindowPolygon } from '../doorWindow/basic';
-import type { TrainDoorState } from '../types';
+import type { OutputTrainDoorState, TrainDoorOptions } from '../types';
 import {
   drawBackground,
   buildSlidingDoorGeometry,
@@ -12,10 +12,10 @@ import {
   VehicleBuilder,
 } from '../utils';
 
-function getBaseRects(state: DeepReadonly<TrainDoorState>) {
-  const rubber = state.rubberThickness / 0.25;
-  const width = state.doorWidth / 2 - rubber;
-  const height = state.doorHeight;
+function getBaseRects(options: DeepReadonly<TrainDoorOptions>) {
+  const rubber = options.rubberThickness / 0.25;
+  const width = options.doorWidth / 2 - rubber;
+  const height = options.doorHeight;
 
   return {
     left: normalizeRect({
@@ -25,7 +25,7 @@ function getBaseRects(state: DeepReadonly<TrainDoorState>) {
       height,
     }),
     right: normalizeRect({
-      x: state.doorWidth,
+      x: options.doorWidth,
       y: 0,
       width: -width,
       height,
@@ -33,85 +33,85 @@ function getBaseRects(state: DeepReadonly<TrainDoorState>) {
   };
 }
 
-function getWindowRings(state: DeepReadonly<TrainDoorState>, flip?: boolean) {
-  const rects = getBaseRects(state);
+function getWindowRings(options: DeepReadonly<TrainDoorOptions>, flip?: boolean) {
+  const rects = getBaseRects(options);
 
-  const options = {
-    windowSize: { x: state.windowWidth / 0.25, y: state.windowHeight / 0.25 },
-    offset: { x: state.windowXOffset / 0.25, y: state.windowYOffset / 0.25 },
-    radius: state.windowCornerRadius / 0.25,
-    segments: state.windowCornerDivisions,
-    frameThickness: state.windowFrameThickness,
+  const polygonOptions = {
+    windowSize: { x: options.windowWidth / 0.25, y: options.windowHeight / 0.25 },
+    offset: { x: options.windowXOffset / 0.25, y: options.windowYOffset / 0.25 },
+    radius: options.windowCornerRadius / 0.25,
+    segments: options.windowCornerDivisions,
+    frameThickness: options.windowFrameThickness,
     flip,
-    flipWidth: state.doorWidth,
+    flipWidth: options.doorWidth,
   };
 
-  const left = getSingleWindowPolygon(rects.left, options);
+  const left = getSingleWindowPolygon(rects.left, polygonOptions);
 
-  options.offset.x *= -1;
-  const right = getSingleWindowPolygon(rects.right, options);
+  polygonOptions.offset.x *= -1;
+  const right = getSingleWindowPolygon(rects.right, polygonOptions);
 
   return { left, right };
 }
 
-function createRenderHook(state: Reactive<TrainDoorState>, isInside: boolean): RenderHooks {
+function createRenderHook(options: Reactive<TrainDoorOptions>, isInside: boolean): RenderHooks {
   return {
     onBeforeRenderPolygons(args) {
-      drawBackground(args, state, isInside);
+      drawBackground(args, options, isInside);
     },
     onBeforeRenderSelection(args) {
       const { editor, ctx } = args;
       const hasSelection = editor.selectedPolygonId.value !== null;
       ctx.globalAlpha = hasSelection ? 0.6 : 1;
 
-      const windowRings = getWindowRings(state, isInside);
-      drawWindowsOnCanvas(args, [windowRings.left, windowRings.right], state.windowFrameColor);
+      const windowRings = getWindowRings(options, isInside);
+      drawWindowsOnCanvas(args, [windowRings.left, windowRings.right], options.windowFrameColor);
 
       // 戸先ゴム描画
-      const rubber = state.rubberThickness / 0.25;
-      ctx.fillStyle = state.rubberColor;
+      const rubber = options.rubberThickness / 0.25;
+      ctx.fillStyle = options.rubberColor;
       const r = args.worldRectToCanvas({
-        x: state.doorWidth / 2 - rubber,
+        x: options.doorWidth / 2 - rubber,
         y: 0,
         width: rubber * 2,
-        height: state.doorHeight,
+        height: options.doorHeight,
       });
       ctx.fillRect(r.x, r.y, r.width, r.height);
     },
   };
 }
 
-export function createRenderHooks(state: Reactive<TrainDoorState>): RenderHooksSet {
+export function createRenderHooks(options: Reactive<TrainDoorOptions>): RenderHooksSet {
   return {
-    outside: createRenderHook(state, false),
-    inside: createRenderHook(state, true),
+    outside: createRenderHook(options, false),
+    inside: createRenderHook(options, true),
   };
 }
 
 export function buildGeometry(
-  state: DeepReadonly<TrainDoorState>,
-  outsidePaint: DeepReadonly<PolygonEditorPolygon[]>,
-  insidePaint: DeepReadonly<PolygonEditorPolygon[]>,
+  state: DeepReadonly<OutputTrainDoorState>,
   builderOptions?: DeepReadonly<GeometryBuilderOptions>,
 ) {
-  const doorSize = { x: state.doorWidth, y: state.doorHeight };
-  const frontZ = state.doorThickness / 2 + state.doorZOffset;
-  const backZ = -state.doorThickness / 2 + state.doorZOffset;
-  const frontColor = hexToRgb(state.outsideColor);
-  const backColor = hexToRgb(state.insideColor);
-  const rubberThickness = state.rubberThickness / 0.25;
-  const rubberColor = hexToRgb(state.rubberColor);
+  const { options } = state;
 
-  const baseRects = getBaseRects(state);
-  const windowRings = getWindowRings(state);
+  const doorSize = { x: options.doorWidth, y: options.doorHeight };
+  const frontZ = options.doorThickness / 2 + options.doorZOffset;
+  const backZ = -options.doorThickness / 2 + options.doorZOffset;
+  const frontColor = hexToRgb(options.outsideColor);
+  const backColor = hexToRgb(options.insideColor);
+  const rubberThickness = options.rubberThickness / 0.25;
+  const rubberColor = hexToRgb(options.rubberColor);
+
+  const baseRects = getBaseRects(options);
+  const windowRings = getWindowRings(options);
 
   const leftBuilder = new GeometryBuilder(builderOptions);
   const rightBuilder = new GeometryBuilder(builderOptions);
 
   buildSlidingDoorGeometry(leftBuilder, {
     baseRect: baseRects.left,
-    outsidePaint,
-    insidePaint,
+    outsidePaint: state.outsidePaint,
+    insidePaint: state.insidePaint,
     doorSize,
     frontZ,
     backZ,
@@ -121,13 +121,13 @@ export function buildGeometry(
     rubberThickness,
     rubberColor,
     windowRings: [windowRings.left],
-    windowFrameColor: state.windowFrameColor,
+    windowFrameColor: options.windowFrameColor,
   });
 
   buildSlidingDoorGeometry(rightBuilder, {
     baseRect: baseRects.right,
-    outsidePaint,
-    insidePaint,
+    outsidePaint: state.outsidePaint,
+    insidePaint: state.insidePaint,
     doorSize,
     frontZ,
     backZ,
@@ -137,7 +137,7 @@ export function buildGeometry(
     rubberThickness,
     rubberColor,
     windowRings: [windowRings.right],
-    windowFrameColor: state.windowFrameColor,
+    windowFrameColor: options.windowFrameColor,
   });
 
   return [
@@ -146,7 +146,7 @@ export function buildGeometry(
   ];
 }
 
-export function getFilenames(_state: DeepReadonly<TrainDoorState>, fingerprint: string) {
+export function getFilenames(_state: DeepReadonly<TrainDoorOptions>, fingerprint: string) {
   const visual = `m_train_door_visual_${fingerprint}`;
 
   return {
@@ -165,7 +165,7 @@ export function getFilenames(_state: DeepReadonly<TrainDoorState>, fingerprint: 
 
 // 見た目用コンポーネントの Definition XML を生成
 export function createVisualComponent(
-  state: DeepReadonly<TrainDoorState>,
+  state: DeepReadonly<TrainDoorOptions>,
   fingerprint: string,
   filenames: DeepReadonly<DoorUnitFileNameSet>,
 ) {
@@ -223,7 +223,7 @@ export function createVisualComponent(
 }
 
 // 見た目用コンポーネントの Lua を生成
-export function createLuaScript(state: DeepReadonly<TrainDoorState>) {
+export function createLuaScript(state: DeepReadonly<TrainDoorOptions>) {
   const motionRange = (state.doorWidth / 2) * 0.25;
 
   const script = `local MOTION_RANGE = ${motionRange}
@@ -258,7 +258,10 @@ end
 }
 
 // 当たり判定用コンポーネントの Definition XML を生成
-export function createCollisionComponent(state: DeepReadonly<TrainDoorState>, fingerprint: string) {
+export function createCollisionComponent(
+  state: DeepReadonly<TrainDoorOptions>,
+  fingerprint: string,
+) {
   if (state.doorWidth < 3) {
     throw new Error('The width for double sliding door must be at least 3.');
   }
@@ -323,7 +326,7 @@ export function createCollisionComponent(state: DeepReadonly<TrainDoorState>, fi
 
 // ドアユニットビークルを生成
 export function createDoorUnitVehicle(
-  state: DeepReadonly<TrainDoorState>,
+  state: DeepReadonly<TrainDoorOptions>,
   visualComponentName: string,
   collisionComponentName: string,
 ) {

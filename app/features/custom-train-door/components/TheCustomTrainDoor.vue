@@ -2,6 +2,7 @@
 import { getMirrorMergedPolygons, PolygonEditor } from '~/features/polygon-editor';
 import { useCustomTrainDoor } from '../composables';
 import { createDoorUnitVehicle, getFilenames } from '../doorTypes';
+import { createDefaultEditTrainDoorState, type OutputTrainDoorState } from '../types/state.ts';
 import {
   getFingerprint as getFingerprintFromJson,
   toJson,
@@ -9,99 +10,170 @@ import {
   createMeshFiles,
   createVisualComponentFiles,
   createCollisionComponentFile,
+  fromJson,
 } from '../utils';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import UsageInstructions from './UsageInstructions.vue';
 
+const STORAGE_KEY = 'custom-train-door' as const;
+
 const { t } = useI18n({ useScope: 'local' });
 
+const toast = useToast();
+const { confirm: confirmDialog, input: inputDialog } = useDialog();
+
+// 汎用ファイル保存ユーティリティ
 const { saveFile, saveFiles, saveZip, handleError } = useFileSave();
 
-const tabItems = computed(() => [
-  {
-    label: t('settings'),
-    icon: 'i-lucide-wrench',
-    slot: 'settings' as const,
-  },
-  {
-    label: t('outside_paint'),
-    icon: 'i-lucide-brush',
-    slot: 'outside' as const,
-  },
-  {
-    label: t('inside_paint'),
-    icon: 'i-lucide-brush',
-    slot: 'inside' as const,
-  },
-]);
+// 状態が未保存
+const isDirty = ref(false);
 
-const advancedItems = computed(() => [
-  {
-    label: t('save_mesh'),
-    icon: 'i-lucide-box',
-    onSelect: saveMeshClicked,
-  },
-  {
-    label: t('save_visual_component_source'),
-    icon: 'i-lucide-code-xml',
-    onSelect: saveVisualComponentSourceClicked,
-  },
-  {
-    label: t('save_visual_component_bin'),
-    icon: 'i-lucide-binary',
-    onSelect: saveVisualComponentBinClicked,
-  },
-  {
-    label: t('save_collision_component_source'),
-    icon: 'i-lucide-code-xml',
-    onSelect: saveCollisionComponentSourceClicked,
-  },
-  {
-    label: t('save_collision_component_bin'),
-    icon: 'i-lucide-binary',
-    onSelect: saveCollisionComponentBinClicked,
-  },
-]);
+// 状態 (localStorage に自動保存)
+const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
+  initOnMounted: true,
+  serializer: {
+    read(raw) {
+      const result = fromJson(raw);
 
-const {
-  state,
-  outsidePolygonEditorValue,
-  insidePolygonEditorValue,
-  outsideEditorProps,
-  insideEditorProps,
-  editorLogicalBounds,
-} = useCustomTrainDoor();
+      if (result.success) {
+        isDirty.value = true;
+        return result.data;
+      } else {
+        console.error(result.error);
+        toast.add({
+          icon: 'i-lucide-circle-alert',
+          title: t('error.restore_state'),
+          color: 'error',
+        });
 
-const outsidePaint = computed(() =>
-  getMirrorMergedPolygons(outsidePolygonEditorValue.value, editorLogicalBounds.value),
-);
+        isDirty.value = false;
+        return createDefaultEditTrainDoorState();
+      }
+    },
+    write: toJson,
+  },
+});
 
-const insidePaint = computed(() =>
-  getMirrorMergedPolygons(insidePolygonEditorValue.value, editorLogicalBounds.value),
-);
+onMounted(async () => {
+  await nextTick(); // onMounted で localStorage から読み込まれるので、それを待ってから watch
+  watch(
+    state,
+    () => {
+      isDirty.value = true;
+    },
+    { deep: true },
+  );
+});
+
+const { outsideEditorProps, insideEditorProps, editorLogicalBounds } = useCustomTrainDoor(state);
+
+// JSON保存・読み込み関連
+const { open: openJsonSelectDialog, onChange: onJsonSelect } = useFileDialog({
+  accept: 'json',
+  multiple: false,
+});
+
+async function newProject() {
+  if (isDirty.value) {
+    const ok = await confirmDialog({
+      icon: 'i-lucide-file-plus-corner',
+      title: t('dialog.new_project.title'),
+      description: t('dialog.new_project.description'),
+      cancelLabel: t('dialog.new_project.cancel'),
+      confirmLabel: t('dialog.new_project.confirm'),
+    });
+
+    if (!ok) return;
+  }
+
+  state.value = createDefaultEditTrainDoorState();
+  await nextTick();
+  isDirty.value = false;
+}
+
+async function openProject() {
+  if (isDirty.value) {
+    const ok = await confirmDialog({
+      icon: 'i-lucide-folder-open',
+      title: t('dialog.open_project.title'),
+      description: t('dialog.open_project.description'),
+      cancelLabel: t('dialog.open_project.cancel'),
+      confirmLabel: t('dialog.open_project.confirm'),
+    });
+
+    if (!ok) return;
+  }
+
+  openJsonSelectDialog();
+}
+
+onJsonSelect(async (files) => {
+  const file = files?.item(0);
+  if (!file) return;
+
+  const text = await file.text();
+  const result = fromJson(text);
+
+  if (result.success) {
+    state.value = result.data;
+    await nextTick();
+    isDirty.value = false;
+  } else {
+    console.error(result.error);
+    toast.add({
+      icon: 'i-lucide-circle-alert',
+      title: t('error.load_state'),
+      color: 'error',
+    });
+  }
+});
+
+async function saveEditingState() {
+  const data = toJson(state.value);
+  const fingerprint = getFingerprintFromJson(data);
+  const defaultValue = `custom-train-door-${fingerprint}.json`;
+
+  const filename = await inputDialog({
+    icon: 'i-lucide-save',
+    title: t('dialog.save_project.title'),
+    description: t('dialog.save_project.description'),
+    label: t('dialog.save_project.label'),
+    placeholder: t('dialog.save_project.placeholder'),
+    defaultValue,
+    cancelLabel: t('dialog.save_project.cancel'),
+    confirmLabel: t('dialog.save_project.confirm'),
+  });
+
+  if (!filename) return;
+
+  handleError(() => {
+    saveFile({
+      filename,
+      data,
+      mimetype: 'application/json',
+    });
+
+    isDirty.value = false;
+  });
+}
+
+// エクスポートまわり
+const outputState = computed<DeepReadonly<OutputTrainDoorState>>(() => ({
+  options: state.value.options,
+  outsidePaint: getMirrorMergedPolygons(state.value.outsidePaint, editorLogicalBounds.value),
+  insidePaint: getMirrorMergedPolygons(state.value.insidePaint, editorLogicalBounds.value),
+}));
 
 function getFingerprint() {
-  return getFingerprintFromJson(
-    toJson({
-      state,
-      outsidePolygonEditorValue: outsidePolygonEditorValue.value,
-      insidePolygonEditorValue: insidePolygonEditorValue.value,
-    }),
-  );
+  return getFingerprintFromJson(toJson(state.value));
 }
 
 function saveMeshClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const filenames = getFilenames(state, fingerprint);
-    const files = createMeshFiles(
-      state,
-      outsidePaint.value,
-      insidePaint.value,
-      fingerprint,
-      filenames.meshes,
-    );
+    const filenames = getFilenames(outputState.value.options, fingerprint);
+    const files = createMeshFiles(outputState.value, fingerprint, filenames.meshes);
     saveFiles(files, filenames.meshesZip);
   });
 }
@@ -109,14 +181,8 @@ function saveMeshClicked() {
 function saveVisualComponentSourceClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const filenames = getFilenames(state, fingerprint);
-    const files = createVisualComponentFiles(
-      state,
-      outsidePaint.value,
-      insidePaint.value,
-      fingerprint,
-      filenames,
-    );
+    const filenames = getFilenames(outputState.value.options, fingerprint);
+    const files = createVisualComponentFiles(outputState.value, fingerprint, filenames);
     const zipName = replaceExtension(files.definition.filename, '.zip');
     saveFiles([files.definition, files.script, ...files.meshes], zipName);
   });
@@ -125,12 +191,7 @@ function saveVisualComponentSourceClicked() {
 function saveVisualComponentBinClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const files = createVisualComponentFiles(
-      state,
-      outsidePaint.value,
-      insidePaint.value,
-      fingerprint,
-    );
+    const files = createVisualComponentFiles(outputState.value, fingerprint);
     const { file: binFile } = createComponentBin(files.definition.filename, files.definition.data, [
       files.script,
       ...files.meshes,
@@ -142,7 +203,7 @@ function saveVisualComponentBinClicked() {
 function saveCollisionComponentSourceClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const file = createCollisionComponentFile(state, fingerprint);
+    const file = createCollisionComponentFile(outputState.value.options, fingerprint);
     saveFile(file);
   });
 }
@@ -150,7 +211,7 @@ function saveCollisionComponentSourceClicked() {
 function saveCollisionComponentBinClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const file = createCollisionComponentFile(state, fingerprint);
+    const file = createCollisionComponentFile(outputState.value.options, fingerprint);
     const { file: binFile } = createComponentBin(file.filename, file.data);
     saveFile(binFile);
   });
@@ -159,25 +220,23 @@ function saveCollisionComponentBinClicked() {
 function saveDoorUnitClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
-    const filenames = getFilenames(state, fingerprint);
+    const filenames = getFilenames(outputState.value.options, fingerprint);
 
-    const visualFiles = createVisualComponentFiles(
-      state,
-      outsidePaint.value,
-      insidePaint.value,
-      fingerprint,
-      filenames,
-    );
+    const visualFiles = createVisualComponentFiles(outputState.value, fingerprint, filenames);
     const visualComponent = createComponentBin(
       visualFiles.definition.filename,
       visualFiles.definition.data,
       [visualFiles.script, ...visualFiles.meshes],
     );
 
-    const collisionFile = createCollisionComponentFile(state, fingerprint);
+    const collisionFile = createCollisionComponentFile(outputState.value.options, fingerprint);
     const collisionComponent = createComponentBin(collisionFile.filename, collisionFile.data);
 
-    const vehicleData = createDoorUnitVehicle(state, visualComponent.name, collisionComponent.name);
+    const vehicleData = createDoorUnitVehicle(
+      outputState.value.options,
+      visualComponent.name,
+      collisionComponent.name,
+    );
     const vehicle: SaveZipNode[] = [
       {
         type: 'file',
@@ -206,6 +265,77 @@ function saveDoorUnitClicked() {
     saveZip(vehicle, replaceExtension(filenames.doorUnitVehicleName, '.zip'));
   });
 }
+
+// UI
+const tabItems = computed(() => [
+  {
+    label: t('tabs.settings'),
+    icon: 'i-lucide-wrench',
+    slot: 'settings' as const,
+  },
+  {
+    label: t('tabs.outside_paint'),
+    icon: 'i-lucide-brush',
+    slot: 'outside' as const,
+  },
+  {
+    label: t('tabs.inside_paint'),
+    icon: 'i-lucide-brush',
+    slot: 'inside' as const,
+  },
+]);
+
+const otherMenuItems = computed(() => [
+  [
+    {
+      label: t('other_menu.project.new'),
+      icon: 'i-lucide-file-plus-corner',
+      onSelect: newProject,
+    },
+    {
+      label: t('other_menu.project.open'),
+      icon: 'i-lucide-folder-open',
+      onSelect: openProject,
+    },
+    {
+      label: t('other_menu.project.save'),
+      icon: 'i-lucide-save',
+      onSelect: saveEditingState,
+    },
+  ],
+  [
+    {
+      label: t('other_menu.advanced.label'),
+      children: [
+        {
+          label: t('other_menu.advanced.save_mesh'),
+          icon: 'i-lucide-box',
+          onSelect: saveMeshClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_visual_component_source'),
+          icon: 'i-lucide-code-xml',
+          onSelect: saveVisualComponentSourceClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_visual_component_bin'),
+          icon: 'i-lucide-binary',
+          onSelect: saveVisualComponentBinClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_collision_component_source'),
+          icon: 'i-lucide-code-xml',
+          onSelect: saveCollisionComponentSourceClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_collision_component_bin'),
+          icon: 'i-lucide-binary',
+          onSelect: saveCollisionComponentBinClicked,
+        },
+      ],
+    },
+  ],
+]);
 </script>
 
 <template>
@@ -216,30 +346,31 @@ function saveDoorUnitClicked() {
       <div class="grow px-4 sm:min-h-0">
         <UTabs
           :items="tabItems"
-          :unmount-on-hide="false"
-          :ui="{ root: 'gap-4', content: 'grow min-h-0 pb-18 sm:pb-4' }"
+          :unmount-on-hide="true"
+          :ui="{ root: 'gap-4', content: 'grow min-h-0 pb-18 sm:pb-4 @container' }"
           class="h-full"
         >
           <template #settings>
-            <TheTrainDoorSettings v-model="state" />
+            <TheTrainDoorSettings v-model="state.options" />
+
             <div class="mt-4 flex flex-wrap gap-4 md:flex-nowrap">
               <UButton
                 block
                 size="xl"
                 color="primary"
                 icon="i-lucide-download"
-                :label="t('save_door_unit')"
+                :label="t('save.door_unit')"
                 @click="saveDoorUnitClicked"
               />
 
-              <UModal :title="t('usage_title')" :ui="{ content: 'sm:max-w-3xl' }">
+              <UModal :title="t('usage.title')" :ui="{ content: 'sm:max-w-3xl' }">
                 <UButton
                   block
                   size="xl"
                   color="primary"
                   variant="subtle"
                   icon="i-lucide-circle-question-mark"
-                  :label="t('usage')"
+                  :label="t('usage.label')"
                   class="flex-1"
                 />
                 <template #body>
@@ -247,14 +378,14 @@ function saveDoorUnitClicked() {
                 </template>
               </UModal>
 
-              <UDropdownMenu :items="advancedItems">
+              <UDropdownMenu :items="otherMenuItems">
                 <UButton
                   block
                   size="xl"
                   color="primary"
                   variant="outline"
-                  icon="i-lucide-chevron-down"
-                  :label="t('advanced')"
+                  icon="i-lucide-ellipsis"
+                  :label="t('other_menu.label')"
                   class="flex-1"
                 />
               </UDropdownMenu>
@@ -264,7 +395,7 @@ function saveDoorUnitClicked() {
           <template #outside>
             <PolygonEditor
               ref="outsideEditor"
-              v-model="outsidePolygonEditorValue"
+              v-model="state.outsidePaint"
               v-bind="outsideEditorProps"
               class="h-full overflow-y-auto"
             />
@@ -273,7 +404,7 @@ function saveDoorUnitClicked() {
           <template #inside>
             <PolygonEditor
               ref="insideEditor"
-              v-model="insidePolygonEditorValue"
+              v-model="state.insidePaint"
               v-bind="insideEditorProps"
               class="h-full overflow-y-auto"
             />
@@ -284,11 +415,7 @@ function saveDoorUnitClicked() {
 
     <ResponsivePanel icon="i-lucide-box" :label="t('preview')">
       <ClientOnly>
-        <TheTrainDoorPreviewClient
-          :state="state"
-          :outside-paint="outsidePaint"
-          :inside-paint="insidePaint"
-        />
+        <TheTrainDoorPreviewClient :state="outputState" />
       </ClientOnly>
     </ResponsivePanel>
   </div>
@@ -297,34 +424,118 @@ function saveDoorUnitClicked() {
 <i18n lang="json">
 {
   "en": {
-    "settings": "Settings",
-    "outside_paint": "Outside Paint",
-    "inside_paint": "Inside Paint",
+    "error": {
+      "restore_state": "Failed to restore data",
+      "load_state": "Failed to load project file"
+    },
+    "tabs": {
+      "settings": "Settings",
+      "outside_paint": "Outside Paint",
+      "inside_paint": "Inside Paint"
+    },
     "preview": "Preview",
-    "save_door_unit": "Save Door Unit",
-    "usage": "Usage",
-    "usage_title": "Installing the Door Unit",
-    "advanced": "Advanced",
-    "save_mesh": "Save Mesh (.mesh)",
-    "save_visual_component_xml": "Save Visual Component (.xml, .lua, .mesh)",
-    "save_visual_component_bin": "Save Visual Component (.bin)",
-    "save_collision_component_xml": "Save Collision Component (.xml)",
-    "save_collision_component_bin": "Save Collision Component (.bin)"
+    "save": {
+      "door_unit": "Save Door Unit"
+    },
+    "usage": {
+      "label": "Usage",
+      "title": "Installing the Door Unit"
+    },
+    "other_menu": {
+      "label": "More",
+      "project": {
+        "new": "New Project",
+        "open": "Open project...",
+        "save": "Save project..."
+      },
+      "advanced": {
+        "label": "Advanced Export",
+        "save_mesh": "Save Mesh (.mesh)",
+        "save_visual_component_source": "Save Visual Component (.xml, .lua, .mesh)",
+        "save_visual_component_bin": "Save Visual Component (.bin)",
+        "save_collision_component_source": "Save Collision Component (.xml)",
+        "save_collision_component_bin": "Save Collision Component (.bin)"
+      }
+    },
+    "dialog": {
+      "new_project": {
+        "title": "New Project",
+        "description": "Your current changes will be lost. Create a new project?",
+        "cancel": "Cancel",
+        "confirm": "Create"
+      },
+      "open_project": {
+        "title": "Open Project",
+        "description": "Your current changes will be lost. Do you want to open another project?",
+        "cancel": "Cancel",
+        "confirm": "Open"
+      },
+      "save_project": {
+        "title": "Save Project",
+        "description": "Enter a file name for the project.",
+        "label": "File name",
+        "placeholder": "MyDoor",
+        "cancel": "Cancel",
+        "confirm": "Save"
+      }
+    }
   },
   "ja": {
-    "settings": "設定",
-    "outside_paint": "外側ペイント",
-    "inside_paint": "内側ペイント",
+    "error": {
+      "restore_state": "入力内容を復元できませんでした",
+      "load_state": "編集データを読み込めませんでした"
+    },
+    "tabs": {
+      "settings": "設定",
+      "outside_paint": "外側ペイント",
+      "inside_paint": "内側ペイント"
+    },
     "preview": "プレビュー",
-    "save_door_unit": "ドアユニットを保存",
-    "usage": "使い方",
-    "usage_title": "ドアユニットの導入方法",
-    "advanced": "Mod 開発者向け",
-    "save_mesh": "メッシュを保存 (.mesh)",
-    "save_visual_component_source": "表示コンポーネントを保存 (.xml, .lua, .mesh)",
-    "save_visual_component_bin": "表示コンポーネントを保存 (.bin)",
-    "save_collision_component_source": "当たり判定コンポーネントを保存 (.xml)",
-    "save_collision_component_bin": "当たり判定コンポーネントを保存 (.bin)"
+    "save": {
+      "door_unit": "ドアユニットを保存"
+    },
+    "usage": {
+      "label": "使い方",
+      "title": "ドアユニットの導入方法"
+    },
+    "other_menu": {
+      "label": "その他",
+      "project": {
+        "new": "新規プロジェクト",
+        "open": "プロジェクトを開く...",
+        "save": "プロジェクトを保存..."
+      },
+      "advanced": {
+        "label": "Mod開発者向け",
+        "save_mesh": "メッシュを保存 (.mesh)",
+        "save_visual_component_source": "表示コンポーネントを保存 (.xml, .lua, .mesh)",
+        "save_visual_component_bin": "表示コンポーネントを保存 (.bin)",
+        "save_collision_component_source": "当たり判定コンポーネントを保存 (.xml)",
+        "save_collision_component_bin": "当たり判定コンポーネントを保存 (.bin)"
+      }
+    },
+    "dialog": {
+      "new_project": {
+        "title": "新規プロジェクト",
+        "description": "現在の編集内容は失われます。新しいプロジェクトを作成しますか？",
+        "cancel": "キャンセル",
+        "confirm": "作成"
+      },
+      "open_project": {
+        "title": "プロジェクトを開く",
+        "description": "現在の編集内容は失われます。プロジェクトを読み込みますか？",
+        "cancel": "キャンセル",
+        "confirm": "読み込む"
+      },
+      "save_project": {
+        "title": "プロジェクトを保存",
+        "description": "保存するプロジェクト名を入力してください。",
+        "label": "ファイル名",
+        "placeholder": "MyDoor",
+        "cancel": "キャンセル",
+        "confirm": "保存"
+      }
+    }
   }
 }
 </i18n>

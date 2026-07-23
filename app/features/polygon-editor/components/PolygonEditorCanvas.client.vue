@@ -174,7 +174,7 @@ function handleCanvasPointerDown(event: PointerEvent) {
   // 選択
   const polygonHit = findHitPolygon(worldPoint);
   if (polygonHit) {
-    selectPolygon(polygonHit.id, null);
+    selectPolygon(polygonHit.data.id, null);
     event.preventDefault();
     return;
   }

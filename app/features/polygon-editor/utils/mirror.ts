@@ -1,4 +1,4 @@
-import type { LogicalBounds, PolygonEditorPolygon, PolygonEditorValue } from '../types';
+import type { InternalPolygonEditorPolygon, LogicalBounds, PolygonEditorValue } from '../types';
 
 export function getMirrorCenter(axis: 'x' | 'y', offset: number, bounds: Readonly<LogicalBounds>) {
   if (axis === 'x') {
@@ -25,25 +25,30 @@ function mirrorVertex(vertex: Readonly<Vec2>, axis: 'x' | 'y', center: number) {
 export function withMirroredPolygons(
   value: DeepReadonly<PolygonEditorValue>,
   bounds: Readonly<LogicalBounds>,
-): DeepReadonly<PolygonEditorPolygon[]> {
+): DeepReadonly<InternalPolygonEditorPolygon[]> {
   if (value.mirror.enabled) {
     const { axis } = value.mirror;
     const center = getMirrorCenter(axis, value.mirror.centerOffset, bounds);
     const result = [];
     for (const polygon of value.polygons) {
       const mirrored = {
-        id: polygon.id,
-        color: polygon.color,
-        vertices: polygon.vertices.map((v) => mirrorVertex(v, axis, center)),
         isMirrorGhost: true,
+        data: {
+          id: polygon.id,
+          color: polygon.color,
+          vertices: polygon.vertices.map((v) => mirrorVertex(v, axis, center)),
+        },
       };
 
-      result.push(polygon);
+      result.push({ isMirrorGhost: false, data: polygon });
       result.push(mirrored);
     }
     return result;
   } else {
-    return value.polygons;
+    return value.polygons.map((data) => ({
+      isMirrorGhost: false,
+      data,
+    }));
   }
 }
 

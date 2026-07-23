@@ -1,19 +1,22 @@
-export interface PolygonEditorMirror {
-  enabled: boolean;
-  axis: 'x' | 'y';
-  centerOffset: number;
-}
+import type { z } from 'zod';
+import type {
+  PolygonEditorMirrorSchema,
+  PolygonEditorPolygonSchema,
+  PolygonEditorValueSchema,
+} from '../schemas';
 
-export interface PolygonEditorPolygon {
-  id: number;
-  color: string;
-  vertices: Vec2[];
+export type PolygonEditorMirror = z.infer<typeof PolygonEditorMirrorSchema>;
+export type PolygonEditorPolygon = z.infer<typeof PolygonEditorPolygonSchema>;
+export type PolygonEditorValue = z.infer<typeof PolygonEditorValueSchema>;
+
+export interface InternalPolygonEditorPolygon {
   isMirrorGhost?: boolean;
+  data: PolygonEditorPolygon;
 }
 
-export interface PolygonEditorValue {
+export interface InternalPolygonEditorValue {
   mirror: PolygonEditorMirror;
-  polygons: PolygonEditorPolygon[];
+  polygons: InternalPolygonEditorPolygon[];
 }
 
 export function clonePolygon(polygon: DeepReadonly<PolygonEditorPolygon>): PolygonEditorPolygon {
@@ -30,17 +33,6 @@ export function clonePolygonEditorValue(
   return {
     mirror: { ...value.mirror },
     polygons: value.polygons.map(clonePolygon),
-  };
-}
-
-export function createDefaultPolygonEditorValue(): PolygonEditorValue {
-  return {
-    mirror: {
-      enabled: false,
-      axis: 'x',
-      centerOffset: 0,
-    },
-    polygons: [],
   };
 }
 

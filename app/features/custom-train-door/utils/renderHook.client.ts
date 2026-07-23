@@ -1,9 +1,9 @@
 import type { RenderHookArgs } from '~/features/polygon-editor';
-import type { TrainDoorState } from '../types';
+import type { TrainDoorOptions } from '../types';
 
 export function drawBackground(
   renderHookArgs: RenderHookArgs,
-  state: DeepReadonly<TrainDoorState>,
+  state: DeepReadonly<TrainDoorOptions>,
   isInside: boolean,
 ) {
   const { ctx } = renderHookArgs;
