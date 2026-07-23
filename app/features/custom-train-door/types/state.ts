@@ -1,37 +1,13 @@
+import type { z } from 'zod';
 import {
   createDefaultPolygonEditorValue,
   type PolygonEditorPolygon,
-  type PolygonEditorValue,
 } from '~/features/polygon-editor';
+import type { EditTrainDoorStateSchema, TrainDoorOptionsSchema } from '../schemas';
 
-export type DoorTypes = 'sliding';
+export type TrainDoorOptions = z.infer<typeof TrainDoorOptionsSchema>;
 
-export interface TrainDoorOptions {
-  doorType: DoorTypes;
-  direction: 'double' | 'left' | 'right';
-  doorWidth: number;
-  doorHeight: number;
-  doorThickness: number;
-  doorZOffset: number;
-  outsideColor: string;
-  insideColor: string;
-  rubberThickness: number;
-  rubberColor: string;
-  windowXOffset: number;
-  windowYOffset: number;
-  windowWidth: number;
-  windowHeight: number;
-  windowCornerRadius: number;
-  windowCornerDivisions: number;
-  windowFrameThickness: number;
-  windowFrameColor: string;
-}
-
-export interface EditTrainDoorState {
-  options: TrainDoorOptions;
-  outsidePaint: PolygonEditorValue;
-  insidePaint: PolygonEditorValue;
-}
+export type EditTrainDoorState = z.infer<typeof EditTrainDoorStateSchema>;
 
 export interface OutputTrainDoorState {
   options: TrainDoorOptions;

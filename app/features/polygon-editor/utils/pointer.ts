@@ -1,4 +1,4 @@
-import type { PolygonEditorPolygon } from '../types';
+import type { InternalPolygonEditorPolygon, PolygonEditorPolygon } from '../types';
 
 export const GRID_SCALE = 56;
 export const HANDLE_HIT_THRESHOLD_PX = 8;
@@ -71,11 +71,14 @@ export function findHitEdge(
   return null;
 }
 
-export function findHitPolygon(point: Vec2, polygons: DeepReadonly<PolygonEditorPolygon[]>) {
+export function findHitPolygon(
+  point: Vec2,
+  polygons: DeepReadonly<InternalPolygonEditorPolygon[]>,
+) {
   for (let polygonIndex = polygons.length - 1; polygonIndex >= 0; polygonIndex -= 1) {
     const polygon = polygons[polygonIndex];
     if (!polygon) continue;
-    if (pointInPolygon(point, polygon.vertices)) {
+    if (pointInPolygon(point, polygon.data.vertices)) {
       return polygon;
     }
   }

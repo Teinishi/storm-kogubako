@@ -352,9 +352,10 @@ export function usePolygonEditorCanvas(options: UsePolygonCanvasOptions) {
       : null;
 
     for (const polygon of withMirroredPolygons(editorState.value, logicalBounds.value)) {
-      renderPolygon(ctx, transform, polygon, {
+      renderPolygon(ctx, transform, polygon.data, {
         dimmed:
-          hasSelectedPolygon && (polygon.isMirrorGhost || polygon.id !== selectedPolygonId.value),
+          hasSelectedPolygon &&
+          (polygon.isMirrorGhost || polygon.data.id !== selectedPolygonId.value),
       });
     }
 

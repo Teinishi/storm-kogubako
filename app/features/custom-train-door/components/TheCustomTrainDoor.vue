@@ -15,6 +15,8 @@ import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
 import UsageInstructions from './UsageInstructions.vue';
 
+//const STORAGE_KEY = 'custom-train-door' as const;
+
 const { t } = useI18n({ useScope: 'local' });
 
 const { saveFile, saveFiles, saveZip, handleError } = useFileSave();
@@ -64,6 +66,15 @@ const advancedItems = computed(() => [
     onSelect: saveCollisionComponentBinClicked,
   },
 ]);
+
+/*useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
+  serializer: {
+    read(raw) {
+      const data = JSON.parse(raw);
+    },
+    write(value) {},
+  },
+});*/
 
 const state = ref(createDefaultEditTrainDoorState());
 
