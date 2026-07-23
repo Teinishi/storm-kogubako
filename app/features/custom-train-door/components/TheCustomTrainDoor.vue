@@ -68,10 +68,27 @@ const advancedItems = computed(() => [
   },
 ]);
 
+const toast = useToast();
+
 const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
   initOnMounted: true,
   serializer: {
-    read: fromJson,
+    read(raw) {
+      const result = fromJson(raw);
+
+      if (result.success) {
+        return result.data;
+      } else {
+        console.error(result.error);
+        toast.add({
+          icon: 'i-lucide-circle-alert',
+          title: t('state_restore_error'),
+          color: 'error',
+        });
+
+        return createDefaultEditTrainDoorState();
+      }
+    },
     write: toJson,
   },
 });
@@ -271,6 +288,7 @@ function saveDoorUnitClicked() {
 <i18n lang="json">
 {
   "en": {
+    "state_restore_error": "Failed to restore data",
     "settings": "Settings",
     "outside_paint": "Outside Paint",
     "inside_paint": "Inside Paint",
@@ -286,6 +304,7 @@ function saveDoorUnitClicked() {
     "save_collision_component_bin": "Save Collision Component (.bin)"
   },
   "ja": {
+    "state_restore_error": "入力内容を復元できませんでした",
     "settings": "設定",
     "outside_paint": "外側ペイント",
     "inside_paint": "内側ペイント",

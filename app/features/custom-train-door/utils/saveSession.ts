@@ -1,4 +1,5 @@
 import { xxHash32 } from 'js-xxhash';
+import type { ZodError } from 'zod';
 import { z } from 'zod';
 import { EditTrainDoorStateSchema } from '../schemas';
 import type { EditTrainDoorState } from '../types';
@@ -12,13 +13,35 @@ const StorageSchema = z.object({
   data: z.any(),
 });
 
-export function fromJson(raw: string) {
-  const rawData = StorageSchema.parse(JSON.parse(raw));
+export type FromJsonResult =
+  | {
+      success: false;
+      error: ZodError;
+    }
+  | {
+      success: true;
+      data: EditTrainDoorState;
+    };
+
+export function fromJson(raw: string): FromJsonResult {
+  const parseResult = StorageSchema.safeParse(JSON.parse(raw));
+  if (!parseResult.success) {
+    return {
+      success: false,
+      error: parseResult.error,
+    };
+  }
+
+  // const version = parseResult.data.version;
+  const rawData = parseResult.data.data;
 
   // バージョンを変更したら migrate 処理を追加
 
-  const data = EditTrainDoorStateSchema.parse(rawData.data);
-  return data;
+  const data = EditTrainDoorStateSchema.parse(rawData);
+  return {
+    success: true,
+    data,
+  };
 }
 
 export function toJson(state: EditTrainDoorState, pretty?: boolean) {
