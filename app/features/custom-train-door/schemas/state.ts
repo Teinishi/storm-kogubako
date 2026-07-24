@@ -19,6 +19,7 @@ export const TrainDoorOptionsSchema = z
     doorZOffset: z.number().default(0),
     outsideColor: HexColorSchema.default('#c2c3c7'),
     insideColor: HexColorSchema.default('#c2c3c7'),
+    rubberEnabled: z.boolean().default(true),
     rubberThickness: z.number().nonnegative().default(0.02),
     rubberColor: HexColorSchema.default('#545454'),
     windowXOffset: z.number().default(0),

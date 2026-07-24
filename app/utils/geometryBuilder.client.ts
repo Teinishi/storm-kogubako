@@ -239,6 +239,28 @@ export class GeometryBuilder {
     }
   }
 
+  // 別の GeometryBuilder とマージ
+  merge(other: GeometryBuilder) {
+    const vertexOffset = this.positions.length / 3;
+    const indexOffset = this.indices.length;
+    if (!Number.isInteger(vertexOffset)) {
+      throw new Error('Unexpected: GeometryBuilder position length is not multiples of 3.');
+    }
+
+    this.positions.push(...other.positions);
+    this.normals.push(...other.normals);
+    this.colors.push(...other.colors);
+
+    this.indices.push(...other.indices.map((i) => i + vertexOffset));
+
+    this.groups.push(
+      ...other.groups.map((g) => ({
+        ...g,
+        start: g.start + indexOffset,
+      })),
+    );
+  }
+
   // Three.js の BufferGeometry に適用
   apply(geometry: BufferGeometry) {
     geometry.clearGroups();

@@ -77,6 +77,7 @@ export interface BuildSlidingDoorGeometryOptions {
   frontColor: Color;
   backColor: Color;
   direction: 'right' | 'left';
+  rubberEnabled: boolean;
   rubberThickness: number;
   rubberColor: Color;
   windowRings: WindowRingSet[];
@@ -97,6 +98,7 @@ export function buildSlidingDoorGeometry(
     frontColor,
     backColor,
     direction,
+    rubberEnabled,
     rubberThickness,
     rubberColor,
     windowRings,
@@ -140,27 +142,30 @@ export function buildSlidingDoorGeometry(
   builder.addExtrudedSides(path.map(coordinateConversion), {
     zRange: [frontZ, backZ],
     color: frontColor,
+    close: !rubberEnabled,
   });
 
   // 戸先ゴム
-  const rubberRootX = direction === 'right' ? baseRect.x : baseRect.x + baseRect.width;
-  const rubberTipX =
-    direction === 'right' ? rubberRootX - rubberThickness : rubberRootX + rubberThickness;
-  buildRubberGeometry(
-    builder,
-    {
-      ...coordinateConversion({ x: rubberRootX, y: 0 }),
-      z: frontZ,
-    },
-    {
-      ...coordinateConversion({ x: rubberTipX, y: doorSize.y }),
-      z: backZ,
-    },
-    {
-      color: rubberColor,
-      flip: direction === 'left',
-    },
-  );
+  if (rubberEnabled) {
+    const rubberRootX = direction === 'right' ? baseRect.x : baseRect.x + baseRect.width;
+    const rubberTipX =
+      direction === 'right' ? rubberRootX - rubberThickness : rubberRootX + rubberThickness;
+    buildRubberGeometry(
+      builder,
+      {
+        ...coordinateConversion({ x: rubberRootX, y: 0 }),
+        z: frontZ,
+      },
+      {
+        ...coordinateConversion({ x: rubberTipX, y: doorSize.y }),
+        z: backZ,
+      },
+      {
+        color: rubberColor,
+        flip: direction === 'left',
+      },
+    );
+  }
 
   // 窓
   for (const ringSet of windowRings) {

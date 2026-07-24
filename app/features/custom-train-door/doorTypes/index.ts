@@ -35,9 +35,11 @@ export function buildDoorGeometry(
 
 export interface DoorUnitFileNameSet {
   doorUnitVehicleName: string;
+  staticUnitVehicleName: string;
   visualDefinition: string;
   script: string;
   meshes: Record<string, string>;
+  mergedMesh: string;
   collisionDefinition: string;
   meshesZip: string;
   visualComponentZip: string;
@@ -97,6 +99,21 @@ export function createCollisionComponent(
   }
 }
 
+export function createStaticComponent(
+  options: DeepReadonly<TrainDoorOptions>,
+  fingerprint: string,
+  filenames: DeepReadonly<DoorUnitFileNameSet>,
+) {
+  const { doorType } = options;
+  switch (doorType) {
+    case 'sliding':
+      return sliding.createStaticComponent(options, fingerprint, filenames);
+    default:
+      doorType satisfies never;
+      throw new Error('Unreachable');
+  }
+}
+
 export function createDoorUnitVehicle(
   options: DeepReadonly<TrainDoorOptions>,
   visualComponentName: string,
@@ -106,6 +123,20 @@ export function createDoorUnitVehicle(
   switch (doorType) {
     case 'sliding':
       return sliding.createDoorUnitVehicle(options, visualComponentName, collisionComponentName);
+    default:
+      doorType satisfies never;
+      throw new Error('Unreachable');
+  }
+}
+
+export function createStaticUnitVehicle(
+  options: DeepReadonly<TrainDoorOptions>,
+  staticComponentName: string,
+) {
+  const { doorType } = options;
+  switch (doorType) {
+    case 'sliding':
+      return sliding.createStaticUnitVehicle(options, staticComponentName);
     default:
       doorType satisfies never;
       throw new Error('Unreachable');
