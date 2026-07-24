@@ -18,25 +18,6 @@ export class Orientation {
     { axis: 'z', sign: 1 },
   );
 
-  // Y rotation
-  static readonly RotateY90 = new Orientation(
-    { axis: 'z', sign: 1 },
-    { axis: 'y', sign: 1 },
-    { axis: 'x', sign: -1 },
-  );
-
-  static readonly RotateY180 = new Orientation(
-    { axis: 'x', sign: -1 },
-    { axis: 'y', sign: 1 },
-    { axis: 'z', sign: -1 },
-  );
-
-  static readonly RotateY270 = new Orientation(
-    { axis: 'z', sign: -1 },
-    { axis: 'y', sign: 1 },
-    { axis: 'x', sign: 1 },
-  );
-
   // X rotation
   static readonly RotateX90 = new Orientation(
     { axis: 'x', sign: 1 },
@@ -54,6 +35,25 @@ export class Orientation {
     { axis: 'x', sign: 1 },
     { axis: 'z', sign: 1 },
     { axis: 'y', sign: -1 },
+  );
+
+  // Y rotation
+  static readonly RotateY90 = new Orientation(
+    { axis: 'z', sign: 1 },
+    { axis: 'y', sign: 1 },
+    { axis: 'x', sign: -1 },
+  );
+
+  static readonly RotateY180 = new Orientation(
+    { axis: 'x', sign: -1 },
+    { axis: 'y', sign: 1 },
+    { axis: 'z', sign: -1 },
+  );
+
+  static readonly RotateY270 = new Orientation(
+    { axis: 'z', sign: -1 },
+    { axis: 'y', sign: 1 },
+    { axis: 'x', sign: 1 },
   );
 
   // Z rotation
@@ -93,6 +93,18 @@ export class Orientation {
     { axis: 'y', sign: 1 },
     { axis: 'z', sign: -1 },
   );
+
+  multiply(other: Orientation): Orientation {
+    const transform = (m: AxisMapping): AxisMapping => {
+      const next = this[m.axis];
+      return {
+        axis: next.axis,
+        sign: (m.sign * next.sign) as 1 | -1,
+      };
+    };
+
+    return new Orientation(transform(other.x), transform(other.y), transform(other.z));
+  }
 
   transformPosition(src: Readonly<Vec3>): Vec3 {
     const get = (m: AxisMapping) => src[m.axis] * m.sign;

@@ -221,14 +221,15 @@ export class GeometryBuilder {
     }
   }
 
-  transform(orientation: DeepReadonly<Orientation>) {
+  transform(orientation: DeepReadonly<Orientation>, translation?: Vec3) {
     const { positions, normals } = this;
+    const { x: tx, y: ty, z: tz } = translation ?? { x: 0, y: 0, z: 0 };
 
     for (let i = 0; 3 * i + 2 < positions.length; i++) {
       const { x, y, z } = orientation.transformPosition(getVertexFromFlat(positions, i)!);
-      positions[3 * i] = x;
-      positions[3 * i + 1] = y;
-      positions[3 * i + 2] = z;
+      positions[3 * i] = x + tx;
+      positions[3 * i + 1] = y + ty;
+      positions[3 * i + 2] = z + tz;
     }
 
     for (let i = 0; 3 * i + 2 < normals.length; i++) {

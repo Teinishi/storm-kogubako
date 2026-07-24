@@ -70,6 +70,47 @@ export function maxVec3(a: Readonly<Vec3>, b: Readonly<Vec3>): Vec3 {
   };
 }
 
+export function addVec3(a: Readonly<Vec3>, b: Readonly<Vec3>): Vec3 {
+  return {
+    x: a.x + b.x,
+    y: a.y + b.y,
+    z: a.z + b.z,
+  };
+}
+
+export function subVec3(a: Readonly<Vec3>, b: Readonly<Vec3>): Vec3 {
+  return {
+    x: a.x - b.x,
+    y: a.y - b.y,
+    z: a.z - b.z,
+  };
+}
+
+export function mulVec3(a: Readonly<Vec3>, s: number): Vec3 {
+  return {
+    x: a.x * s,
+    y: a.y * s,
+    z: a.z * s,
+  };
+}
+
+export function dotVec3(a: Readonly<Vec3>, b: Readonly<Vec3>) {
+  return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
+export function crossVec3(a: Readonly<Vec3>, b: Readonly<Vec3>): Vec3 {
+  return {
+    x: a.y * b.z - a.z * b.y,
+    y: a.z * b.x - a.x * b.z,
+    z: a.x * b.y - a.y * b.x,
+  };
+}
+
+export function normalizeVec3(v: Vec3): Vec3 {
+  const len = Math.hypot(v.x, v.y, v.z);
+  return mulVec3(v, 1 / len);
+}
+
 export function getBoundingBox(vertices: DeepReadonly<Vec2[]>): BoundingBox | undefined {
   let boundsMin, boundsMax;
   for (const v of vertices) {
