@@ -108,19 +108,25 @@ watch(
       </div>
 
       <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
-        <UFormField :label="t('rubber_thickness')">
-          <UInputNumber
-            v-model="options.rubberThickness"
-            :step="0.01"
-            :step-snapping="false"
-            :min="0"
-            :max="0.1"
-            class="w-full"
-            :format-options="FORMAT_OPTIONS_METER"
-          />
-        </UFormField>
+        <div class="py-1.5 sm:col-span-2">
+          <USwitch v-model="options.rubberEnabled" :label="t('rubber_enabled')" />
+        </div>
 
-        <ColorPicker v-model="options.rubberColor" :label="t('rubber_color')" />
+        <template v-if="options.rubberEnabled">
+          <UFormField :label="t('rubber_thickness')">
+            <UInputNumber
+              v-model="options.rubberThickness"
+              :step="0.01"
+              :step-snapping="false"
+              :min="0"
+              :max="0.1"
+              class="w-full"
+              :format-options="FORMAT_OPTIONS_METER"
+            />
+          </UFormField>
+
+          <ColorPicker v-model="options.rubberColor" :label="t('rubber_color')" />
+        </template>
       </div>
     </FormCard>
 
@@ -227,6 +233,7 @@ watch(
     "door_z_offset": "Z Offset",
     "outside_color": "Outside Base Color",
     "inside_color": "Inside Base Color",
+    "rubber_enabled": "Door Rubber",
     "rubber_thickness": "Rubber Thickness",
     "rubber_color": "Rubber Color",
     "window_settings": "Window Settings",
@@ -255,6 +262,7 @@ watch(
     "door_z_offset": "Z位置",
     "outside_color": "外側ベースカラー",
     "inside_color": "内側ベースカラー",
+    "rubber_enabled": "戸先ゴム",
     "rubber_thickness": "戸先ゴム厚み",
     "rubber_color": "戸先ゴムカラー",
     "window_settings": "窓設定",
