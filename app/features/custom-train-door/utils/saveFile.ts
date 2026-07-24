@@ -5,6 +5,7 @@ import {
   createLuaScript,
   createCollisionComponent,
   type DoorUnitFileNameSet,
+  createStaticComponent,
 } from '../doorTypes';
 import type { TrainDoorOptions, OutputTrainDoorState } from '../types';
 
@@ -27,6 +28,29 @@ export function createMeshFiles(
 
     return { filename, data, mimetype: 'application/octet-stream' };
   });
+}
+
+export function createMergedMeshFile(
+  state: DeepReadonly<OutputTrainDoorState>,
+  fingerprint: string,
+  filename?: string,
+) {
+  filename = filename ?? getFilenames(state.options, fingerprint).mergedMesh;
+
+  const objects = buildDoorGeometry(state, { refine: true });
+
+  const builder = new GeometryBuilder();
+  for (const object of objects) {
+    builder.merge(object.builder);
+  }
+
+  builder.transform(Orientation.RotateY270);
+
+  return {
+    filename,
+    data: builder.toMeshData(),
+    mimetype: 'application/octet-stream',
+  };
 }
 
 export function createVisualComponentFiles(
@@ -65,5 +89,25 @@ export function createCollisionComponentFile(
     filename,
     data: definition,
     mimetype: 'application/xml',
+  };
+}
+
+export function createStaticComponentFiles(
+  state: DeepReadonly<OutputTrainDoorState>,
+  fingerprint: string,
+  filenames?: DeepReadonly<DoorUnitFileNameSet>,
+) {
+  filenames = filenames ?? getFilenames(state.options, fingerprint);
+  const definition = createStaticComponent(state.options, fingerprint, filenames);
+
+  const mesh = createMergedMeshFile(state, fingerprint, filenames.mergedMesh);
+
+  return {
+    definition: {
+      filename: filenames.visualDefinition,
+      data: definition,
+      mimetype: 'application/xml',
+    },
+    mesh,
   };
 }

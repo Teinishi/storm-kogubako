@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { getMirrorMergedPolygons, PolygonEditor } from '~/features/polygon-editor';
 import { useCustomTrainDoor } from '../composables';
-import { createDoorUnitVehicle, getFilenames } from '../doorTypes';
+import { createDoorUnitVehicle, createStaticUnitVehicle, getFilenames } from '../doorTypes';
 import { createDefaultEditTrainDoorState, type OutputTrainDoorState } from '../types/state.ts';
 import {
   getFingerprint as getFingerprintFromJson,
@@ -10,7 +10,9 @@ import {
   createMeshFiles,
   createVisualComponentFiles,
   createCollisionComponentFile,
+  createStaticComponentFiles,
   fromJson,
+  createMergedMeshFile,
 } from '../utils';
 import TheTrainDoorPreviewClient from './TheTrainDoorPreview.client.vue';
 import TheTrainDoorSettings from './TheTrainDoorSettings.vue';
@@ -178,6 +180,15 @@ function saveMeshClicked() {
   });
 }
 
+function saveMergedMeshClicked() {
+  handleError(() => {
+    const fingerprint = getFingerprint();
+    const filenames = getFilenames(outputState.value.options, fingerprint);
+    const files = createMergedMeshFile(outputState.value, fingerprint, filenames.mergedMesh);
+    saveFile(files);
+  });
+}
+
 function saveVisualComponentSourceClicked() {
   handleError(() => {
     const fingerprint = getFingerprint();
@@ -213,6 +224,27 @@ function saveCollisionComponentBinClicked() {
     const fingerprint = getFingerprint();
     const file = createCollisionComponentFile(outputState.value.options, fingerprint);
     const { file: binFile } = createComponentBin(file.filename, file.data);
+    saveFile(binFile);
+  });
+}
+
+function saveStaticComponentSourceClicked() {
+  handleError(() => {
+    const fingerprint = getFingerprint();
+    const filenames = getFilenames(outputState.value.options, fingerprint);
+    const files = createStaticComponentFiles(outputState.value, fingerprint, filenames);
+    const zipName = replaceExtension(files.definition.filename, '.zip');
+    saveFiles([files.definition, files.mesh], zipName);
+  });
+}
+
+function saveStaticComponentBinClicked() {
+  handleError(() => {
+    const fingerprint = getFingerprint();
+    const files = createStaticComponentFiles(outputState.value, fingerprint);
+    const { file: binFile } = createComponentBin(files.definition.filename, files.definition.data, [
+      files.mesh,
+    ]);
     saveFile(binFile);
   });
 }
@@ -266,6 +298,44 @@ function saveDoorUnitClicked() {
   });
 }
 
+function saveStaticUnitClicked() {
+  handleError(() => {
+    const fingerprint = getFingerprint();
+    const filenames = getFilenames(outputState.value.options, fingerprint);
+
+    const staticFiles = createStaticComponentFiles(outputState.value, fingerprint, filenames);
+    const staticComponent = createComponentBin(
+      staticFiles.definition.filename,
+      staticFiles.definition.data,
+      [staticFiles.mesh],
+    );
+
+    const vehicleData = createStaticUnitVehicle(outputState.value.options, staticComponent.name);
+    const vehicle: SaveZipNode[] = [
+      {
+        type: 'file',
+        entry: {
+          filename: filenames.staticUnitVehicleName,
+          data: vehicleData,
+          mimetype: 'application/xml',
+        },
+      },
+      {
+        type: 'folder',
+        name: replaceExtension(filenames.staticUnitVehicleName, ''),
+        content: [
+          {
+            type: 'file',
+            entry: staticComponent.file,
+          },
+        ],
+      },
+    ];
+
+    saveZip(vehicle, replaceExtension(filenames.staticUnitVehicleName, '.zip'));
+  });
+}
+
 // UI
 const tabItems = computed(() => [
   {
@@ -313,6 +383,11 @@ const otherMenuItems = computed(() => [
           onSelect: saveMeshClicked,
         },
         {
+          label: t('other_menu.advanced.save_merged_mesh'),
+          icon: 'i-lucide-box',
+          onSelect: saveMergedMeshClicked,
+        },
+        {
           label: t('other_menu.advanced.save_visual_component_source'),
           icon: 'i-lucide-code-xml',
           onSelect: saveVisualComponentSourceClicked,
@@ -332,6 +407,16 @@ const otherMenuItems = computed(() => [
           icon: 'i-lucide-binary',
           onSelect: saveCollisionComponentBinClicked,
         },
+        {
+          label: t('other_menu.advanced.save_static_component_source'),
+          icon: 'i-lucide-code-xml',
+          onSelect: saveStaticComponentSourceClicked,
+        },
+        {
+          label: t('other_menu.advanced.save_static_component_bin'),
+          icon: 'i-lucide-binary',
+          onSelect: saveStaticComponentBinClicked,
+        },
       ],
     },
   ],
@@ -347,31 +432,41 @@ const otherMenuItems = computed(() => [
         <UTabs
           :items="tabItems"
           :unmount-on-hide="true"
-          :ui="{ root: 'gap-4', content: 'grow min-h-0 pb-18 sm:pb-4 @container' }"
+          :ui="{ root: 'gap-4', content: 'grow min-h-0 pb-18 sm:pb-4 overflow-y-auto @container' }"
           class="h-full"
         >
           <template #settings>
             <TheTrainDoorSettings v-model="state.options" />
 
-            <div class="mt-4 flex flex-wrap gap-4 md:flex-nowrap">
+            <div class="mt-4 flex flex-wrap gap-4">
               <UButton
                 block
                 size="xl"
                 color="primary"
                 icon="i-lucide-download"
                 :label="t('save.door_unit')"
+                class="flex-1"
                 @click="saveDoorUnitClicked"
+              />
+
+              <UButton
+                block
+                size="xl"
+                color="primary"
+                variant="subtle"
+                icon="i-lucide-download"
+                :label="t('save.static_unit')"
+                class="flex-1"
+                @click="saveStaticUnitClicked"
               />
 
               <UModal :title="t('usage.title')" :ui="{ content: 'sm:max-w-3xl' }">
                 <UButton
-                  block
                   size="xl"
                   color="primary"
-                  variant="subtle"
+                  variant="outline"
                   icon="i-lucide-circle-question-mark"
                   :label="t('usage.label')"
-                  class="flex-1"
                 />
                 <template #body>
                   <UsageInstructions />
@@ -380,13 +475,11 @@ const otherMenuItems = computed(() => [
 
               <UDropdownMenu :items="otherMenuItems">
                 <UButton
-                  block
                   size="xl"
                   color="primary"
                   variant="outline"
                   icon="i-lucide-ellipsis"
                   :label="t('other_menu.label')"
-                  class="flex-1"
                 />
               </UDropdownMenu>
             </div>
@@ -435,7 +528,8 @@ const otherMenuItems = computed(() => [
     },
     "preview": "Preview",
     "save": {
-      "door_unit": "Save Door Unit"
+      "door_unit": "Save Door Unit",
+      "static_unit": "Save Static Unit"
     },
     "usage": {
       "label": "Usage",
@@ -451,10 +545,13 @@ const otherMenuItems = computed(() => [
       "advanced": {
         "label": "Advanced Export",
         "save_mesh": "Save Mesh (.mesh)",
+        "save_merged_mesh": "Save Merged Mesh (.mesh)",
         "save_visual_component_source": "Save Visual Component (.xml, .lua, .mesh)",
         "save_visual_component_bin": "Save Visual Component (.bin)",
         "save_collision_component_source": "Save Collision Component (.xml)",
-        "save_collision_component_bin": "Save Collision Component (.bin)"
+        "save_collision_component_bin": "Save Collision Component (.bin)",
+        "save_static_component_source": "Save Static Component (.xml, .mesh)",
+        "save_static_component_bin": "Save Static Component (.bin)"
       }
     },
     "dialog": {
@@ -492,7 +589,8 @@ const otherMenuItems = computed(() => [
     },
     "preview": "プレビュー",
     "save": {
-      "door_unit": "ドアユニットを保存"
+      "door_unit": "ドアユニットを保存",
+      "static_unit": "動作なしで保存"
     },
     "usage": {
       "label": "使い方",
@@ -508,10 +606,13 @@ const otherMenuItems = computed(() => [
       "advanced": {
         "label": "Mod開発者向け",
         "save_mesh": "メッシュを保存 (.mesh)",
+        "save_merged_mesh": "結合メッシュを保存 (.mesh)",
         "save_visual_component_source": "表示コンポーネントを保存 (.xml, .lua, .mesh)",
         "save_visual_component_bin": "表示コンポーネントを保存 (.bin)",
         "save_collision_component_source": "当たり判定コンポーネントを保存 (.xml)",
-        "save_collision_component_bin": "当たり判定コンポーネントを保存 (.bin)"
+        "save_collision_component_bin": "当たり判定コンポーネントを保存 (.bin)",
+        "save_static_component_source": "静的コンポーネントを保存 (.xml, .mesh)",
+        "save_static_component_bin": "静的コンポーネントを保存 (.bin)"
       }
     },
     "dialog": {

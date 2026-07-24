@@ -200,12 +200,14 @@ export function getFilenames(_state: DeepReadonly<TrainDoorOptions>, fingerprint
 
   return {
     doorUnitVehicleName: `m_train_door_${fingerprint}.xml`,
+    staticUnitVehicleName: `m_train_door_${fingerprint}.xml`,
     visualDefinition: `${visual}.xml`,
     script: `m_train_door_${fingerprint}.lua`,
     meshes: {
       left: `m_train_door_left_${fingerprint}.mesh`,
       right: `m_train_door_right_${fingerprint}.mesh`,
     },
+    mergedMesh: `m_train_door_${fingerprint}.mesh`,
     collisionDefinition: `m_train_door_collision_${fingerprint}.xml`,
     meshesZip: `m_train_door_meshes_${fingerprint}.zip`,
     visualComponentZip: `${visual}.zip`,
@@ -218,8 +220,10 @@ export function createVisualComponent(
   fingerprint: string,
   filenames: DeepReadonly<DoorUnitFileNameSet>,
 ) {
-  if (options.doorWidth < 3) {
+  if (options.direction === 'double' && options.doorWidth < 3) {
     throw new Error('The width for double sliding door must be at least 3.');
+  } else if (options.doorWidth < 2) {
+    throw new Error('The width for dynamic sliding door must be at least 2.');
   }
 
   const { direction } = options;
@@ -360,6 +364,10 @@ export function createCollisionComponent(
   options: DeepReadonly<TrainDoorOptions>,
   fingerprint: string,
 ) {
+  if (options.doorWidth < 2) {
+    throw new Error('The width for dynamic sliding door must be at least 2.');
+  }
+
   const width = options.direction === 'double' ? options.doorWidth / 2 : options.doorWidth;
   const height = options.doorHeight;
 
@@ -418,6 +426,44 @@ export function createCollisionComponent(
   return builder.toXml();
 }
 
+// 静的コンポーネントの Definition XML を生成
+export function createStaticComponent(
+  options: DeepReadonly<TrainDoorOptions>,
+  fingerprint: string,
+  filenames: DeepReadonly<DoorUnitFileNameSet>,
+) {
+  if (options.doorWidth < 1) {
+    throw new Error('The width for static sliding door must be at least 1.');
+  }
+
+  const voxelRange = getVoxelRange(options.doorWidth, options.doorHeight);
+  const volume = getVoxelVolume(voxelRange.min, voxelRange.max);
+
+  const builder = new DefinitionBuilder();
+
+  builder.addAttribute('name', `(M) Train Door Static Visual ${fingerprint}`);
+  builder.addAttribute('category', 2);
+  builder.addAttribute('type', 9);
+  builder.addAttribute('mass', 0.5 * volume);
+  builder.addAttribute('value', 2 * volume);
+  builder.addAttribute('flags', 0);
+  builder.addAttribute('tags', 'mod,train,door');
+  builder.addAttribute('mesh_data_name', filenames.mergedMesh);
+
+  builder.addSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1, 2, 3, 4, 5], { shape: 0 });
+  builder.addBuoyancySurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1], { shape: 1 });
+  builder.addVoxels(voxelRange.min, voxelRange.max, { flags: 1 });
+
+  builder.addElement('tooltip_properties', [
+    {
+      name: 'short_description',
+      value: 'A decorative sliding door that cannot be opened or closed.',
+    },
+  ]);
+
+  return builder.toXml();
+}
+
 // ドアユニットビークルを生成
 export function createDoorUnitVehicle(
   options: DeepReadonly<TrainDoorOptions>,
@@ -468,6 +514,21 @@ export function createDoorUnitVehicle(
   });
   builder.addComponent('root', {
     position: { x: -1, y: voxelRange.max.y + 1, z: voxelRange.max.z + 1 },
+  });
+
+  return builder.toXml();
+}
+
+// 静的ユニットビークルを生成
+export function createStaticUnitVehicle(
+  _options: DeepReadonly<TrainDoorOptions>,
+  staticComponentName: string,
+) {
+  const builder = new VehicleBuilder();
+
+  builder.addComponent('root', {
+    type: staticComponentName,
+    position: { x: 0, y: 0, z: 0 },
   });
 
   return builder.toXml();

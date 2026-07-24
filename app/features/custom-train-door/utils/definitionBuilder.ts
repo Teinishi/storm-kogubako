@@ -196,11 +196,21 @@ export class DefinitionBuilder {
 
     const voxelBounds = this.getVoxelBounds();
     if (voxelBounds) {
-      if (this.elements.findIndex((e) => e.tagName === 'voxel_min') === -1) {
+      if (!this.hasElement('voxel_min')) {
         writer.empty('voxel_min', vec3ToAttrs(voxelBounds.min));
       }
-      if (this.elements.findIndex((e) => e.tagName === 'voxel_max') === -1) {
+      if (!this.hasElement('voxel_max')) {
         writer.empty('voxel_max', vec3ToAttrs(voxelBounds.max));
+      }
+    }
+
+    const voxelPhysicsBounds = this.getVoxelBounds();
+    if (voxelPhysicsBounds) {
+      if (!this.hasElement('voxel_physics_min')) {
+        writer.empty('voxel_physics_min', vec3ToAttrs(voxelPhysicsBounds.min));
+      }
+      if (!this.hasElement('voxel_physics_max')) {
+        writer.empty('voxel_physics_max', vec3ToAttrs(voxelPhysicsBounds.max));
       }
     }
 
@@ -236,10 +246,12 @@ export class DefinitionBuilder {
     writer.end(listName);
   }
 
-  private getVoxelBounds() {
+  private getVoxelBounds(filter?: (voxel: DeepReadonly<Voxel>) => boolean) {
+    const arr = filter ? this.voxels.filter(filter) : this.voxels;
+
     let min, max;
 
-    for (const { position } of this.voxels) {
+    for (const { position } of arr) {
       const x = position?.x ?? 0;
       const y = position?.y ?? 0;
       const z = position?.z ?? 0;
@@ -260,5 +272,9 @@ export class DefinitionBuilder {
 
     if (min === undefined || max === undefined) return null;
     return { min, max };
+  }
+
+  private hasElement(name: string) {
+    return this.elements.findIndex((e) => e.tagName === name) !== -1;
   }
 }
