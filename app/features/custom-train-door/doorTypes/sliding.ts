@@ -17,7 +17,7 @@ function getBaseRects(options: DeepReadonly<TrainDoorOptions>) {
   const notRight = options.direction !== 'right';
   const notLeft = options.direction !== 'left';
 
-  const rubber = options.rubberThickness / 0.25;
+  const rubber = options.rubberEnabled ? options.rubberThickness / 0.25 : 0;
   const width =
     (options.direction === 'double' ? options.doorWidth / 2 : options.doorWidth) - rubber;
   const height = options.doorHeight;
@@ -86,38 +86,40 @@ function createRenderHook(options: Reactive<TrainDoorOptions>, isInside: boolean
       );
 
       // 戸先ゴム描画
-      const { direction } = options;
-      const rubber = options.rubberThickness / 0.25;
+      if (options.rubberEnabled) {
+        const { direction } = options;
+        const rubber = options.rubberThickness / 0.25;
 
-      let rubberLocation: 'left' | 'center' | 'right';
-      switch (direction) {
-        case 'double':
-          rubberLocation = 'center';
-          break;
-        case 'left':
-          rubberLocation = isInside ? 'left' : 'right';
-          break;
-        case 'right':
-          rubberLocation = isInside ? 'right' : 'left';
-          break;
-        default:
-          direction satisfies never;
-          throw new Error('Unreachable');
+        let rubberLocation: 'left' | 'center' | 'right';
+        switch (direction) {
+          case 'double':
+            rubberLocation = 'center';
+            break;
+          case 'left':
+            rubberLocation = isInside ? 'left' : 'right';
+            break;
+          case 'right':
+            rubberLocation = isInside ? 'right' : 'left';
+            break;
+          default:
+            direction satisfies never;
+            throw new Error('Unreachable');
+        }
+
+        const rx = {
+          left: { x: 0, width: rubber },
+          center: { x: options.doorWidth / 2 - rubber, width: rubber },
+          right: { x: options.doorWidth, width: -rubber },
+        }[rubberLocation];
+        const r = args.worldRectToCanvas({
+          ...rx,
+          y: 0,
+          height: options.doorHeight,
+        });
+
+        ctx.fillStyle = options.rubberColor;
+        ctx.fillRect(r.x, r.y, r.width, r.height);
       }
-
-      const rx = {
-        left: { x: 0, width: rubber },
-        center: { x: options.doorWidth / 2 - rubber, width: rubber },
-        right: { x: options.doorWidth, width: -rubber },
-      }[rubberLocation];
-      const r = args.worldRectToCanvas({
-        ...rx,
-        y: 0,
-        height: options.doorHeight,
-      });
-
-      ctx.fillStyle = options.rubberColor;
-      ctx.fillRect(r.x, r.y, r.width, r.height);
     },
   };
 }
@@ -160,6 +162,7 @@ export function buildGeometry(
       frontColor,
       backColor,
       direction: 'left',
+      rubberEnabled: options.rubberEnabled,
       rubberThickness,
       rubberColor,
       windowRings: [windowRings.left],
@@ -180,6 +183,7 @@ export function buildGeometry(
       frontColor,
       backColor,
       direction: 'right',
+      rubberEnabled: options.rubberEnabled,
       rubberThickness,
       rubberColor,
       windowRings: [windowRings.right],
