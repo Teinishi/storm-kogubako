@@ -83,7 +83,8 @@ function createObjectUniforms(item: DeepReadonly<MeshViewerCanvasItem>): Stormwo
     :window-size="false"
     class="h-full w-full"
   >
-    <TresPerspectiveCamera />
+    <!-- @vue-expect-error -->
+    <TresPerspectiveCamera :position="[-4, 0, 2]" />
     <OrbitControls :enable-damping="false" :mouse-buttons="orbitMouseButtons" />
     <primitive :object="lights" />
     <!-- @vue-expect-error -->

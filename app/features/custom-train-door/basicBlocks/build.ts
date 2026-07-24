@@ -93,6 +93,8 @@ export function buildBasicBlockGeometry(
     const surfaces = getSurfaces(block);
 
     for (const surface of surfaces) {
+      // todo: カリング
+
       builder.merge(buildSurfaceGeometry(surface, options));
     }
   }

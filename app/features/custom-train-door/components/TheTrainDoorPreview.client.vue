@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
 import { BufferGeometry } from 'three';
-import { buildBasicBlockGeometry } from '../basicBlocks';
+import { buildBasicBlockGeometry, type BasicBlock } from '../basicBlocks';
 import { buildDoorGeometry } from '../doorTypes';
 import type { OutputTrainDoorState } from '../types';
+import { getVoxelRange } from '../utils';
 
 const props = defineProps<{
   state: DeepReadonly<OutputTrainDoorState>;
@@ -28,10 +29,30 @@ watchEffect(() => {
 watch(
   () => props.state.options,
   () => {
-    //const { doorWidth, doorHeight, direction } = props.state.options;
-    const builder = buildBasicBlockGeometry([{ type: 'block', position: { x: 0, y: 0, z: 0 } }], {
-      edge: true,
-    });
+    const { doorWidth, doorHeight, direction } = props.state.options;
+    const w = direction === 'double' ? Math.ceil(doorWidth / 2) : doorWidth;
+
+    const voxelRange = getVoxelRange(doorWidth, doorHeight);
+
+    const bottom = voxelRange.min.y - 1;
+    const top = voxelRange.max.y + 1;
+    const right = voxelRange.min.z - (direction === 'left' ? 1 : w);
+    const left = voxelRange.max.z + (direction === 'right' ? 1 : w);
+
+    const blocks: BasicBlock[] = [];
+
+    for (let y = bottom; y <= top; y++) {
+      const ry = voxelRange.min.y <= y && y <= voxelRange.max.y;
+
+      for (let z = right; z <= left; z++) {
+        const rz = voxelRange.min.z <= z && z <= voxelRange.max.z;
+        if (ry && rz) continue;
+
+        blocks.push({ type: 'block', position: { x: 0, y, z } });
+      }
+    }
+
+    const builder = buildBasicBlockGeometry(blocks, { edge: true });
     const geometry = new BufferGeometry();
     builder.apply(geometry);
 

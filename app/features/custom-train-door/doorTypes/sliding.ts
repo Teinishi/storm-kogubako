@@ -168,6 +168,7 @@ export function buildGeometry(
       windowRings: [windowRings.left],
       windowFrameColor: options.windowFrameColor,
     });
+    builder.transform(Orientation.RotateY270);
     objects.push({ id: 'left', builder });
   }
 
@@ -189,6 +190,7 @@ export function buildGeometry(
       windowRings: [windowRings.right],
       windowFrameColor: options.windowFrameColor,
     });
+    builder.transform(Orientation.RotateY270);
     objects.push({ id: 'right', builder });
   }
 
