@@ -362,3 +362,98 @@ export const SURFACE_SHAPES = {
 } as const;
 
 export type BasicSurfaceShape = keyof typeof SURFACE_SHAPES;
+
+// カリング用に shape がボクセル辺のどこをカバーしているか表現 (orientation=0, rotation=0 に X+方向から向かって左下スタート、反時計回り)
+export type ShapeEdgeCoverage = [
+  [boolean, boolean, boolean, boolean],
+  [boolean, boolean, boolean, boolean],
+  [boolean, boolean, boolean, boolean],
+  [boolean, boolean, boolean, boolean],
+];
+
+export const SURFACE_EDGE_COVERAGE: DeepReadonly<Record<number, ShapeEdgeCoverage>> = {
+  1: [
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+    [true, true, true, true],
+  ],
+  2: [
+    [false, false, false, false],
+    [false, false, false, false],
+    [true, true, true, true],
+    [true, true, true, true],
+  ],
+  9: [
+    [true, true, false, false],
+    [false, false, false, false],
+    [true, true, true, true],
+    [true, true, true, true],
+  ],
+  10: [
+    [false, false, false, false],
+    [false, false, false, false],
+    [false, false, true, true],
+    [true, true, true, true],
+  ],
+  11: [
+    [true, true, true, true],
+    [false, false, false, false],
+    [false, false, true, true],
+    [true, true, true, true],
+  ],
+  12: [
+    [true, true, false, false],
+    [false, false, false, false],
+    [false, false, false, false],
+    [true, true, true, true],
+  ],
+  13: [
+    [true, true, true, false],
+    [false, false, false, false],
+    [true, true, true, true],
+    [true, true, true, true],
+  ],
+  14: [
+    [true, true, false, false],
+    [false, false, false, false],
+    [false, true, true, true],
+    [true, true, true, true],
+  ],
+  15: [
+    [true, false, false, false],
+    [false, false, false, false],
+    [false, false, true, true],
+    [true, true, true, true],
+  ],
+  16: [
+    [false, false, false, false],
+    [false, false, false, false],
+    [false, false, false, true],
+    [true, true, true, true],
+  ],
+  17: [
+    [true, true, true, true],
+    [false, false, false, false],
+    [false, true, true, true],
+    [true, true, true, true],
+  ],
+  18: [
+    [true, true, true, false],
+    [false, false, false, false],
+    [false, false, true, true],
+    [true, true, true, true],
+  ],
+  19: [
+    [true, true, false, false],
+    [false, false, false, false],
+    [false, false, false, true],
+    [true, true, true, true],
+  ],
+  20: [
+    [true, false, false, false],
+    [false, false, false, false],
+    [false, false, false, false],
+    [true, true, true, true],
+  ],
+};

@@ -34,6 +34,7 @@ interface MeshViewerCanvasItem {
 
 defineProps<{
   items?: MeshViewerCanvasItem[];
+  initialCameraPos?: [number, number, number]
 }>();
 
 const colorMode = useColorMode();
@@ -84,7 +85,7 @@ function createObjectUniforms(item: DeepReadonly<MeshViewerCanvasItem>): Stormwo
     class="h-full w-full"
   >
     <!-- @vue-expect-error -->
-    <TresPerspectiveCamera :position="[-4, 0, 2]" :fov="70" />
+    <TresPerspectiveCamera :position="initialCameraPos" :fov="70" />
     <OrbitControls :enable-damping="false" :mouse-buttons="orbitMouseButtons" />
     <primitive :object="lights" />
     <!-- @vue-expect-error -->

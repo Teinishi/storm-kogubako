@@ -64,7 +64,7 @@ watch(
 </script>
 
 <template>
-  <MeshViewerCanvas>
+  <MeshViewerCanvas :initial-camera-pos="[-4, 0, 2]">
     <TresMesh
       v-for="item in geometries"
       :key="item.id"

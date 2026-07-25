@@ -221,22 +221,33 @@ export class GeometryBuilder {
     }
   }
 
-  transform(orientation: DeepReadonly<Orientation>, translation?: Vec3) {
+  transform(mat?: Readonly<Mat3>, translation?: Readonly<Vec3>) {
     const { positions, normals } = this;
-    const { x: tx, y: ty, z: tz } = translation ?? { x: 0, y: 0, z: 0 };
-
     for (let i = 0; 3 * i + 2 < positions.length; i++) {
-      const { x, y, z } = orientation.transformPosition(getVertexFromFlat(positions, i)!);
-      positions[3 * i] = x + tx;
-      positions[3 * i + 1] = y + ty;
-      positions[3 * i + 2] = z + tz;
+      let p = getVertexFromFlat(positions, i)!;
+      let n = getVertexFromFlat(normals, i)!;
+      if (mat) {
+        p = mulMat3Vec3(mat, p);
+        n = mulMat3Vec3(mat, n);
+      }
+      if (translation) {
+        p = addVec3(p, translation);
+      }
+      positions[3 * i] = p.x;
+      positions[3 * i + 1] = p.y;
+      positions[3 * i + 2] = p.z;
+      normals[3 * i] = n.x;
+      normals[3 * i + 1] = n.y;
+      normals[3 * i + 2] = n.z;
     }
 
-    for (let i = 0; 3 * i + 2 < normals.length; i++) {
-      const { x, y, z } = orientation.transformPosition(getVertexFromFlat(normals, i)!);
-      normals[3 * i] = x;
-      normals[3 * i + 1] = y;
-      normals[3 * i + 2] = z;
+    if (mat && detMat3(mat) < 0) {
+      const { indices } = this;
+      for (let i = 0; 3 * i + 2 < indices.length; i++) {
+        const tmp = indices[3 * i + 1]!;
+        indices[3 * i + 1] = indices[3 * i + 2]!;
+        indices[3 * i + 2] = tmp;
+      }
     }
   }
 
@@ -248,14 +259,18 @@ export class GeometryBuilder {
       throw new Error('Unexpected: GeometryBuilder position length is not multiples of 3.');
     }
 
-    this.positions.push(...other.positions);
-    this.normals.push(...other.normals);
-    this.colors.push(...other.colors);
+    chunkPush(this.positions, other.positions);
+    chunkPush(this.normals, other.normals);
+    chunkPush(this.colors, other.colors);
 
-    this.indices.push(...other.indices.map((i) => i + vertexOffset));
+    chunkPush(
+      this.indices,
+      other.indices.map((i) => i + vertexOffset),
+    );
 
-    this.groups.push(
-      ...other.groups.map((g) => ({
+    chunkPush(
+      this.groups,
+      other.groups.map((g) => ({
         ...g,
         start: g.start + indexOffset,
       })),
@@ -356,5 +371,13 @@ export class GeometryBuilder {
     };
 
     return createMeshFile(data);
+  }
+}
+
+const CHUNK = 65536;
+
+function chunkPush<T>(dest: T[], arr: T[]) {
+  for (let i = 0; i < arr.length; i += CHUNK) {
+    dest.push(...arr.slice(i, i + CHUNK));
   }
 }

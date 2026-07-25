@@ -1,19 +1,14 @@
 import type { BasicSurfaceShape } from './surface';
-import type {
-  BasicBlock,
-  BasicSurface,
-  BasicSurfaceOrientation,
-  BasicSurfaceRotation,
-} from './types';
+import type { BasicSurfaceOrientation, BasicSurfaceRotation } from './types';
 
-interface SurfaceDefinition {
+export interface SurfaceDefinition {
   position?: Partial<Vec3>;
   orientation: BasicSurfaceOrientation;
   rotation?: BasicSurfaceRotation;
   shape: BasicSurfaceShape;
 }
 
-const BLOCK_SURFACE_DEFINITIONS = {
+export const BLOCK_SURFACE_DEFINITIONS = {
   block: [
     { orientation: 0, shape: 1 },
     { orientation: 1, shape: 1 },
@@ -307,23 +302,5 @@ const BLOCK_SURFACE_DEFINITIONS = {
     { position: { x: -3, z: -3 }, orientation: 5, rotation: 0, shape: 20 },
   ] as SurfaceDefinition[],
 } as const;
-//{ orientation: , rotation: , shape:  },
 
 export type BasicBlockType = keyof typeof BLOCK_SURFACE_DEFINITIONS;
-
-export function getSurfaces(block: DeepReadonly<BasicBlock>): BasicSurface[] {
-  const surfaces = BLOCK_SURFACE_DEFINITIONS[block.type];
-
-  const { x, y, z } = block.position;
-  return surfaces.map((s) => {
-    return {
-      ...s,
-      rotation: s.rotation ?? 0,
-      position: {
-        x: x + (s.position?.x ?? 0),
-        y: y + (s.position?.y ?? 0),
-        z: z + (s.position?.z ?? 0),
-      },
-    };
-  });
-}

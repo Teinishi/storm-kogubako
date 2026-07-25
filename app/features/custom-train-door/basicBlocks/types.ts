@@ -4,6 +4,7 @@ import type { BasicSurfaceShape } from './surface';
 export interface BasicBlock {
   type: BasicBlockType;
   position: Vec3;
+  transform?: Mat3;
 }
 
 export type BasicSurfaceOrientation = 0 | 1 | 2 | 3 | 4 | 5;
@@ -14,9 +15,4 @@ export interface BasicSurface {
   orientation: BasicSurfaceOrientation;
   rotation: BasicSurfaceRotation;
   shape: BasicSurfaceShape;
-}
-
-export interface SurfaceGeometryOptions {
-  edge?: boolean;
-  color?: Color;
 }
