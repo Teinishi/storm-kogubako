@@ -34,7 +34,7 @@ interface MeshViewerCanvasItem {
 
 defineProps<{
   items?: MeshViewerCanvasItem[];
-  initialCameraPos?: [number, number, number]
+  initialCameraPos?: [number, number, number];
 }>();
 
 const colorMode = useColorMode();
