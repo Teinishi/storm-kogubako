@@ -95,7 +95,9 @@ watch(
         <UFormField :label="t('door_z_offset')">
           <UInputNumber
             v-model="options.doorZOffset"
-            :step="0.05"
+            :min="-0.125"
+            :max="0.125"
+            :step="0.025"
             :step-snapping="false"
             class="w-full"
             :format-options="FORMAT_OPTIONS_METER"
