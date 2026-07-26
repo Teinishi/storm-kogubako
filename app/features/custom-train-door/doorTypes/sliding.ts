@@ -108,7 +108,7 @@ function createRenderHook(options: Reactive<TrainDoorOptions>, isInside: boolean
 
         const rx = {
           left: { x: 0, width: rubber },
-          center: { x: options.doorWidth / 2 - rubber, width: rubber },
+          center: { x: options.doorWidth / 2 - rubber, width: 2 * rubber },
           right: { x: options.doorWidth, width: -rubber },
         }[rubberLocation];
         const r = args.worldRectToCanvas({
