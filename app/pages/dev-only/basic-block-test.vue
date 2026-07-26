@@ -78,21 +78,6 @@ onMounted(() => {
     }
   }*/
 
-  // カリングのテスト
-  /*builder.merge(
-    buildBasicBlockGeometry(
-      [
-        { type: 'pyramid2x4', position: { x: 0, y: 0, z: -2 } },
-        {
-          type: 'pyramid1x2',
-          position: { x: 1, y: 0, z: -2 },
-          transform: Orientation.RotateZ90.toMatrix3(),
-        },
-      ],
-      { edge: true, hollow: true },
-    ),
-  );*/
-
   // カリングのテストにお試しビークルを使用
   builder.merge(
     buildBasicBlockGeometry(
@@ -105,7 +90,7 @@ onMounted(() => {
         if ((flip & 4) !== 0) transform = mulMat3(transform, Orientation.FlipZ.toMat3());
         return { ...b, transform };
       }),
-      { edge: true, culling: false },
+      { hollow: false, edge: true },
     ),
   );
 

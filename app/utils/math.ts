@@ -33,6 +33,10 @@ export function clamp(x: number, a: number, b: number) {
   return Math.min(Math.max(x, a), b);
 }
 
+export function modulo(a: number, b: number) {
+  return ((a % b) + b) % b;
+}
+
 export function cloneVec2(value: Readonly<Vec2>): Vec2 {
   return {
     x: value.x,
@@ -109,6 +113,10 @@ export function crossVec3(a: Readonly<Vec3>, b: Readonly<Vec3>): Vec3 {
 export function normalizeVec3(v: Readonly<Vec3>): Vec3 {
   const len = Math.hypot(v.x, v.y, v.z);
   return mulVec3(v, 1 / len);
+}
+
+export function eqVec3(a: Readonly<Vec3>, b: Readonly<Vec3>) {
+  return a.x === b.x && a.y === b.y && a.z === b.z;
 }
 
 export function transposeMat3(m: Readonly<Mat3>): Mat3 {

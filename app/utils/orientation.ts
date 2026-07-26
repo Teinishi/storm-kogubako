@@ -146,7 +146,6 @@ export class Orientation {
   }
 
   multiplyMat3(m: Readonly<Mat3>): Orientation {
-    //return Orientation.fromMat3(m).multiply(this);
     return this.multiply(Orientation.fromMat3(m));
   }
 

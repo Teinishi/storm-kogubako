@@ -1,5 +1,7 @@
 import type { BasicSurfaceOrientation, BasicSurfaceRotation } from './types';
 
+// <surface> の orientation と rotation から Orientation オブジェクトへ変換
+// .toMat3() をつければ行列に
 export function getSurfaceOrientation(
   orientation: BasicSurfaceOrientation,
   rotation: BasicSurfaceRotation,
@@ -7,13 +9,13 @@ export function getSurfaceOrientation(
   let o = Orientation.Identity;
   switch (rotation) {
     case 1:
-      o = Orientation.RotateX270;
+      o = Orientation.RotateX90;
       break;
     case 2:
       o = Orientation.RotateX180;
       break;
     case 3:
-      o = Orientation.RotateX90;
+      o = Orientation.RotateX270;
       break;
   }
 
@@ -28,19 +30,12 @@ export function getSurfaceOrientation(
       o = o.multiply(Orientation.RotateZ270);
       break;
     case 4:
-      o = o.multiply(Orientation.RotateZ90).multiply(Orientation.RotateX270);
+      o = o.multiply(Orientation.RotateZ90).multiply(Orientation.RotateX90);
       break;
     case 5:
-      o = o.multiply(Orientation.RotateZ90).multiply(Orientation.RotateX90);
+      o = o.multiply(Orientation.RotateZ90).multiply(Orientation.RotateX270);
       break;
   }
 
   return o;
 }
-
-export const ALL_ORIENTATIONS = Array.from({ length: 24 }, (_, i) => {
-  const orientation = Math.floor(i / 4) as BasicSurfaceOrientation;
-  const rotation = (i % 4) as BasicSurfaceRotation;
-
-  return { orientation, rotation, value: getSurfaceOrientation(orientation, rotation) };
-});
