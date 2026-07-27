@@ -1,3 +1,4 @@
+import type { Matrix4 } from 'three';
 import type { Reactive } from 'vue';
 import type { RenderHooks } from '~/features/polygon-editor';
 import type { OutputTrainDoorState, TrainDoorOptions } from '../types';
@@ -27,6 +28,20 @@ export function buildDoorGeometry(
   switch (doorType) {
     case 'sliding':
       return sliding.buildGeometry(state, builderOptions);
+    default:
+      doorType satisfies never;
+      throw new Error('Unreachable');
+  }
+}
+
+export function getDoorGeometryTransform(
+  options: DeepReadonly<TrainDoorOptions>,
+  t: number,
+): Record<string, Matrix4> {
+  const { doorType } = options;
+  switch (doorType) {
+    case 'sliding':
+      return sliding.getDoorGeometryTransform(options, t);
     default:
       doorType satisfies never;
       throw new Error('Unreachable');

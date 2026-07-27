@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
-import { BufferGeometry } from 'three';
+import { BufferGeometry, Mesh } from 'three';
 import { buildBasicBlockGeometry, type BasicBlock } from '../basicBlocks';
-import { buildDoorGeometry } from '../doorTypes';
+import { buildDoorGeometry, getDoorGeometryTransform } from '../doorTypes';
 import type { OutputTrainDoorState } from '../types';
 import { getVoxelRange } from '../utils';
 
@@ -12,7 +12,10 @@ const props = defineProps<{
 
 const { t } = useI18n({ useScope: 'local' });
 
+const meshRefs = new Map<string, Element | ComponentPublicInstance>();
+
 const showBlocks = ref(true);
+const doorPosition = ref(0);
 
 const geometries = shallowRef<{ id: string; geometry: BufferGeometry }[]>([]);
 const materialSet = createStormworksMaterials();
@@ -28,6 +31,21 @@ watchEffect(() => {
     builder.apply(geometry);
     return { id, geometry };
   });
+});
+
+watchEffect(() => {
+  const matrices = getDoorGeometryTransform(props.state.options, doorPosition.value);
+
+  for (const [id, mesh] of meshRefs) {
+    if (!(mesh instanceof Mesh)) continue;
+
+    const matrix = matrices[id];
+    if (!matrix) continue;
+
+    mesh.matrixAutoUpdate = false;
+    mesh.matrix.copy(matrix);
+    mesh.matrixWorldNeedsUpdate = true;
+  }
 });
 
 watchEffect(() => {
@@ -74,6 +92,12 @@ watchEffect(() => {
         <TresMesh
           v-for="item in geometries"
           :key="item.id"
+          :ref="
+            (el) => {
+              if (el) meshRefs.set(item.id, el);
+              else meshRefs.delete(item.id);
+            }
+          "
           :geometry="item.geometry"
           :material="materials"
         />
@@ -85,8 +109,14 @@ watchEffect(() => {
       </MeshViewerCanvas>
     </ClientOnly>
 
-    <div class="absolute top-4 right-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
+    <div
+      class="absolute top-4 right-4 w-50 space-y-3 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800"
+    >
       <USwitch v-model="showBlocks" :label="t('show_blocks')" />
+
+      <UFormField :label="t('door_position')">
+        <USlider v-model="doorPosition" :min="0" :max="1" :step="0.0001" class="my-3" />
+      </UFormField>
     </div>
   </div>
 </template>
@@ -94,10 +124,12 @@ watchEffect(() => {
 <i18n lang="json">
 {
   "en": {
-    "show_blocks": "Show Blocks"
+    "show_blocks": "Show Blocks",
+    "door_position": "Door Position"
   },
   "ja": {
-    "show_blocks": "ブロック表示"
+    "show_blocks": "ブロック表示",
+    "door_position": "ドア開閉"
   }
 }
 </i18n>

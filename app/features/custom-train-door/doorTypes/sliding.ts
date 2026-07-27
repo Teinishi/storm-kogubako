@@ -1,3 +1,4 @@
+import { Matrix4 } from 'three';
 import type { Reactive } from 'vue';
 import type { RenderHooks } from '~/features/polygon-editor';
 import type { DoorUnitFileNameSet, RenderHooksSet } from '.';
@@ -197,7 +198,15 @@ export function buildGeometry(
   return objects;
 }
 
-export function getFilenames(_state: DeepReadonly<TrainDoorOptions>, fingerprint: string) {
+export function getDoorGeometryTransform(options: DeepReadonly<TrainDoorOptions>, t: number) {
+  const w = (options.direction === 'double' ? 0.5 : 1) * options.doorWidth * 0.25;
+  return {
+    left: new Matrix4().makeTranslation(0, 0, -t * w),
+    right: new Matrix4().makeTranslation(0, 0, t * w),
+  };
+}
+
+export function getFilenames(_options: DeepReadonly<TrainDoorOptions>, fingerprint: string) {
   const visual = `m_train_door_visual_${fingerprint}`;
 
   return {
