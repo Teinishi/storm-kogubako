@@ -31,6 +31,8 @@ const { saveFile, saveFiles, saveZip, handleError } = useFileSave();
 // 状態が未保存
 const isDirty = ref(false);
 
+const isMounted = ref(false);
+
 // 状態 (localStorage に自動保存)
 const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
   initOnMounted: true,
@@ -66,6 +68,8 @@ onMounted(async () => {
     },
     { deep: true },
   );
+
+  isMounted.value = true;
 });
 
 const { outsideEditorProps, insideEditorProps, editorLogicalBounds } = useCustomTrainDoor(state);
@@ -436,7 +440,7 @@ const otherMenuItems = computed(() => [
           class="h-full"
         >
           <template #settings>
-            <TheTrainDoorSettings v-model="state.options" />
+            <TheTrainDoorSettings v-model="state.options" :readonly="!isMounted" />
 
             <div class="mt-4 flex flex-wrap gap-4">
               <UButton
@@ -489,6 +493,7 @@ const otherMenuItems = computed(() => [
             <PolygonEditor
               ref="outsideEditor"
               v-model="state.outsidePaint"
+              :readonly="!isMounted"
               v-bind="outsideEditorProps"
               class="h-full overflow-y-auto"
             />
@@ -498,6 +503,7 @@ const otherMenuItems = computed(() => [
             <PolygonEditor
               ref="insideEditor"
               v-model="state.insidePaint"
+              :readonly="!isMounted"
               v-bind="insideEditorProps"
               class="h-full overflow-y-auto"
             />

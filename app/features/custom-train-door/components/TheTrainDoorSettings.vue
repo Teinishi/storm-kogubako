@@ -7,6 +7,15 @@ const FORMAT_OPTIONS_METER = {
   unit: 'meter',
 } as const;
 
+withDefaults(
+  defineProps<{
+    readonly?: boolean;
+  }>(),
+  { readonly: false },
+);
+
+const options = defineModel<TrainDoorOptions>({ required: true });
+
 const { t } = useI18n({ useScope: 'local' });
 
 const directionItems = computed(() => [
@@ -23,8 +32,6 @@ const directionItems = computed(() => [
     value: 'right',
   },
 ]);
-
-const options = defineModel<TrainDoorOptions>({ required: true });
 
 // USelect で direction が変更されたときだけ、doorWidth を変更
 let fromSelect = false;
@@ -59,6 +66,7 @@ watch(
         <UFormField :label="t('direction.label')">
           <USelect
             v-model="options.direction"
+            :readonly="readonly"
             :items="directionItems"
             class="w-full"
             @update:model-value="onDirectionUpdate"
@@ -69,14 +77,26 @@ watch(
       <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
         <UFormField :label="t('door_width')">
           <div class="flex items-center gap-2">
-            <UInputNumber v-model="options.doorWidth" :step="1" :min="1" class="flex-1" />
+            <UInputNumber
+              v-model="options.doorWidth"
+              :readonly="readonly"
+              :step="1"
+              :min="1"
+              class="flex-1"
+            />
             <span class="text-muted">{{ t('blocks') }}</span>
           </div>
         </UFormField>
 
         <UFormField :label="t('door_height')">
           <div class="flex items-center gap-2">
-            <UInputNumber v-model="options.doorHeight" :step="1" :min="1" class="flex-1" />
+            <UInputNumber
+              v-model="options.doorHeight"
+              :readonly="readonly"
+              :step="1"
+              :min="1"
+              class="flex-1"
+            />
             <span class="text-muted">{{ t('blocks') }}</span>
           </div>
         </UFormField>
@@ -84,6 +104,7 @@ watch(
         <UFormField :label="t('door_thickness')">
           <UInputNumber
             v-model="options.doorThickness"
+            :readonly="readonly"
             :step="0.05"
             :step-snapping="false"
             :min="0.05"
@@ -95,6 +116,7 @@ watch(
         <UFormField :label="t('door_z_offset')">
           <UInputNumber
             v-model="options.doorZOffset"
+            :readonly="readonly"
             :min="-0.125"
             :max="0.125"
             :step="0.025"
@@ -104,20 +126,33 @@ watch(
           />
         </UFormField>
 
-        <ColorPicker v-model="options.outsideColor" :label="t('outside_color')" />
+        <ColorPicker
+          v-model="options.outsideColor"
+          :readonly="readonly"
+          :label="t('outside_color')"
+        />
 
-        <ColorPicker v-model="options.insideColor" :label="t('inside_color')" />
+        <ColorPicker
+          v-model="options.insideColor"
+          :readonly="readonly"
+          :label="t('inside_color')"
+        />
       </div>
 
       <div class="grid grid-cols-1 items-end gap-2 sm:grid-cols-2">
         <div class="py-1.5 sm:col-span-2">
-          <USwitch v-model="options.rubberEnabled" :label="t('rubber_enabled')" />
+          <USwitch
+            v-model="options.rubberEnabled"
+            :readonly="readonly"
+            :label="t('rubber_enabled')"
+          />
         </div>
 
         <template v-if="options.rubberEnabled">
           <UFormField :label="t('rubber_thickness')">
             <UInputNumber
               v-model="options.rubberThickness"
+              :readonly="readonly"
               :step="0.01"
               :step-snapping="false"
               :min="0"
@@ -127,7 +162,11 @@ watch(
             />
           </UFormField>
 
-          <ColorPicker v-model="options.rubberColor" :label="t('rubber_color')" />
+          <ColorPicker
+            v-model="options.rubberColor"
+            :readonly="readonly"
+            :label="t('rubber_color')"
+          />
         </template>
       </div>
     </FormCard>
@@ -137,6 +176,7 @@ watch(
         <UFormField :label="t('window_x_offset')">
           <UInputNumber
             v-model="options.windowXOffset"
+            :readonly="readonly"
             :step="0.005"
             :step-snapping="false"
             class="w-full"
@@ -147,6 +187,7 @@ watch(
         <UFormField :label="t('window_y_offset')">
           <UInputNumber
             v-model="options.windowYOffset"
+            :readonly="readonly"
             :step="0.005"
             :step-snapping="false"
             class="w-full"
@@ -157,6 +198,7 @@ watch(
         <UFormField :label="t('window_width')">
           <UInputNumber
             v-model="options.windowWidth"
+            :readonly="readonly"
             :step="0.01"
             :step-snapping="false"
             :min="0.01"
@@ -168,6 +210,7 @@ watch(
         <UFormField :label="t('window_height')">
           <UInputNumber
             v-model="options.windowHeight"
+            :readonly="readonly"
             :step="0.01"
             :step-snapping="false"
             :min="0.01"
@@ -179,6 +222,7 @@ watch(
         <UFormField :label="t('window_corner_radius')">
           <UInputNumber
             v-model="options.windowCornerRadius"
+            :readonly="readonly"
             :step="0.01"
             :step-snapping="false"
             :min="0"
@@ -190,6 +234,7 @@ watch(
         <UFormField :label="t('window_corner_divisions')">
           <UInputNumber
             v-model="options.windowCornerDivisions"
+            :readonly="readonly"
             :step="1"
             :min="1"
             :max="5"
@@ -202,6 +247,7 @@ watch(
         <UFormField :label="t('window_frame_thickness')">
           <UInputNumber
             v-model="options.windowFrameThickness"
+            :readonly="readonly"
             :step="0.01"
             :step-snapping="false"
             :min="0"
@@ -211,7 +257,11 @@ watch(
           />
         </UFormField>
 
-        <ColorPicker v-model="options.windowFrameColor" :label="t('window_frame_color')" />
+        <ColorPicker
+          v-model="options.windowFrameColor"
+          :readonly="readonly"
+          :label="t('window_frame_color')"
+        />
       </div>
     </FormCard>
   </div>
