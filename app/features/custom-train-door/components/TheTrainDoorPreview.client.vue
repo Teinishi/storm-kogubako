@@ -18,7 +18,7 @@ const geometries = shallowRef<{ id: string; geometry: BufferGeometry }[]>([]);
 const materialSet = createStormworksMaterials();
 const materials = [materialSet.opaque, materialSet.glass, materialSet.additive];
 
-const basicBlockGeometry = shallowRef<BufferGeometry | undefined>(undefined);
+const basicBlockGeometry = shallowRef<BufferGeometry | null>(null);
 
 watchEffect(() => {
   const objects = buildDoorGeometry(props.state);
@@ -30,10 +30,11 @@ watchEffect(() => {
   });
 });
 
-watch(
-  () => props.state.options,
-  () => {
-    const { doorWidth, doorHeight, direction } = props.state.options;
+watchEffect(() => {
+  const { doorWidth, doorHeight, direction } = props.state.options;
+
+  let geometry = null;
+  if (showBlocks.value) {
     const w = direction === 'double' ? Math.ceil(doorWidth / 2) : doorWidth;
 
     const voxelRange = getVoxelRange(doorWidth, doorHeight);
@@ -57,14 +58,13 @@ watch(
     }
 
     const builder = buildBasicBlockGeometry(blocks, { edge: true });
-    const geometry = new BufferGeometry();
+    geometry = new BufferGeometry();
     builder.apply(geometry);
+  }
 
-    basicBlockGeometry.value?.dispose();
-    basicBlockGeometry.value = geometry;
-  },
-  { deep: true, immediate: true },
-);
+  basicBlockGeometry.value?.dispose();
+  basicBlockGeometry.value = geometry;
+});
 </script>
 
 <template>
