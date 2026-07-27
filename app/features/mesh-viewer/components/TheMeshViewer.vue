@@ -277,7 +277,7 @@ function formatFileSize(size: number) {
 
     <ResponsivePanel icon="i-lucide-box" :label="t('viewer')" :disabled="meshFiles.length === 0">
       <ClientOnly>
-        <MeshViewerCanvas :items="meshFiles" />
+        <MeshViewerCanvas :items="meshFiles" :initial-camera-pos="[1, 1, -1]" />
       </ClientOnly>
     </ResponsivePanel>
   </div>
