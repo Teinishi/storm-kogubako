@@ -19,7 +19,6 @@ export function createMeshFiles(
   const objects = buildDoorGeometry(state, { refine: true });
 
   return objects.map(({ id, builder }) => {
-    builder.transform(Orientation.RotateY270);
     const data = builder.toMeshData();
 
     const filename = filenames[id];
@@ -43,8 +42,6 @@ export function createMergedMeshFile(
   for (const object of objects) {
     builder.merge(object.builder);
   }
-
-  builder.transform(Orientation.RotateY270);
 
   return {
     filename,

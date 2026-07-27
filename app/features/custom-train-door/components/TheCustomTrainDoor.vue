@@ -31,6 +31,8 @@ const { saveFile, saveFiles, saveZip, handleError } = useFileSave();
 // 状態が未保存
 const isDirty = ref(false);
 
+const isMounted = ref(false);
+
 // 状態 (localStorage に自動保存)
 const state = useLocalStorage(STORAGE_KEY, createDefaultEditTrainDoorState, {
   initOnMounted: true,
@@ -66,6 +68,8 @@ onMounted(async () => {
     },
     { deep: true },
   );
+
+  isMounted.value = true;
 });
 
 const { outsideEditorProps, insideEditorProps, editorLogicalBounds } = useCustomTrainDoor(state);
@@ -136,7 +140,7 @@ async function saveEditingState() {
   const fingerprint = getFingerprintFromJson(data);
   const defaultValue = `custom-train-door-${fingerprint}.json`;
 
-  const filename = await inputDialog({
+  let filename = await inputDialog({
     icon: 'i-lucide-save',
     title: t('dialog.save_project.title'),
     description: t('dialog.save_project.description'),
@@ -148,6 +152,10 @@ async function saveEditingState() {
   });
 
   if (!filename) return;
+
+  if (filename.slice(-5) !== '.json') {
+    filename += '.json';
+  }
 
   handleError(() => {
     saveFile({
@@ -436,7 +444,7 @@ const otherMenuItems = computed(() => [
           class="h-full"
         >
           <template #settings>
-            <TheTrainDoorSettings v-model="state.options" />
+            <TheTrainDoorSettings v-model="state.options" :readonly="!isMounted" />
 
             <div class="mt-4 flex flex-wrap gap-4">
               <UButton
@@ -489,6 +497,7 @@ const otherMenuItems = computed(() => [
             <PolygonEditor
               ref="outsideEditor"
               v-model="state.outsidePaint"
+              :readonly="!isMounted"
               v-bind="outsideEditorProps"
               class="h-full overflow-y-auto"
             />
@@ -498,6 +507,7 @@ const otherMenuItems = computed(() => [
             <PolygonEditor
               ref="insideEditor"
               v-model="state.insidePaint"
+              :readonly="!isMounted"
               v-bind="insideEditorProps"
               class="h-full overflow-y-auto"
             />
@@ -571,7 +581,7 @@ const otherMenuItems = computed(() => [
         "title": "Save Project",
         "description": "Enter a file name for the project.",
         "label": "File name",
-        "placeholder": "MyDoor",
+        "placeholder": "MyDoor.json",
         "cancel": "Cancel",
         "confirm": "Save"
       }
@@ -632,7 +642,7 @@ const otherMenuItems = computed(() => [
         "title": "プロジェクトを保存",
         "description": "保存するプロジェクト名を入力してください。",
         "label": "ファイル名",
-        "placeholder": "MyDoor",
+        "placeholder": "MyDoor.json",
         "cancel": "キャンセル",
         "confirm": "保存"
       }

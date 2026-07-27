@@ -108,7 +108,7 @@ function createRenderHook(options: Reactive<TrainDoorOptions>, isInside: boolean
 
         const rx = {
           left: { x: 0, width: rubber },
-          center: { x: options.doorWidth / 2 - rubber, width: rubber },
+          center: { x: options.doorWidth / 2 - rubber, width: 2 * rubber },
           right: { x: options.doorWidth, width: -rubber },
         }[rubberLocation];
         const r = args.worldRectToCanvas({
@@ -168,6 +168,7 @@ export function buildGeometry(
       windowRings: [windowRings.left],
       windowFrameColor: options.windowFrameColor,
     });
+    builder.transform(Orientation.RotateY270.toMat3());
     objects.push({ id: 'left', builder });
   }
 
@@ -189,6 +190,7 @@ export function buildGeometry(
       windowRings: [windowRings.right],
       windowFrameColor: options.windowFrameColor,
     });
+    builder.transform(Orientation.RotateY270.toMat3());
     objects.push({ id: 'right', builder });
   }
 

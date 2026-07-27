@@ -45,4 +45,5 @@ export default defineNuxtConfig({
     defaultLocale: 'en',
     strategy: 'no_prefix',
   },
+  ignore: ['pages/dev-only/**/*.vue'],
 });

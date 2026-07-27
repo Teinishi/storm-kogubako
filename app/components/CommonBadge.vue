@@ -24,18 +24,37 @@ const style = computed(() => {
   }
 
   return {
-    backgroundColor: c['50'],
-    color: c['700'],
-    boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${c['600']} 10%, transparent)`,
+    '--common-badge-bg-color-light': c['50'],
+    '--common-badge-bg-color-dark': c['950'],
+    '--common-badge-text-color-light': c['700'],
+    '--common-badge-text-color-dark': c['300'],
+    '--common-badge-ring-color-light': c['600'],
+    '--common-badge-ring-color-dark': c['400'],
   };
 });
 </script>
 
 <template>
   <span
-    class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium inset-ring"
+    class="common-badge inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
     :style="style"
   >
     <slot />
   </span>
 </template>
+
+<style lang="css" scoped>
+.common-badge {
+  background-color: var(--common-badge-bg-color-light);
+  color: var(--common-badge-text-color-light);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--common-badge-ring-color-light) 10%, transparent);
+}
+
+:root.dark .common-badge {
+  background-color: var(--common-badge-bg-color-dark);
+  color: var(--common-badge-text-color-dark);
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--common-badge-ring-color-dark) 10%, transparent);
+}
+</style>
