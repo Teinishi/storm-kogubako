@@ -140,7 +140,7 @@ async function saveEditingState() {
   const fingerprint = getFingerprintFromJson(data);
   const defaultValue = `custom-train-door-${fingerprint}.json`;
 
-  const filename = await inputDialog({
+  let filename = await inputDialog({
     icon: 'i-lucide-save',
     title: t('dialog.save_project.title'),
     description: t('dialog.save_project.description'),
@@ -152,6 +152,10 @@ async function saveEditingState() {
   });
 
   if (!filename) return;
+
+  if (filename.slice(-5) !== '.json') {
+    filename += '.json';
+  }
 
   handleError(() => {
     saveFile({
@@ -577,7 +581,7 @@ const otherMenuItems = computed(() => [
         "title": "Save Project",
         "description": "Enter a file name for the project.",
         "label": "File name",
-        "placeholder": "MyDoor",
+        "placeholder": "MyDoor.json",
         "cancel": "Cancel",
         "confirm": "Save"
       }
@@ -638,7 +642,7 @@ const otherMenuItems = computed(() => [
         "title": "プロジェクトを保存",
         "description": "保存するプロジェクト名を入力してください。",
         "label": "ファイル名",
-        "placeholder": "MyDoor",
+        "placeholder": "MyDoor.json",
         "cancel": "キャンセル",
         "confirm": "保存"
       }
