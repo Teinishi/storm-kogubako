@@ -17,7 +17,7 @@ const { t } = useI18n({ useScope: 'local' });
     </section>
 
     <section class="space-y-3">
-      <div class="border-info-300 bg-info-50 text-info space-y-3 rounded-lg border p-4">
+      <div class="border-info-300 dark:border-info-700 bg-info-50 dark:bg-info-950 text-info space-y-3 rounded-lg border p-4">
         <div class="flex items-start gap-3">
           <UIcon name="i-lucide-info" class="mt-0.5 size-5" />
           <p class="text-sm">
