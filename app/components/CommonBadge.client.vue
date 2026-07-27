@@ -15,9 +15,8 @@ const props = withDefaults(
 
 const colorMode = useColorMode();
 
-const isDark = computed(() => colorMode.value === 'dark');
-
 const style = computed(() => {
+  const isDark = colorMode.value === 'dark';
   const colorName = props.color;
 
   let c;
@@ -28,9 +27,9 @@ const style = computed(() => {
   }
 
   return {
-    backgroundColor: c[isDark.value ? '950' : '50'],
-    color: c[isDark.value ? '300' : '700'],
-    boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${c[isDark.value ? '400' : '600']} 10%, transparent)`,
+    backgroundColor: c[isDark ? '950' : '50'],
+    color: c[isDark ? '300' : '700'],
+    boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${c[isDark ? '400' : '600']} 10%, transparent)`,
   };
 });
 </script>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ColorName } from './CommonBadge.vue';
+import type { ColorName } from './CommonBadge.client.vue';
 
 const BADGE_TYPES = {
   vanilla: { label: 'Vanilla', color: 'primary' },

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import CommonBadge from './CommonBadge.client.vue';
+
 const { t: gt } = useI18n({ useScope: 'global' });
 
 const route = useRoute();

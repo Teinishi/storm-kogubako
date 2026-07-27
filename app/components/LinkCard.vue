@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import CommonBadge from './CommonBadge.client.vue';
+
 const props = defineProps<{
   to: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
