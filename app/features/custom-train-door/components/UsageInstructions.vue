@@ -22,42 +22,42 @@ const { t } = useI18n({ useScope: 'local' });
       >
         <div class="flex items-start gap-3">
           <UIcon name="i-lucide-info" class="mt-0.5 size-5" />
-          <p class="text-sm flex-1">
+          <p class="flex-1 text-sm">
             {{ t('notes.modded') }}
           </p>
         </div>
 
         <div class="flex items-start gap-3">
           <UIcon name="i-lucide-package" class="mt-0.5 size-5" />
-          <p class="text-sm flex-1">
+          <p class="flex-1 text-sm">
             {{ t('notes.door_unit') }}
           </p>
         </div>
 
         <div class="flex items-start gap-3">
           <UIcon name="i-lucide-eye-off" class="mt-0.5 size-5" />
-          <p class="text-sm flex-1">
+          <p class="flex-1 text-sm">
             {{ t('notes.invisible') }}
           </p>
         </div>
 
         <div class="flex items-start gap-3">
           <UIcon name="i-lucide-square-dashed" class="mt-0.5 size-5" />
-          <p class="text-sm flex-1">
+          <p class="flex-1 text-sm">
             {{ t('notes.collision') }}
           </p>
         </div>
 
         <div class="flex items-start gap-3">
           <UIcon name="i-lucide-workflow" class="mt-0.5 size-5" />
-          <p class="text-sm flex-1">
+          <p class="flex-1 text-sm">
             {{ t('notes.position') }}
           </p>
         </div>
 
         <div class="flex items-start gap-3">
           <UIcon name="i-lucide-check-circle" class="mt-0.5 size-5" />
-          <p class="text-sm flex-1">
+          <p class="flex-1 text-sm">
             {{ t('notes.bool') }}
           </p>
         </div>
