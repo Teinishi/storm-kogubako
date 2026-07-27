@@ -10,6 +10,10 @@ const props = defineProps<{
   state: DeepReadonly<OutputTrainDoorState>;
 }>();
 
+const { t } = useI18n({ useScope: 'local' });
+
+const showBlocks = ref(true);
+
 const geometries = shallowRef<{ id: string; geometry: BufferGeometry }[]>([]);
 const materialSet = createStormworksMaterials();
 const materials = [materialSet.opaque, materialSet.glass, materialSet.additive];
@@ -64,13 +68,36 @@ watch(
 </script>
 
 <template>
-  <MeshViewerCanvas :initial-camera-pos="[-4, 0, 2]">
-    <TresMesh
-      v-for="item in geometries"
-      :key="item.id"
-      :geometry="item.geometry"
-      :material="materials"
-    />
-    <TresMesh v-if="basicBlockGeometry" :geometry="basicBlockGeometry" :material="materials" />
-  </MeshViewerCanvas>
+  <div class="relative h-full w-full">
+    <ClientOnly>
+      <MeshViewerCanvas :initial-camera-pos="[-4, 0, 2]">
+        <TresMesh
+          v-for="item in geometries"
+          :key="item.id"
+          :geometry="item.geometry"
+          :material="materials"
+        />
+        <TresMesh
+          v-if="showBlocks && basicBlockGeometry"
+          :geometry="basicBlockGeometry"
+          :material="materials"
+        />
+      </MeshViewerCanvas>
+    </ClientOnly>
+
+    <div class="absolute top-4 right-4 rounded-lg bg-white p-4 shadow-md dark:bg-gray-800">
+      <USwitch v-model="showBlocks" :label="t('show_blocks')" />
+    </div>
+  </div>
 </template>
+
+<i18n lang="json">
+{
+  "en": {
+    "show_blocks": "Show Blocks"
+  },
+  "ja": {
+    "show_blocks": "ブロック表示"
+  }
+}
+</i18n>
