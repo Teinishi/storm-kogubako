@@ -134,13 +134,13 @@ function formatFileSize(size: number) {
 
       <div class="flex grow flex-col gap-4 overflow-y-auto px-4 pt-0 pb-18 sm:pb-4">
         <FormCard>
-          <UFileUpload
+          <AppFileUpload
             v-model="fileUploadModel"
             :label="t('drop_files')"
             :description="t('drop_files_description')"
             :preview="false"
             multiple
-            class="w-full"
+            fullscreen-drop
             @update:model-value="addMeshFiles"
           />
 

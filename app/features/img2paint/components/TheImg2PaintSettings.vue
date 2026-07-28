@@ -90,13 +90,13 @@ function updateGlowImage(image: HTMLImageElement | null) {
   <div class="flex flex-col gap-4">
     <template v-if="!state.baseImage">
       <FormCard>
-        <UFileUpload
+        <AppFileUpload
           :label="t('pick_image_file')"
           :description="t('pick_image_file_description')"
           accept="image/*"
           :preview="false"
-          class="w-full"
           multiple
+          fullscreen-drop
           @update:model-value="fileDropped"
         />
 
