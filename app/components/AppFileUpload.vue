@@ -19,16 +19,17 @@ const props = defineProps<{
   fullscreenDrop?: boolean;
 }>();
 
-const dragging = useFullscreenDrop(
-  () => props.fullscreenDrop,
-  (files) => {
+const { isOverDropZone } = useDropZone(() => (props.fullscreenDrop ? document : null), {
+  onDrop(files) {
+    if (!files) return;
     if (props.multiple !== undefined) {
       model.value = files as typeof model.value;
     } else {
       model.value = files[0] as typeof model.value;
     }
   },
-);
+  multiple: props.multiple,
+});
 </script>
 
 <template>
@@ -48,5 +49,5 @@ const dragging = useFullscreenDrop(
     :ui="props.ui"
   />
 
-  <FullscreenDropOverlay :show="fullscreenDrop && dragging" />
+  <FullscreenDropOverlay :show="fullscreenDrop && isOverDropZone" />
 </template>

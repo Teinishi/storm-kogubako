@@ -80,7 +80,7 @@ const { open: openJsonSelectDialog, onChange: onJsonSelect } = useFileDialog({
   multiple: false,
 });
 
-async function newProject() {
+async function newProjectClicked() {
   if (isDirty.value) {
     const ok = await confirmDialog({
       icon: 'i-lucide-file-plus-corner',
@@ -98,15 +98,19 @@ async function newProject() {
   isDirty.value = false;
 }
 
-async function openProject() {
+function confirmOpenProject() {
+  return confirmDialog({
+    icon: 'i-lucide-folder-open',
+    title: t('dialog.open_project.title'),
+    description: t('dialog.open_project.description'),
+    cancelLabel: t('dialog.open_project.cancel'),
+    confirmLabel: t('dialog.open_project.confirm'),
+  });
+}
+
+async function openProjectClicked() {
   if (isDirty.value) {
-    const ok = await confirmDialog({
-      icon: 'i-lucide-folder-open',
-      title: t('dialog.open_project.title'),
-      description: t('dialog.open_project.description'),
-      cancelLabel: t('dialog.open_project.cancel'),
-      confirmLabel: t('dialog.open_project.confirm'),
-    });
+    const ok = await confirmOpenProject();
 
     if (!ok) return;
   }
@@ -118,6 +122,10 @@ onJsonSelect(async (files) => {
   const file = files?.item(0);
   if (!file) return;
 
+  await openProject(file);
+});
+
+async function openProject(file: File) {
   const text = await file.text();
   const result = fromJson(text);
 
@@ -133,7 +141,7 @@ onJsonSelect(async (files) => {
       color: 'error',
     });
   }
-});
+}
 
 async function saveEditingState() {
   const data = toJson(state.value);
@@ -368,12 +376,12 @@ const otherMenuItems = computed(() => [
     {
       label: t('other_menu.project.new'),
       icon: 'i-lucide-file-plus-corner',
-      onSelect: newProject,
+      onSelect: newProjectClicked,
     },
     {
       label: t('other_menu.project.open'),
       icon: 'i-lucide-folder-open',
-      onSelect: openProject,
+      onSelect: openProjectClicked,
     },
     {
       label: t('other_menu.project.save'),
@@ -429,6 +437,21 @@ const otherMenuItems = computed(() => [
     },
   ],
 ]);
+
+const { isOverDropZone } = useDropZone(document, {
+  async onDrop(files) {
+    const file = files?.at(0);
+    if (!file) return;
+
+    const ok = await confirmOpenProject();
+    if (!ok) return;
+
+    await openProject(file);
+  },
+  dataTypes: ['application/json'],
+  multiple: false,
+  preventDefaultForUnhandled: false,
+});
 </script>
 
 <template>
@@ -522,6 +545,8 @@ const otherMenuItems = computed(() => [
       </ClientOnly>
     </ResponsivePanel>
   </div>
+
+  <FullscreenDropOverlay :show="isOverDropZone" />
 </template>
 
 <i18n lang="json">
