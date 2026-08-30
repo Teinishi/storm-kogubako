@@ -331,7 +331,7 @@ export class GeometryBuilder {
           if (j < 0 || vertexCount <= j) continue;
           const x = positions[3 * j]!;
           const y = positions[3 * j + 1]!;
-          const z = positions[3 * j + 2]!;
+          const z = -positions[3 * j + 2]!;
 
           if (!boundsMin) {
             boundsMin = { x, y, z };
