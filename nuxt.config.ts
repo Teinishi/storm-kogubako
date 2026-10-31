@@ -27,7 +27,6 @@ export default defineNuxtConfig({
         'earcut',
         'jszip', // CJS
         'polygon-clipping',
-        'sw-mesh-viewer/parser',
         'three',
       ],
     },

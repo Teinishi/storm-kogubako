@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { parseMeshData, type MeshData } from 'sw-mesh-viewer/parser';
+import { parseMeshOrPhys, type MeshData, type PhysData } from '@sw-file-lib/core';
 
 const { t } = useI18n({ useScope: 'local' });
 
@@ -27,7 +27,7 @@ interface MeshFileItem {
   id: string;
   fileName: string;
   fileSize: number;
-  data: MeshData;
+  data: MeshData | PhysData;
   stats: {
     vertexCount: number;
     triangleCount: number;
@@ -39,16 +39,16 @@ interface MeshFileItem {
   properties: ItemProperties;
 }
 
-function getMeshStats(data: DeepReadonly<MeshData>) {
+function getMeshStats(data: DeepReadonly<MeshData | PhysData>) {
   let vertexCount = 0;
   let triangleCount = 0;
   if (data.kind === 'mesh') {
     vertexCount = data.vertices.length;
     triangleCount = Math.floor(data.indices.length / 3);
   } else {
-    for (const subphys of data.subPhysMeshes) {
-      vertexCount += subphys.vertices.length;
-      triangleCount += Math.floor(subphys.indices.length / 3);
+    for (const group of data.groups) {
+      vertexCount += group.vertices.length;
+      triangleCount += Math.floor(group.indices.length / 3);
     }
   }
   return { vertexCount, triangleCount };
@@ -69,7 +69,7 @@ async function addMeshFiles(files: File[] | File | null | undefined) {
 
   for (const file of fileList) {
     try {
-      const data = parseMeshData(await file.arrayBuffer());
+      const data = parseMeshOrPhys(await file.arrayBuffer());
       const { kind } = data;
 
       meshFiles.value.push({
