@@ -95,9 +95,9 @@ onMounted(() => {
       testVehicle[0]?.map((b) => {
         const flip = b.flip ?? 0;
         let transform = transposeMat3(b.transform as Mat3);
-        if ((flip & 1) !== 0) transform = mulMat3(transform, Orientation.FlipX.toMat3());
-        if ((flip & 2) !== 0) transform = mulMat3(transform, Orientation.FlipY.toMat3());
-        if ((flip & 4) !== 0) transform = mulMat3(transform, Orientation.FlipZ.toMat3());
+        if ((flip & 1) !== 0) transform = mulMat3(transform, Orientation.FlipX.toStormMat3());
+        if ((flip & 2) !== 0) transform = mulMat3(transform, Orientation.FlipY.toStormMat3());
+        if ((flip & 4) !== 0) transform = mulMat3(transform, Orientation.FlipZ.toStormMat3());
         return { ...b, transform };
       }),
       { hollow: false, edge: true },

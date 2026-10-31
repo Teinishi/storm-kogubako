@@ -144,7 +144,7 @@ export function buildSlidingDoorGeometry(
   }
   builder.addExtrudedSides(path.map(coordinateConversion), {
     zRange: [frontZ, backZ],
-    color: frontColor,
+    color: divColor255(frontColor),
     close: !rubberEnabled,
   });
 

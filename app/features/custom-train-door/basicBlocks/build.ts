@@ -104,7 +104,7 @@ export function buildBasicBlockGeometry(
         blockPos,
       );
 
-      let matrix = getSurfaceOrientation(surface.orientation, surface.rotation ?? 0).toMat3();
+      let matrix = getSurfaceOrientation(surface.orientation, surface.rotation ?? 0).toStormMat3();
       if (blockTransform) matrix = mulMat3(blockTransform, matrix);
 
       const normal = getMatrixAxis(matrix, 'x');
@@ -178,7 +178,11 @@ export function buildBasicBlockGeometry(
     if (removeSurfaces.has(id)) continue;
 
     const s = buildSurfaceGeometry(data.surface.shape, options);
-    s.transform(stormToThreeMat3(data.matrix), stormToThreeVec3(data.position));
+    s.transform(data.matrix, {
+      x: data.position.x * 0.25,
+      y: data.position.y * 0.25,
+      z: data.position.z * 0.25,
+    });
     builder.merge(s);
   }
 
@@ -197,18 +201,6 @@ export function createBufferGeometryFromBuilder(builder: GeometryBuilder) {
     geometry.addGroup(start, length, materialIndex);
   }
   return geometry;
-}
-
-function stormToThreeMat3(m: Readonly<Mat3>): Mat3 {
-  return [m[0], m[1], -m[2], m[3], m[4], -m[5], -m[6], -m[7], m[8]];
-}
-
-function stormToThreeVec3(v: Readonly<Vec3>): Vec3 {
-  return {
-    x: 0.25 * v.x,
-    y: 0.25 * v.y,
-    z: -0.25 * v.z,
-  };
 }
 
 function getMatrixAxis(m: Readonly<Mat3>, axis: 'x' | 'y' | 'z'): Vec3 {

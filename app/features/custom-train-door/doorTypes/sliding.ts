@@ -140,8 +140,8 @@ export function buildGeometry(
   const { options } = state;
 
   const doorSize = { x: options.doorWidth, y: options.doorHeight };
-  const frontZ = options.doorThickness / 2 + options.doorZOffset;
-  const backZ = -options.doorThickness / 2 + options.doorZOffset;
+  const frontZ = -options.doorThickness / 2 + options.doorZOffset;
+  const backZ = options.doorThickness / 2 + options.doorZOffset;
   const frontColor = hexToRgb(options.outsideColor);
   const backColor = hexToRgb(options.insideColor);
   const rubberThickness = options.rubberThickness / 0.25;
@@ -170,7 +170,7 @@ export function buildGeometry(
       windowRings: [windowRings.left],
       windowFrameColor: options.windowFrameColor,
     });
-    builder.transform(Orientation.RotateY270.toMat3());
+    builder.transform(Orientation.RotateY270.toStormMat3());
     objects.push({ id: 'left', builder });
   }
 
@@ -192,7 +192,7 @@ export function buildGeometry(
       windowRings: [windowRings.right],
       windowFrameColor: options.windowFrameColor,
     });
-    builder.transform(Orientation.RotateY270.toMat3());
+    builder.transform(Orientation.RotateY270.toStormMat3());
     objects.push({ id: 'right', builder });
   }
 

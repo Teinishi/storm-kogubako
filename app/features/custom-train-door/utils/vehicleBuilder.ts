@@ -123,7 +123,7 @@ export class VehicleBuilder {
     if (rotation === undefined) {
       value = [1, 0, 0, 0, 1, 0, 0, 0, 1];
     } else if (rotation instanceof Orientation) {
-      value = rotation.toMat3();
+      value = rotation.toStormMat3();
     } else {
       value = rotation;
     }
