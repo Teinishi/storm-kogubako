@@ -1,3 +1,5 @@
+import { GeometryBuilder } from '@sw-file-lib/geometry';
+import { BufferAttribute, BufferGeometry } from 'three';
 import { BLOCK_SURFACE_DEFINITIONS, type SurfaceDefinition } from './block';
 import { offsetPolygon3D } from './offsetPolygon3d';
 import {
@@ -10,7 +12,7 @@ import { getSurfaceOrientation } from './surfaceOrientation';
 import type { BasicBlock } from './types';
 
 const SURFACE_EDGE_WIDTH = 0.003;
-const SURFACE_EDGE_COLOR = { r: 25, g: 25, b: 25 };
+const SURFACE_EDGE_COLOR = { r: 25 / 255, g: 25 / 255, b: 25 / 255 } as const;
 
 const SURFACE_INNER_RINGS = Object.fromEntries(
   Object.entries(SURFACE_SHAPES).map(([key, value]) => [
@@ -31,7 +33,7 @@ export function buildSurfaceGeometry(
 ) {
   const hollow = options?.hollow ?? false;
   const edge = hollow || (options?.edge ?? false);
-  const color = options?.color;
+  const color = divColor255(options?.color ?? WHITE);
 
   const outerRing = SURFACE_SHAPES[shape];
   const n = outerRing.length;
@@ -47,7 +49,7 @@ export function buildSurfaceGeometry(
       const v1 = outerRing[(i + 1) % n]!;
       const v2 = innerRing[(i + 1) % n]!;
       const v3 = innerRing[i]!;
-      builder.addFace([v0, v1, v2, v3], { color: SURFACE_EDGE_COLOR });
+      builder.addFace([v0, v1, v2, v3], { color: divColor255(SURFACE_EDGE_COLOR) });
     }
 
     if (!hollow) {
@@ -181,6 +183,20 @@ export function buildBasicBlockGeometry(
   }
 
   return builder;
+}
+
+export function createBufferGeometryFromBuilder(builder: GeometryBuilder) {
+  const geometry = new BufferGeometry();
+  const { color, groups, index, normal, position } = builder.toBufferGeometryAttributes();
+  geometry.clearGroups();
+  geometry.setAttribute('position', new BufferAttribute(position, 3));
+  geometry.setAttribute('normal', new BufferAttribute(normal, 3));
+  geometry.setAttribute('color', new BufferAttribute(color, 4));
+  geometry.setIndex(index);
+  for (const { start, length, materialIndex } of groups) {
+    geometry.addGroup(start, length, materialIndex);
+  }
+  return geometry;
 }
 
 function stormToThreeMat3(m: Readonly<Mat3>): Mat3 {

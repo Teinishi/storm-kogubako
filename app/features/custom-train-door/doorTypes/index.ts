@@ -1,3 +1,4 @@
+import type { GeometryBuilderOptions } from '@sw-file-lib/geometry';
 import type { Matrix4 } from 'three';
 import type { Reactive } from 'vue';
 import type { RenderHooks } from '~/features/polygon-editor';

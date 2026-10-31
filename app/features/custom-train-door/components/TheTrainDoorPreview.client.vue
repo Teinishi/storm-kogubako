@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { createSwMaterials } from '@sw-file-lib/three';
-import { BufferGeometry, Mesh } from 'three';
-import { buildBasicBlockGeometry, type BasicBlock } from '../basicBlocks';
+import { Mesh } from 'three';
+import {
+  buildBasicBlockGeometry,
+  createBufferGeometryFromBuilder,
+  type BasicBlock,
+} from '../basicBlocks';
 import { buildDoorGeometry, getDoorGeometryTransform } from '../doorTypes';
 import type { OutputTrainDoorState } from '../types';
 import { getVoxelRange } from '../utils';
@@ -33,8 +37,7 @@ const previewObjects = computed(() => [
 watchEffect((onCleanup) => {
   const objects = buildDoorGeometry(props.state);
   const nextMeshes = objects.map(({ id, builder }) => {
-    const geometry = new BufferGeometry();
-    builder.apply(geometry);
+    const geometry = createBufferGeometryFromBuilder(builder);
     return { id, mesh: new Mesh(geometry, materials) };
   });
   meshes.value = nextMeshes;
@@ -87,8 +90,7 @@ watchEffect((onCleanup) => {
     }
 
     const builder = buildBasicBlockGeometry(blocks, { edge: true });
-    geometry = new BufferGeometry();
-    builder.apply(geometry);
+    geometry = createBufferGeometryFromBuilder(builder);
   }
 
   const mesh = geometry ? new Mesh(geometry, materials) : undefined;

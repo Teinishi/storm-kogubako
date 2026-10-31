@@ -1,3 +1,4 @@
+import type { GeometryBuilder } from '@sw-file-lib/geometry';
 import type { RenderHookArgs } from '~/features/polygon-editor';
 import { drawWindows } from '../utils';
 
@@ -100,17 +101,17 @@ export function buildWindowGeometry(
 
   const { z1, z2 } = options;
 
-  const color = hexToRgb(options.frameColor);
+  const color = divColor255(hexToRgb(options.frameColor));
 
   const innerRing = ringConversion(windowRings.innerRing);
   innerRing.reverse();
 
   if (windowRings.outerRing) {
     const outerRing = ringConversion(windowRings.outerRing);
-    builder.addPolygon([outerRing, innerRing], { z: z1, color });
-    builder.addPolygon([outerRing, innerRing], { z: z2, color, flip: true });
+    builder.add2dPolygon([outerRing, innerRing], { z: z1, color });
+    builder.add2dPolygon([outerRing, innerRing], { z: z2, color, flip: true });
   }
   builder.addExtrudedSides(innerRing, { close: true, zRange: [z1, z2], color });
-  builder.addPolygon([innerRing], { z: z1, materialIndex: 1 });
-  builder.addPolygon([innerRing], { z: z1 - 0.02, materialIndex: 1, flip: true });
+  builder.add2dPolygon([innerRing], { z: z1, materialIndex: 1 });
+  builder.add2dPolygon([innerRing], { z: z1 - 0.02, materialIndex: 1, flip: true });
 }

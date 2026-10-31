@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import { GeometryBuilder } from '@sw-file-lib/geometry';
 import { createSwMaterials } from '@sw-file-lib/three';
-import { BufferGeometry, Mesh } from 'three';
-import { buildBasicBlockGeometry } from '~/features/custom-train-door/basicBlocks';
+import { Mesh } from 'three';
+import {
+  buildBasicBlockGeometry,
+  createBufferGeometryFromBuilder,
+} from '~/features/custom-train-door/basicBlocks';
 import testVehicle from './hikouki20_5.json';
 
 definePageMeta({ layout: 'app' });
@@ -100,8 +104,7 @@ onMounted(() => {
     ),
   );
 
-  const g = new BufferGeometry();
-  builder.apply(g);
+  const g = createBufferGeometryFromBuilder(builder);
   mesh.value = new Mesh(g, materials);
 });
 

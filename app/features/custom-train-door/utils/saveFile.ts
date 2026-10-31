@@ -1,3 +1,5 @@
+import { serializeMesh } from '@sw-file-lib/core';
+import { GeometryBuilder } from '@sw-file-lib/geometry';
 import {
   buildDoorGeometry,
   getFilenames,
@@ -19,7 +21,7 @@ export function createMeshFiles(
   const objects = buildDoorGeometry(state, { refine: true });
 
   return objects.map(({ id, builder }) => {
-    const data = builder.toMeshData();
+    const data = serializeMesh(builder.toMeshData());
 
     const filename = filenames[id];
     if (filename === undefined)
@@ -45,7 +47,7 @@ export function createMergedMeshFile(
 
   return {
     filename,
-    data: builder.toMeshData(),
+    data: serializeMesh(builder.toMeshData()),
     mimetype: 'application/octet-stream',
   };
 }
