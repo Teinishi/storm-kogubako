@@ -1,42 +1,20 @@
 <script setup lang="ts">
 import { parseMeshOrPhys, type MeshData, type PhysData } from '@sw-file-lib/core';
+import { useMeshViewerObjects } from '../composables/useMeshViewerObjects';
+import type { MeshViewerItem } from '../types';
 
 const { t } = useI18n({ useScope: 'local' });
 
 const toast = useToast();
 
-type ItemProperties =
-  | {
-      kind: 'mesh';
-      enablePaintcolor: boolean;
-      paintColor1: string;
-      paintColor2: string;
-      paintColor3: string;
-    }
-  | {
-      kind: 'phys';
-    };
-
-interface Vec3 {
-  x: number;
-  y: number;
-  z: number;
-}
-
-interface MeshFileItem {
-  id: string;
+interface MeshFileItem extends MeshViewerItem {
   fileName: string;
   fileSize: number;
-  data: MeshData | PhysData;
   stats: {
     vertexCount: number;
     triangleCount: number;
   };
-  visible: boolean;
   detailsOpen: boolean;
-  wireframe: boolean;
-  offset: Vec3;
-  properties: ItemProperties;
 }
 
 function getMeshStats(data: DeepReadonly<MeshData | PhysData>) {
@@ -55,6 +33,7 @@ function getMeshStats(data: DeepReadonly<MeshData | PhysData>) {
 }
 
 const meshFiles = ref<MeshFileItem[]>([]);
+const meshObjects = useMeshViewerObjects(() => meshFiles.value);
 const fileUploadModel = ref<File[] | null>(null);
 let nextMeshFileId = 1;
 
@@ -277,7 +256,7 @@ function formatFileSize(size: number) {
 
     <ResponsivePanel icon="i-lucide-box" :label="t('viewer')" :disabled="meshFiles.length === 0">
       <ClientOnly>
-        <MeshViewerCanvas :items="meshFiles" :initial-camera-pos="[1, 1, -1]" />
+        <MeshViewerCanvas :objects="meshObjects" :initial-camera-pos="[1, 1, -1]" />
       </ClientOnly>
     </ResponsivePanel>
   </div>

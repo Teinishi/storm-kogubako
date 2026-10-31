@@ -282,7 +282,15 @@ export class GeometryBuilder {
     geometry.clearGroups();
     geometry.setAttribute('position', new BufferAttribute(new Float32Array(this.positions), 3));
     geometry.setAttribute('normal', new BufferAttribute(new Float32Array(this.normals), 3));
-    geometry.setAttribute('color', new BufferAttribute(new Float32Array(this.colors), 3));
+    const vertexCount = this.colors.length / 3;
+    const rgbaColors = new Float32Array(vertexCount * 4);
+    for (let i = 0; i < vertexCount; i++) {
+      rgbaColors[4 * i] = this.colors[3 * i]!;
+      rgbaColors[4 * i + 1] = this.colors[3 * i + 1]!;
+      rgbaColors[4 * i + 2] = this.colors[3 * i + 2]!;
+      rgbaColors[4 * i + 3] = 1;
+    }
+    geometry.setAttribute('color', new BufferAttribute(rgbaColors, 4));
     geometry.setIndex(this.indices);
     for (const { start, length, materialIndex } of this.groups) {
       geometry.addGroup(start, length, materialIndex);

@@ -21,8 +21,6 @@
     "@sw-file-lib/geometry": "^0.2.1",
     "@sw-file-lib/three": "^0.2.1",
     "@sw-file-lib/xml": "^0.2.1",
-    "@tresjs/cientos": "^5.8.1",
-    "@tresjs/nuxt": "^5.6.3",
     "@vueuse/nuxt": "^14.3.0",
     "earcut": "^3.2.3",
     "js-xxhash": "^5.0.1",

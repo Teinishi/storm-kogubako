@@ -1,86 +1,135 @@
 <script setup lang="ts">
-import type { MeshData, PhysData } from '@sw-file-lib/core';
 import { createSwLightGroup } from '@sw-file-lib/three';
-import { OrbitControls } from '@tresjs/cientos';
-import { TresCanvas } from '@tresjs/core';
 import * as THREE from 'three';
-import { markRaw } from 'vue';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-type MeshViewerCanvasItemProperties =
-  | {
-      kind: 'mesh';
-      enablePaintcolor: boolean;
-      paintColor1: string;
-      paintColor2: string;
-      paintColor3: string;
-    }
-  | {
-      kind: 'phys';
-    };
+const props = withDefaults(
+  defineProps<{
+    objects: THREE.Object3D[];
+    initialCameraPos?: [number, number, number];
+  }>(),
+  { initialCameraPos: () => [1, 1, -1] },
+);
 
-interface MeshViewerCanvasItem {
-  id: string;
-  data: MeshData | PhysData;
-  visible: boolean;
-  wireframe: boolean;
-  offset: {
-    x: number;
-    y: number;
-    z: number;
-  };
-  properties: MeshViewerCanvasItemProperties;
-}
-
-defineProps<{
-  items?: MeshViewerCanvasItem[];
-  initialCameraPos?: [number, number, number];
-}>();
-
+const container = useTemplateRef<HTMLDivElement>('container');
 const colorMode = useColorMode();
-const lights = markRaw(createSwLightGroup());
-const viewerClearColor = computed(() => (colorMode.value === 'dark' ? '#111827' : '#f9fafb'));
-const orbitMouseButtons = {
-  LEFT: undefined,
-  MIDDLE: THREE.MOUSE.PAN,
-  RIGHT: THREE.MOUSE.ROTATE,
-};
+let context:
+  | {
+      scene: THREE.Scene;
+      renderer: THREE.WebGLRenderer;
+      camera: THREE.PerspectiveCamera;
+      controls: OrbitControls;
+    }
+  | undefined;
+let resizeObserver: ResizeObserver | undefined;
+let animationFrame: number | undefined;
+const managedObjects = new Set<THREE.Object3D>();
+let hasSize = false;
 
-function getPaintColors(item: DeepReadonly<MeshViewerCanvasItem>) {
-  if (item.properties.kind !== 'mesh' || !item.properties.enablePaintcolor) return undefined;
-
-  return [
-    hexToRgb(item.properties.paintColor1),
-    hexToRgb(item.properties.paintColor2),
-    hexToRgb(item.properties.paintColor3),
-  ] as const;
+function syncObjects() {
+  if (!context) return;
+  const currentObjects = new Set(props.objects);
+  for (const object of managedObjects) {
+    if (currentObjects.has(object)) continue;
+    context.scene.remove(object);
+    managedObjects.delete(object);
+  }
+  for (const object of currentObjects) {
+    if (object.parent !== context.scene) context.scene.add(object);
+    managedObjects.add(object);
+  }
 }
+
+function updateBackground() {
+  context?.renderer.setClearColor(colorMode.value === 'dark' ? '#111827' : '#f9fafb');
+}
+
+function resize() {
+  if (!context || !container.value) return;
+  const { clientWidth: width, clientHeight: height } = container.value;
+  hasSize = width > 0 && height > 0;
+  if (!hasSize) return;
+  context.camera.aspect = width / height;
+  context.camera.updateProjectionMatrix();
+  context.renderer.setPixelRatio(window.devicePixelRatio);
+  context.renderer.setSize(width, height, false);
+}
+
+function animate() {
+  animationFrame = requestAnimationFrame(animate);
+  if (!context || !hasSize) return;
+  if (context.renderer.getPixelRatio() !== window.devicePixelRatio) resize();
+  context.controls.update();
+  context.renderer.render(context.scene, context.camera);
+}
+
+function preventDefault(event: Event) {
+  event.preventDefault();
+}
+
+function init(element: HTMLDivElement) {
+  if (context) return;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(70, 1, 0.1, 2000);
+  camera.position.set(...props.initialCameraPos);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  const canvas = renderer.domElement;
+  canvas.style.display = 'block';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.addEventListener('pointerdown', preventDefault);
+  canvas.addEventListener('auxclick', preventDefault);
+  element.appendChild(canvas);
+
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = false;
+  controls.mouseButtons.LEFT = undefined;
+  controls.mouseButtons.MIDDLE = THREE.MOUSE.PAN;
+  controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
+  controls.update();
+  scene.add(createSwLightGroup());
+
+  context = { scene, renderer, camera, controls };
+  syncObjects();
+  updateBackground();
+  resize();
+  resizeObserver = new ResizeObserver(resize);
+  resizeObserver.observe(element);
+  animate();
+}
+
+// Nuxt client-only hydration can mount before the actual template is rendered.
+watch(
+  container,
+  (element) => {
+    if (element) init(element);
+  },
+  { flush: 'post' },
+);
+
+watch(() => props.objects, syncObjects);
+watch(() => colorMode.value, updateBackground);
+
+onBeforeUnmount(() => {
+  if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
+  resizeObserver?.disconnect();
+  if (!context) return;
+  const { scene, renderer, controls } = context;
+  controls.dispose();
+  renderer.domElement.removeEventListener('pointerdown', preventDefault);
+  renderer.domElement.removeEventListener('auxclick', preventDefault);
+  // Geometry and materials belong to the callers; only detach their objects here.
+  scene.clear();
+  managedObjects.clear();
+  renderer.dispose();
+  renderer.domElement.remove();
+  context = undefined;
+});
 </script>
 
 <template>
-  <TresCanvas
-    :clear-color="viewerClearColor"
-    :antialias="true"
-    :window-size="false"
-    class="h-full w-full"
-  >
-    <!-- @vue-expect-error -->
-    <TresPerspectiveCamera :position="initialCameraPos" :fov="70" />
-    <OrbitControls :enable-damping="false" :mouse-buttons="orbitMouseButtons" />
-    <primitive :object="lights" />
-    <!-- @vue-expect-error -->
-    <TresGroup
-      v-for="item in items ?? []"
-      :key="item.id"
-      :position="[item.offset.x, item.offset.y, item.offset.z]"
-    >
-      <StormworksMesh
-        :data="item.data"
-        :name="item.id"
-        :paint-colors="getPaintColors(item)"
-        :visible="item.visible"
-        :wireframe="item.wireframe"
-      />
-    </TresGroup>
-    <slot />
-  </TresCanvas>
+  <div ref="container" class="h-full min-h-0 w-full min-w-0 overflow-hidden" />
 </template>

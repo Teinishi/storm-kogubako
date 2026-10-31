@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
-import { BufferGeometry } from 'three';
+import { createSwMaterials } from '@sw-file-lib/three';
+import { BufferGeometry, Mesh } from 'three';
 import { buildBasicBlockGeometry } from '~/features/custom-train-door/basicBlocks';
 import testVehicle from './hikouki20_5.json';
 
 definePageMeta({ layout: 'app' });
 
-const geometry = shallowRef<BufferGeometry | undefined>(undefined);
-const materialSet = createStormworksMaterials();
+const mesh = shallowRef<Mesh>();
+const previewObjects = computed(() => (mesh.value ? [mesh.value] : []));
+const materialSet = createSwMaterials({
+  uniforms: {
+    opaque: { overrideColorEnabled: false },
+    additive: { overrideColorEnabled: false },
+  },
+});
 const materials = [materialSet.opaque, materialSet.glass, materialSet.additive];
 
 onMounted(() => {
@@ -96,16 +102,20 @@ onMounted(() => {
 
   const g = new BufferGeometry();
   builder.apply(g);
-  geometry.value = g;
+  mesh.value = new Mesh(g, materials);
+});
+
+onBeforeUnmount(() => {
+  mesh.value?.removeFromParent();
+  mesh.value?.geometry.dispose();
+  materials.forEach((material) => material.dispose());
 });
 </script>
 
 <template>
   <div class="h-full w-full">
     <ClientOnly>
-      <MeshViewerCanvas :initial-camera-pos="[3, 0, 0]">
-        <TresMesh v-if="geometry" :geometry="geometry" :material="materials" />
-      </MeshViewerCanvas>
+      <MeshViewerCanvas :objects="previewObjects" :initial-camera-pos="[3, 0, 0]" />
     </ClientOnly>
   </div>
 </template>

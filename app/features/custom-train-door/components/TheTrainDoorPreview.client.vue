@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
+import { createSwMaterials } from '@sw-file-lib/three';
 import { BufferGeometry, Mesh } from 'three';
 import { buildBasicBlockGeometry, type BasicBlock } from '../basicBlocks';
 import { buildDoorGeometry, getDoorGeometryTransform } from '../doorTypes';
@@ -12,33 +12,44 @@ const props = defineProps<{
 
 const { t } = useI18n({ useScope: 'local' });
 
-const meshRefs = new Map<string, Element | ComponentPublicInstance>();
-
 const showBlocks = ref(true);
 const doorPosition = ref(0);
 
-const geometries = shallowRef<{ id: string; geometry: BufferGeometry }[]>([]);
-const materialSet = createStormworksMaterials();
+const meshes = shallowRef<{ id: string; mesh: Mesh }[]>([]);
+const materialSet = createSwMaterials({
+  uniforms: {
+    opaque: { overrideColorEnabled: false },
+    additive: { overrideColorEnabled: false },
+  },
+});
 const materials = [materialSet.opaque, materialSet.glass, materialSet.additive];
 
-const basicBlockGeometry = shallowRef<BufferGeometry | null>(null);
+const basicBlockMesh = shallowRef<Mesh>();
+const previewObjects = computed(() => [
+  ...meshes.value.map(({ mesh }) => mesh),
+  ...(basicBlockMesh.value ? [basicBlockMesh.value] : []),
+]);
 
-watchEffect(() => {
+watchEffect((onCleanup) => {
   const objects = buildDoorGeometry(props.state);
-  geometries.value.forEach((g) => g.geometry.dispose());
-  geometries.value = objects.map(({ id, builder }) => {
+  const nextMeshes = objects.map(({ id, builder }) => {
     const geometry = new BufferGeometry();
     builder.apply(geometry);
-    return { id, geometry };
+    return { id, mesh: new Mesh(geometry, materials) };
+  });
+  meshes.value = nextMeshes;
+  onCleanup(() => {
+    for (const { mesh } of nextMeshes) {
+      mesh.removeFromParent();
+      mesh.geometry.dispose();
+    }
   });
 });
 
 watchEffect(() => {
   const matrices = getDoorGeometryTransform(props.state.options, doorPosition.value);
 
-  for (const [id, mesh] of meshRefs) {
-    if (!(mesh instanceof Mesh)) continue;
-
+  for (const { id, mesh } of meshes.value) {
     const matrix = matrices[id];
     if (!matrix) continue;
 
@@ -48,7 +59,7 @@ watchEffect(() => {
   }
 });
 
-watchEffect(() => {
+watchEffect((onCleanup) => {
   const { doorWidth, doorHeight, direction } = props.state.options;
 
   let geometry = null;
@@ -80,33 +91,23 @@ watchEffect(() => {
     builder.apply(geometry);
   }
 
-  basicBlockGeometry.value?.dispose();
-  basicBlockGeometry.value = geometry;
+  const mesh = geometry ? new Mesh(geometry, materials) : undefined;
+  basicBlockMesh.value = mesh;
+  onCleanup(() => {
+    mesh?.removeFromParent();
+    geometry?.dispose();
+  });
+});
+
+onBeforeUnmount(() => {
+  materials.forEach((material) => material.dispose());
 });
 </script>
 
 <template>
   <div class="relative h-full w-full">
     <ClientOnly>
-      <MeshViewerCanvas :initial-camera-pos="[-4, 0, 2]">
-        <TresMesh
-          v-for="item in geometries"
-          :key="item.id"
-          :ref="
-            (el) => {
-              if (el) meshRefs.set(item.id, el);
-              else meshRefs.delete(item.id);
-            }
-          "
-          :geometry="item.geometry"
-          :material="materials"
-        />
-        <TresMesh
-          v-if="showBlocks && basicBlockGeometry"
-          :geometry="basicBlockGeometry"
-          :material="materials"
-        />
-      </MeshViewerCanvas>
+      <MeshViewerCanvas :objects="previewObjects" :initial-camera-pos="[-4, 0, 2]" />
     </ClientOnly>
 
     <div
