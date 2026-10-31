@@ -1,6 +1,6 @@
+import { serializeMesh, type MeshData } from '@sw-file-lib/core';
 import * as earcut from 'earcut';
 import { type BufferGeometry, BufferAttribute } from 'three';
-import { createMeshFile } from './meshWriter';
 
 const DEFAULT_OPAQUE_COLOR = WHITE;
 const DEFAULT_GLASS_COLOR = {
@@ -332,7 +332,7 @@ export class GeometryBuilder {
       });
     }
 
-    const submeshes = this.groups
+    const groups = this.groups
       .map(({ start, length, materialIndex }, i) => {
         let boundsMin, boundsMax;
         for (const j of indices.slice(start, start + length)) {
@@ -363,7 +363,7 @@ export class GeometryBuilder {
         return {
           indexBufferStart: start,
           indexBufferLength: length,
-          shaderId: materialIndex,
+          materialIndex,
           boundsMin,
           boundsMax,
           name: `material-${i}`,
@@ -371,14 +371,14 @@ export class GeometryBuilder {
       })
       .filter((v) => v !== null);
 
-    const data = {
-      kind: 'mesh' as const,
+    const data: MeshData = {
+      kind: 'mesh',
       vertices,
       indices,
-      submeshes,
+      groups,
     };
 
-    return createMeshFile(data);
+    return serializeMesh(data);
   }
 }
 
