@@ -1,4 +1,4 @@
-import { serializeVehicleXml, type VehicleSchemas, type XmlVec3 } from '@sw-file-lib/xml';
+import { serializeVehicleXml, type VehicleSchemas } from '@sw-file-lib/xml';
 
 const R_IDENTITIY = '1,0,0,0,1,0,0,0,1' as const;
 
@@ -68,23 +68,6 @@ const vehicleXmlColor = ({ r, g, b }: Readonly<Color>, omitBlack: boolean) => {
     return ((r << 16) | (g << 8) | b).toString(16);
   }
 };
-
-function createXmlVec3({ x, y, z }: Readonly<Vec3>): XmlVec3 | undefined {
-  if (x === 0 && y === 0 && z === 0) {
-    return;
-  }
-  const v: XmlVec3 = {};
-  if (x !== 0) {
-    v.x = x;
-  }
-  if (y !== 0) {
-    v.y = y;
-  }
-  if (z !== 0) {
-    v.z = z;
-  }
-  return v;
-}
 
 export interface PaintableSignConfig {
   minimizeSigns?: boolean; // 単色部分は通常ブロックにする
