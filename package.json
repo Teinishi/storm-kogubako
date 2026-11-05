@@ -46,5 +46,6 @@
     "ts-essentials": "^10.2.1",
     "typescript": "^6.0.3",
     "vue-tsc": "^3.3.7"
-  }
+  },
+  "packageManager": "pnpm@12.16.1"
 }
