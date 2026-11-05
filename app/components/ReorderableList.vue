@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T, K">
+<script setup lang="ts" generic="T, K extends PropertyKey | undefined">
 import { ref } from 'vue';
 
 type ReorderPayload = {
