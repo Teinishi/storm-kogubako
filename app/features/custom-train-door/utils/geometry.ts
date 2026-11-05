@@ -35,9 +35,7 @@ export function buildPolygonGeometry(
 
   for (const { id, polygon } of disjoint) {
     const hexColor = polygons.find((v) => v.id === id)?.color;
-    const color = divColor255(
-      (hexColor !== undefined ? hexToRgb(hexColor) : options?.baseColor) ?? WHITE,
-    );
+    const color = (hexColor !== undefined ? hexToRgb(hexColor) : options?.baseColor) ?? WHITE;
     const transformed = polygon.map(ringConversion);
     builder.add2dPolygon(transformed, { z, color, flip });
   }
@@ -144,7 +142,7 @@ export function buildSlidingDoorGeometry(
   }
   builder.addExtrudedSides(path.map(coordinateConversion), {
     zRange: [frontZ, backZ],
-    color: divColor255(frontColor),
+    color: frontColor,
     close: !rubberEnabled,
   });
 
@@ -164,7 +162,7 @@ export function buildSlidingDoorGeometry(
         z: backZ,
       },
       {
-        color: divColor255(rubberColor),
+        color: rubberColor,
         flip: direction === 'left',
       },
     );

@@ -36,7 +36,3 @@ export function hexToRgb(hex: string) {
 
 export const colorEquals = (a: Readonly<Color>, b: Readonly<Color>) =>
   a.r === b.r && a.g === b.g && a.b === b.b;
-
-export function divColor255(c: Readonly<Color>): Color {
-  return { r: c.r / 255, g: c.g / 255, b: c.b / 255 };
-}

@@ -101,7 +101,7 @@ export function buildWindowGeometry(
 
   const { z1, z2 } = options;
 
-  const color = divColor255(hexToRgb(options.frameColor));
+  const color = hexToRgb(options.frameColor);
 
   const innerRing = ringConversion(windowRings.innerRing);
   innerRing.reverse();
