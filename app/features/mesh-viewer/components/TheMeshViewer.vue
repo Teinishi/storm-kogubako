@@ -1,60 +1,39 @@
 <script setup lang="ts">
-import { parseMeshData, type MeshData } from 'sw-mesh-viewer/parser';
+import { parseMeshOrPhys, type MeshData, type PhysData } from '@sw-file-lib/core';
+import { useMeshViewerObjects } from '../composables/useMeshViewerObjects';
+import type { MeshViewerItem } from '../types';
 
 const { t } = useI18n({ useScope: 'local' });
 
 const toast = useToast();
 
-type ItemProperties =
-  | {
-      kind: 'mesh';
-      enablePaintcolor: boolean;
-      paintColor1: string;
-      paintColor2: string;
-      paintColor3: string;
-    }
-  | {
-      kind: 'phys';
-    };
-
-interface Vec3 {
-  x: number;
-  y: number;
-  z: number;
-}
-
-interface MeshFileItem {
-  id: string;
+interface MeshFileItem extends MeshViewerItem {
   fileName: string;
   fileSize: number;
-  data: MeshData;
   stats: {
     vertexCount: number;
     triangleCount: number;
   };
-  visible: boolean;
   detailsOpen: boolean;
-  wireframe: boolean;
-  offset: Vec3;
-  properties: ItemProperties;
 }
 
-function getMeshStats(data: DeepReadonly<MeshData>) {
+function getMeshStats(data: DeepReadonly<MeshData | PhysData>) {
   let vertexCount = 0;
   let triangleCount = 0;
   if (data.kind === 'mesh') {
     vertexCount = data.vertices.length;
     triangleCount = Math.floor(data.indices.length / 3);
   } else {
-    for (const subphys of data.subPhysMeshes) {
-      vertexCount += subphys.vertices.length;
-      triangleCount += Math.floor(subphys.indices.length / 3);
+    for (const group of data.groups) {
+      vertexCount += group.vertices.length;
+      triangleCount += Math.floor(group.indices.length / 3);
     }
   }
   return { vertexCount, triangleCount };
 }
 
 const meshFiles = ref<MeshFileItem[]>([]);
+const meshObjects = useMeshViewerObjects(() => meshFiles.value);
 const fileUploadModel = ref<File[] | null>(null);
 let nextMeshFileId = 1;
 
@@ -69,7 +48,7 @@ async function addMeshFiles(files: File[] | File | null | undefined) {
 
   for (const file of fileList) {
     try {
-      const data = parseMeshData(await file.arrayBuffer());
+      const data = parseMeshOrPhys(await file.arrayBuffer());
       const { kind } = data;
 
       meshFiles.value.push({
@@ -277,7 +256,7 @@ function formatFileSize(size: number) {
 
     <ResponsivePanel icon="i-lucide-box" :label="t('viewer')" :disabled="meshFiles.length === 0">
       <ClientOnly>
-        <MeshViewerCanvas :items="meshFiles" :initial-camera-pos="[1, 1, -1]" />
+        <MeshViewerCanvas :objects="meshObjects" :initial-camera-pos="[1, 1, -1]" />
       </ClientOnly>
     </ResponsivePanel>
   </div>

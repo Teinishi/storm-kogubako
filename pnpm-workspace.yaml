@@ -1,0 +1,8 @@
+allowBuilds:
+  esbuild: true
+  vue-demi: true
+minimumReleaseAgeExclude:
+  - '@sw-file-lib/core@0.2.2'
+  - '@sw-file-lib/geometry@0.2.2'
+  - '@sw-file-lib/three@0.2.2'
+  - '@sw-file-lib/xml@0.2.2'

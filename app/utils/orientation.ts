@@ -130,7 +130,7 @@ export class Orientation {
     );
   }
 
-  toMat3(): Mat3 {
+  toThreeMat3(): Mat3 {
     const row = (m: AxisMapping): [number, number, number] => {
       switch (m.axis) {
         case 'x':
@@ -143,6 +143,11 @@ export class Orientation {
     };
 
     return [...row(this.x), ...row(this.y), ...row(this.z)];
+  }
+
+  toStormMat3(): Mat3 {
+    const m = this.toThreeMat3();
+    return [m[0], m[1], -m[2], m[3], m[4], -m[5], -m[6], -m[7], m[8]];
   }
 
   multiplyMat3(m: Readonly<Mat3>): Orientation {

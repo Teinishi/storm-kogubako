@@ -12,13 +12,18 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      - uses: pnpm/action-setup@v6
+
       - uses: actions/setup-node@v7
         with:
           node-version: 24
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-      - run: npm run check
+      - name: Check
+        run: pnpm check
 
-      - run: npm run build
+      - name: Build
+        run: pnpm build

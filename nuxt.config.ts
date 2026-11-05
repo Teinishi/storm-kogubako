@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: ['@nuxt/ui', '@nuxt/eslint', '@nuxtjs/i18n', '@tresjs/nuxt', '@vueuse/nuxt'],
+  modules: ['@nuxt/ui', '@nuxt/eslint', '@nuxtjs/i18n', '@vueuse/nuxt'],
   devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   experimental: {
@@ -27,7 +27,6 @@ export default defineNuxtConfig({
         'earcut',
         'jszip', // CJS
         'polygon-clipping',
-        'sw-mesh-viewer/parser',
         'three',
       ],
     },

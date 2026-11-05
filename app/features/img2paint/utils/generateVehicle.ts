@@ -1,3 +1,62 @@
+import { serializeVehicleXml, type VehicleSchemas } from '@sw-file-lib/xml';
+
+const R_IDENTITIY = '1,0,0,0,1,0,0,0,1' as const;
+
+const BUFFER_MICROCONTROLLER: VehicleSchemas.MicroprocessorDefinition = {
+  name: 'On/Off Buffer',
+  width: 1,
+  length: 2,
+  id_counter: 3,
+  id_counter_node: 2,
+  nodes: [
+    {
+      id: 1,
+      component_id: 1,
+      node: {
+        label: 'Input',
+        mode: 1,
+      },
+    },
+    {
+      id: 2,
+      component_id: 3,
+      node: {
+        label: 'Output',
+        position: {
+          z: 1,
+        },
+      },
+    },
+  ],
+  group: {
+    data: {
+      inputs: {},
+      outputs: {},
+    },
+    components: [],
+    components_bridge: [
+      {
+        object: {
+          id: 1,
+        },
+      },
+      {
+        type: 1,
+        object: {
+          id: 3,
+          pos: {
+            x: 1.25,
+          },
+          in1: {
+            component_id: 1,
+          },
+        },
+      },
+    ],
+    groups: {},
+  },
+} as const;
+
 const vehicleXmlColor = ({ r, g, b }: Readonly<Color>, omitBlack: boolean) => {
   if (omitBlack && r === 0 && g === 0 && b === 0) {
     // 黒
@@ -8,22 +67,6 @@ const vehicleXmlColor = ({ r, g, b }: Readonly<Color>, omitBlack: boolean) => {
   } else {
     return ((r << 16) | (g << 8) | b).toString(16);
   }
-};
-
-const vehicleXmlVp = ({ x, y, z }: Readonly<Vec3>, tagName?: string) => {
-  if (x === 0 && y === 0 && z === 0) return '';
-  let xml = `<${tagName ?? 'vp'}`;
-  if (x !== 0) {
-    xml += ` x="${x}"`;
-  }
-  if (y !== 0) {
-    xml += ` y="${y}"`;
-  }
-  if (z !== 0) {
-    xml += ` z="${z}"`;
-  }
-  xml += '/>';
-  return xml;
 };
 
 export interface PaintableSignConfig {
@@ -45,9 +88,7 @@ export function generatePaintableSignVehicle(
   const blockOffsetX = Math.floor(-widthBlocks / 2);
   const blockOffsetZ = Math.floor(heightBlocks / 2);
 
-  let xml =
-    '<?xml version="1.0" encoding="UTF-8"?><vehicle data_version="3" bodies_id="1"><authors/><bodies><body unique_id="1"><components>';
-
+  const components: VehicleSchemas.Component[] = [];
   const indicatorPositions: Vec3[] = [];
 
   for (let i = 0; i < heightBlocks; i++) {
@@ -85,45 +126,73 @@ export function generatePaintableSignVehicle(
       }
 
       const pos = { x: blockOffsetX + j, y: 0, z: blockOffsetZ - i };
-      const xmlVp = vehicleXmlVp(pos);
+      const vp = compactVec3({ x: blockOffsetX + j, y: 0, z: blockOffsetZ - i });
       if (config?.minimizeSigns && hasNoGlow && isSingleColor) {
         // Block を使用
         const colorStr = vehicleXmlColor(baseColor!, true);
         const sc = colorStr === 'x' ? '6' : `6,x,x,${colorStr},x,x,x`;
-        if (xmlVp.length === 0) {
-          xml += `<c><o r="1,0,0,0,1,0,0,0,1" sc="${sc}"/></c>`;
-        } else {
-          xml += `<c><o r="1,0,0,0,1,0,0,0,1" sc="${sc}">${xmlVp}</o></c>`;
-        }
+        components.push({
+          o: {
+            r: R_IDENTITIY,
+            sc,
+            vp,
+          },
+        });
       } else if (config?.minimizeIndicators && hasNoGlow) {
         // Paintable Sign を使用
-        xml += `<c d="sign_na"><o r="1,0,0,0,1,0,0,0,1" sc="6" gc="${gc.join(',')}">${xmlVp}<logic_slots><slot/></logic_slots></o></c>`;
+        components.push({
+          d: 'sign_na',
+          o: {
+            r: R_IDENTITIY,
+            sc: '6',
+            gc: gc.join(','),
+            vp,
+            logic_slots: [{}],
+          },
+        });
       } else {
         // Paintable Indicator を使用
-        xml += `<c d="sign"><o r="1,0,0,0,1,0,0,0,1" sc="6" gc="${gc.join(',')}" gca="${gca.join(',')}">${xmlVp}<logic_slots><slot/></logic_slots></o></c>`;
+        components.push({
+          d: 'sign',
+          o: {
+            r: R_IDENTITIY,
+            sc: '6',
+            gc: gc.join(','),
+            gca: gca.join(','),
+            vp,
+            logic_slots: [{}],
+          },
+        });
         indicatorPositions.push(pos);
       }
     }
   }
 
-  const logic_links: {
-    type: number;
-    pos0: Vec3;
-    pos1: Vec3;
-  }[] = [];
+  const logicNodeLinks: VehicleSchemas.LogicNodeLink[] = [];
 
   if (config?.logicLinks) {
     // バッファマイコン
     const bufferPos = { x: blockOffsetX - 1, y: 0, z: blockOffsetZ };
-    const bufferVp = vehicleXmlVp({ x: bufferPos.x, y: bufferPos.y, z: bufferPos.z - 1 });
-    xml += `<c d="microprocessor"><o r="1,0,0,0,1,0,0,0,1" sc="10"><microprocessor_definition name="On/Off Buffer" width="1" length="2" id_counter="3" id_counter_node="2"><nodes><n id="1" component_id="1"><node label="Input" mode="1"/></n><n id="2" component_id="3"><node label="Output"><position z="1"/></node></n></nodes><group><data><inputs/><outputs/></data><components/><components_bridge><c><object id="1"/></c><c type="1"><object id="3"><pos x="1.25"/><in1 component_id="1"/></object></c></components_bridge><groups/></group></microprocessor_definition>${bufferVp}<logic_slots><slot/><slot/></logic_slots></o></c>`;
+    components.push({
+      d: 'microprocessor',
+      o: {
+        r: R_IDENTITIY,
+        sc: '10',
+        microprocessor_definition: BUFFER_MICROCONTROLLER,
+        vp: compactVec3({
+          x: bufferPos.x,
+          y: bufferPos.y,
+          z: bufferPos.z - 1,
+        }),
+        logic_slots: [{}, {}],
+      },
+    });
 
     // ロジック配線
     for (const pos of indicatorPositions) {
-      logic_links.push({
-        type: 0,
-        pos0: bufferPos,
-        pos1: pos,
+      logicNodeLinks.push({
+        voxel_pos_0: compactVec3(bufferPos),
+        voxel_pos_1: compactVec3(pos),
       });
     }
   }
@@ -133,36 +202,27 @@ export function generatePaintableSignVehicle(
     const firstIndicatorPos = indicatorPositions.shift();
     if (firstIndicatorPos) {
       for (const pos of indicatorPositions) {
-        logic_links.push({
+        logicNodeLinks.push({
           type: 4,
-          pos0: firstIndicatorPos,
-          pos1: pos,
+          voxel_pos_0: compactVec3(firstIndicatorPos),
+          voxel_pos_1: compactVec3(pos),
         });
       }
     }
   }
 
-  xml += '</components></body></bodies>';
-  // 配線の XML 生成
-  if (logic_links.length === 0) {
-    xml += '<logic_node_links/>';
-  } else {
-    xml += '<logic_node_links>';
-    for (const link of logic_links) {
-      if (link.type === 0) {
-        xml += '<logic_node_link>';
-      } else {
-        xml += `<logic_node_link type="${link.type}">`;
-      }
-      xml += vehicleXmlVp(link.pos0, 'voxel_pos_0');
-      xml += vehicleXmlVp(link.pos1, 'voxel_pos_1');
-      xml += '</logic_node_link>';
-    }
-    xml += '</logic_node_links>';
-  }
-  xml += '</vehicle>\n';
-
-  return xml;
+  return serializeVehicleXml({
+    data_version: 3,
+    bodies_id: 1,
+    authors: [],
+    bodies: [
+      {
+        unique_id: 1,
+        components,
+      },
+    ],
+    logic_node_links: logicNodeLinks,
+  });
 }
 
 function getPixel(

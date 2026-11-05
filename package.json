@@ -12,20 +12,22 @@
     "fmt": "oxfmt",
     "fmt:check": "oxfmt --check",
     "typecheck": "nuxt typecheck",
-    "check": "npm run lint && npm run fmt:check && npm run typecheck"
+    "check": "pnpm lint && pnpm fmt:check && pnpm typecheck"
   },
   "dependencies": {
     "@nuxt/ui": "^4.2.1",
     "@nuxtjs/i18n": "^10.2.1",
-    "@tresjs/cientos": "^5.8.1",
-    "@tresjs/nuxt": "^5.6.3",
+    "@sw-file-lib/core": "^0.2.2",
+    "@sw-file-lib/geometry": "^0.2.2",
+    "@sw-file-lib/three": "^0.2.2",
+    "@sw-file-lib/xml": "^0.2.2",
     "@vueuse/nuxt": "^14.3.0",
     "earcut": "^3.2.3",
     "js-xxhash": "^5.0.1",
     "jszip": "^3.10.1",
     "nuxt": "^4.5.0",
     "polygon-clipping": "^0.15.7",
-    "sw-mesh-viewer": "github:Teinishi/sw-mesh-viewer#v0.2.1",
+    "tailwindcss": "^4.3.4",
     "three": "^0.185.1",
     "vue": "^3.5.25",
     "vue-router": "^5.1.0",
@@ -34,7 +36,6 @@
   "devDependencies": {
     "@iconify-json/lucide": "^1.2.80",
     "@nuxt/eslint": "^1.12.1",
-    "@types/earcut": "^3.0.0",
     "@types/node": "^26.1.1",
     "@types/three": "^0.185.1",
     "eslint": "^10.6.0",
@@ -45,5 +46,6 @@
     "ts-essentials": "^10.2.1",
     "typescript": "^6.0.3",
     "vue-tsc": "^3.3.7"
-  }
+  },
+  "packageManager": "pnpm@12.16.1"
 }

@@ -1,13 +1,23 @@
 <script setup lang="ts">
-import { createStormworksMaterials } from 'sw-mesh-viewer/viewer';
-import { BufferGeometry } from 'three';
-import { buildBasicBlockGeometry } from '~/features/custom-train-door/basicBlocks';
+import { GeometryBuilder } from '@sw-file-lib/geometry';
+import { createSwMaterials } from '@sw-file-lib/three';
+import { Mesh } from 'three';
+import {
+  buildBasicBlockGeometry,
+  createBufferGeometryFromBuilder,
+} from '~/features/custom-train-door/basicBlocks';
 import testVehicle from './hikouki20_5.json';
 
 definePageMeta({ layout: 'app' });
 
-const geometry = shallowRef<BufferGeometry | undefined>(undefined);
-const materialSet = createStormworksMaterials();
+const mesh = shallowRef<Mesh>();
+const previewObjects = computed(() => (mesh.value ? [mesh.value] : []));
+const materialSet = createSwMaterials({
+  uniforms: {
+    opaque: { overrideColorEnabled: false },
+    additive: { overrideColorEnabled: false },
+  },
+});
 const materials = [materialSet.opaque, materialSet.glass, materialSet.additive];
 
 onMounted(() => {
@@ -85,27 +95,30 @@ onMounted(() => {
       testVehicle[0]?.map((b) => {
         const flip = b.flip ?? 0;
         let transform = transposeMat3(b.transform as Mat3);
-        if ((flip & 1) !== 0) transform = mulMat3(transform, Orientation.FlipX.toMat3());
-        if ((flip & 2) !== 0) transform = mulMat3(transform, Orientation.FlipY.toMat3());
-        if ((flip & 4) !== 0) transform = mulMat3(transform, Orientation.FlipZ.toMat3());
+        if ((flip & 1) !== 0) transform = mulMat3(transform, Orientation.FlipX.toStormMat3());
+        if ((flip & 2) !== 0) transform = mulMat3(transform, Orientation.FlipY.toStormMat3());
+        if ((flip & 4) !== 0) transform = mulMat3(transform, Orientation.FlipZ.toStormMat3());
         return { ...b, transform };
       }),
       { hollow: false, edge: true },
     ),
   );
 
-  const g = new BufferGeometry();
-  builder.apply(g);
-  geometry.value = g;
+  const g = createBufferGeometryFromBuilder(builder);
+  mesh.value = new Mesh(g, materials);
+});
+
+onBeforeUnmount(() => {
+  mesh.value?.removeFromParent();
+  mesh.value?.geometry.dispose();
+  materials.forEach((material) => material.dispose());
 });
 </script>
 
 <template>
   <div class="h-full w-full">
     <ClientOnly>
-      <MeshViewerCanvas :initial-camera-pos="[3, 0, 0]">
-        <TresMesh v-if="geometry" :geometry="geometry" :material="materials" />
-      </MeshViewerCanvas>
+      <MeshViewerCanvas :objects="previewObjects" :initial-camera-pos="[3, 0, 0]" />
     </ClientOnly>
   </div>
 </template>

@@ -1,3 +1,5 @@
+import { serializeMesh } from '@sw-file-lib/core';
+import { GeometryBuilder } from '@sw-file-lib/geometry';
 import {
   buildDoorGeometry,
   getFilenames,
@@ -9,17 +11,23 @@ import {
 } from '../doorTypes';
 import type { TrainDoorOptions, OutputTrainDoorState } from '../types';
 
+export interface FileItem<T> {
+  filename: string;
+  data: T;
+  mimetype: string;
+}
+
 export function createMeshFiles(
   state: DeepReadonly<OutputTrainDoorState>,
   fingerprint: string,
   meshNames?: Record<string, string>,
-) {
+): FileItem<Uint8Array<ArrayBuffer>>[] {
   const filenames = meshNames ?? getFilenames(state.options, fingerprint).meshes ?? {};
 
   const objects = buildDoorGeometry(state, { refine: true });
 
   return objects.map(({ id, builder }) => {
-    const data = builder.toMeshData();
+    const data = serializeMesh(builder.toMeshData());
 
     const filename = filenames[id];
     if (filename === undefined)
@@ -33,7 +41,7 @@ export function createMergedMeshFile(
   state: DeepReadonly<OutputTrainDoorState>,
   fingerprint: string,
   filename?: string,
-) {
+): FileItem<Uint8Array<ArrayBuffer>> {
   filename = filename ?? getFilenames(state.options, fingerprint).mergedMesh;
 
   const objects = buildDoorGeometry(state, { refine: true });
@@ -45,7 +53,7 @@ export function createMergedMeshFile(
 
   return {
     filename,
-    data: builder.toMeshData(),
+    data: serializeMesh(builder.toMeshData()),
     mimetype: 'application/octet-stream',
   };
 }
@@ -54,7 +62,11 @@ export function createVisualComponentFiles(
   state: DeepReadonly<OutputTrainDoorState>,
   fingerprint: string,
   filenames?: DeepReadonly<DoorUnitFileNameSet>,
-) {
+): {
+  definition: FileItem<string>;
+  script: FileItem<string>;
+  meshes: FileItem<Uint8Array<ArrayBuffer>>[];
+} {
   filenames = filenames ?? getFilenames(state.options, fingerprint);
   const definition = createVisualComponent(state.options, fingerprint, filenames);
   const script = createLuaScript(state.options);
@@ -78,7 +90,7 @@ export function createCollisionComponentFile(
   options: DeepReadonly<TrainDoorOptions>,
   fingerprint: string,
   filename?: string,
-) {
+): FileItem<string> {
   filename = filename ?? getFilenames(options, fingerprint).collisionDefinition;
   const definition = createCollisionComponent(options, fingerprint);
 
@@ -93,7 +105,10 @@ export function createStaticComponentFiles(
   state: DeepReadonly<OutputTrainDoorState>,
   fingerprint: string,
   filenames?: DeepReadonly<DoorUnitFileNameSet>,
-) {
+): {
+  definition: FileItem<string>;
+  mesh: FileItem<Uint8Array<ArrayBuffer>>;
+} {
   filenames = filenames ?? getFilenames(state.options, fingerprint);
   const definition = createStaticComponent(state.options, fingerprint, filenames);
 

@@ -1,3 +1,4 @@
+import { serializeVehicleXml, type Vehicle } from '@sw-file-lib/xml';
 import type { StrictOmit } from 'ts-essentials';
 
 export interface VehicleComponent {
@@ -64,58 +65,32 @@ export class VehicleBuilder {
   }
 
   toXml() {
-    const writer = new XmlWriter(false);
-
-    writer.begin('vehicle', [
-      { name: 'data_version', value: 3 },
-      { name: 'bodies_id', value: this.bodies.length },
-    ]);
-
-    writer.empty('authors');
-
-    writer.begin('bodies');
-    this.bodies.forEach((body, i) => {
-      writer.begin('body', [{ name: 'unique_id', value: i + 1 }]);
-
-      writer.begin('components');
-      for (const component of body.components) {
-        const cAttrs = [
-          { name: 'd', value: component.type },
-          { name: 't', value: this.toFlipAttrValue(component.flip) },
-        ];
-        const oAttrs = [{ name: 'r', value: this.toRotationAttrValue(component.rotation) }];
-
-        writer.element('c', cAttrs, (writer) => {
-          writer.element('o', oAttrs, (writer) => {
-            const { position } = component;
-            if (position.x !== 0 || position.y !== 0 || position.z !== 0) {
-              writer.empty('vp', vec3ToAttrs(position, true));
-            }
-          });
-        });
-      }
-      writer.end('components');
-
-      writer.end('body');
-    });
-    writer.end('bodies');
+    const vehicle: Vehicle = {
+      data_version: 3,
+      bodies_id: this.bodies.length,
+      authors: [],
+      bodies: this.bodies.map((body, i) => ({
+        unique_id: i + 1,
+        components: body.components.map((component) => ({
+          d: component.type,
+          t: this.toFlipAttrValue(component.flip),
+          o: {
+            r: this.toRotationAttrValue(component.rotation),
+            vp: compactVec3(component.position),
+          },
+        })),
+      })),
+    };
 
     if (this.logicLinks.length > 0) {
-      writer.element('logic_node_links', [], (writer) => {
-        for (const logicLink of this.logicLinks) {
-          writer.begin('logic_node_link', [
-            { name: 'type', value: this.toLogicTypeAttrValue(logicLink.type) },
-          ]);
-          writer.empty('voxel_pos_0', vec3ToAttrs(logicLink.from, true));
-          writer.empty('voxel_pos_1', vec3ToAttrs(logicLink.to, true));
-          writer.end('logic_node_link');
-        }
-      });
+      vehicle.logic_node_links = this.logicLinks.map((logicLink) => ({
+        type: this.toLogicTypeAttrValue(logicLink.type),
+        voxel_pos_0: compactVec3(logicLink.from),
+        voxel_pos_1: compactVec3(logicLink.to),
+      }));
     }
 
-    writer.end('vehicle');
-
-    return writer.toString();
+    return serializeVehicleXml(vehicle);
   }
 
   private toRotationAttrValue(rotation: Mat3 | Orientation | undefined) {
@@ -123,7 +98,7 @@ export class VehicleBuilder {
     if (rotation === undefined) {
       value = [1, 0, 0, 0, 1, 0, 0, 0, 1];
     } else if (rotation instanceof Orientation) {
-      value = rotation.toMat3();
+      value = rotation.toStormMat3();
     } else {
       value = rotation;
     }

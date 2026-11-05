@@ -1,3 +1,10 @@
+import { GeometryBuilder, type GeometryBuilderOptions } from '@sw-file-lib/geometry';
+import {
+  ComponentDefinitionSchema,
+  serializeComponentDefinitionXml,
+  type ComponentDefinition,
+} from '@sw-file-lib/xml';
+import * as x from '@sw-file-lib/xml/xml-schema';
 import { Matrix4 } from 'three';
 import type { Reactive } from 'vue';
 import type { RenderHooks } from '~/features/polygon-editor';
@@ -7,7 +14,6 @@ import type { OutputTrainDoorState, TrainDoorOptions } from '../types';
 import {
   drawBackground,
   buildSlidingDoorGeometry,
-  DefinitionBuilder,
   getVoxelRange,
   getVoxelVolume,
   VehicleBuilder,
@@ -139,8 +145,8 @@ export function buildGeometry(
   const { options } = state;
 
   const doorSize = { x: options.doorWidth, y: options.doorHeight };
-  const frontZ = options.doorThickness / 2 + options.doorZOffset;
-  const backZ = -options.doorThickness / 2 + options.doorZOffset;
+  const frontZ = -options.doorThickness / 2 + options.doorZOffset;
+  const backZ = options.doorThickness / 2 + options.doorZOffset;
   const frontColor = hexToRgb(options.outsideColor);
   const backColor = hexToRgb(options.insideColor);
   const rubberThickness = options.rubberThickness / 0.25;
@@ -169,7 +175,7 @@ export function buildGeometry(
       windowRings: [windowRings.left],
       windowFrameColor: options.windowFrameColor,
     });
-    builder.transform(Orientation.RotateY270.toMat3());
+    builder.transform(Orientation.RotateY270.toStormMat3());
     objects.push({ id: 'left', builder });
   }
 
@@ -191,7 +197,7 @@ export function buildGeometry(
       windowRings: [windowRings.right],
       windowFrameColor: options.windowFrameColor,
     });
-    builder.transform(Orientation.RotateY270.toMat3());
+    builder.transform(Orientation.RotateY270.toStormMat3());
     objects.push({ id: 'right', builder });
   }
 
@@ -211,7 +217,7 @@ export function getFilenames(_options: DeepReadonly<TrainDoorOptions>, fingerpri
 
   return {
     doorUnitVehicleName: `m_train_door_${fingerprint}.xml`,
-    staticUnitVehicleName: `m_train_door_${fingerprint}.xml`,
+    staticUnitVehicleName: `m_train_door_static_${fingerprint}.xml`,
     visualDefinition: `${visual}.xml`,
     script: `m_train_door_${fingerprint}.lua`,
     meshes: {
@@ -248,60 +254,58 @@ export function createVisualComponent(
 
   const volume = getVoxelVolume(voxelRange.min, voxelRange.max);
 
-  const builder = new DefinitionBuilder();
+  const schema = ComponentDefinitionSchema.extend({ lua_filename: x.string() });
 
-  builder.addAttribute('name', `(M) Train Door Visual ${fingerprint}`);
-  builder.addAttribute('category', 2);
-  builder.addAttribute('type', 66);
-  builder.addAttribute('mass', 0.5 * volume);
-  builder.addAttribute('value', 4 * volume);
-  builder.addAttribute('flags', 0);
-  builder.addAttribute('tags', 'mod,train,door');
+  const definition: x.Infer<typeof schema> = {
+    name: `(M) Train Door Visual ${fingerprint}`,
+    category: 2,
+    type: 66,
+    mass: 0.5 * volume,
+    value: 4 * volume,
+    tags: 'mod,train,door',
+    lua_filename: filenames.script,
+    surfaces: createSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1, 2, 3, 4, 5]),
+    buoyancy_surfaces: createSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1], {
+      shape: 1,
+    }),
+    voxels: createVoxels(voxelRange.min, voxelRange.max, { flags: 4 }),
+    logic_nodes: [
+      {
+        position: compactVec3({ x: 0, y: -1, z: 0 }),
+        label: 'Position',
+        mode: 1,
+        type: 1,
+        description: 'Controls the position of the door with the value between 0 and 1.',
+      },
+      {
+        label: 'Connect to Collision Component',
+        description: 'Controls the collision component to synchronize with the visual.',
+      },
+    ],
+    tooltip_properties: {
+      short_description: 'Sliding door that can be opened and closed using a number input.',
+    },
+  };
 
   switch (direction) {
     case 'double':
-      builder.addAttribute('mesh_0_name', filenames.meshes.left);
-      builder.addAttribute('mesh_1_name', filenames.meshes.right);
+      definition.mesh_0_name = filenames.meshes.left;
+      definition.mesh_1_name = filenames.meshes.right;
       break;
     case 'left':
-      builder.addAttribute('mesh_0_name', filenames.meshes.left);
+      definition.mesh_0_name = filenames.meshes.left;
       break;
     case 'right':
-      builder.addAttribute('mesh_0_name', filenames.meshes.right);
+      definition.mesh_0_name = filenames.meshes.right;
       break;
     default:
       direction satisfies never;
       throw new Error('Unreachable');
   }
 
-  builder.addAttribute('lua_filename', filenames.script);
+  completeDefinition(definition);
 
-  builder.addSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1, 2, 3, 4, 5], { shape: 0 });
-  builder.addBuoyancySurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1], { shape: 1 });
-  builder.addVoxels(voxelRange.min, voxelRange.max, { flags: 4 });
-
-  builder.addLogicNode({
-    position: { x: 0, y: -1, z: 0 },
-    label: 'Position',
-    mode: 1,
-    type: 1,
-    description: 'Controls the position of the door with the value between 0 and 1.',
-  });
-  builder.addLogicNode({
-    label: 'Connect to Collision Component',
-    mode: 0,
-    type: 0,
-    description: 'Controls the collision component to synchronize with the visual.',
-  });
-
-  builder.addElement('tooltip_properties', [
-    {
-      name: 'short_description',
-      value: 'Sliding door that can be opened and closed using a number input.',
-    },
-  ]);
-
-  return builder.toXml();
+  return schema.serialize(definition, 'definition', { indent: 2 }).toString();
 }
 
 // 見た目用コンポーネントの Lua を生成
@@ -388,53 +392,51 @@ export function createCollisionComponent(
 
   const volume = getVoxelVolume(voxelRange.min, voxelRange.max);
 
-  const builder = new DefinitionBuilder();
-
-  builder.addAttribute('name', `(M) Train Door Collision ${fingerprint}`);
-  builder.addAttribute('category', 2);
-  builder.addAttribute('type', 13);
-  builder.addAttribute('mass', 0.5 * volume);
-  builder.addAttribute('value', 4 * volume);
-  builder.addAttribute('flags', 1);
-  builder.addAttribute('tags', 'mod,train,door');
-  builder.addAttribute('door_lower_limit', -(width - 1) / 2);
-  builder.addAttribute('door_upper_limit', (width + 1) / 2);
-  builder.addAttribute('door_flipped', false);
-  builder.addAttribute('door_side_dist', width);
-  builder.addAttribute('door_up_dist', height - 1);
-
-  builder.addElement('door_size', vec3ToAttrs({ x: 0.5, y: height, z: width }));
-  builder.addElement('door_normal', vec3ToAttrs({ x: -1, y: 0, z: 0 }));
-  builder.addElement('door_side', vec3ToAttrs({ x: 0, y: 0, z: 1 }));
-  builder.addElement('door_up', vec3ToAttrs({ x: 0, y: 1, z: 0 }));
-  builder.addElement('door_base_pos', vec3ToAttrs({ x: 0, y: voxelRange.min.y, z: 0 }));
-
-  builder.addSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1, 2, 3, 4, 5], { shape: 0 });
-  builder.addBuoyancySurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1], { shape: 1 });
-  builder.addVoxels(voxelRange.min, voxelRange.max, { flags: 4 });
-
-  builder.addLogicNode({
-    label: 'Open/Close',
-    mode: 1,
-    type: 0,
-    description:
-      'Opens the door when receiving an on signal, and closes it when receiving an off signal.',
-  });
-  builder.addLogicNode({
-    label: 'Electric',
-    mode: 1,
-    type: 4,
-    description: 'Electrical power connection.',
-  });
-
-  builder.addElement('tooltip_properties', [
-    {
-      name: 'short_description',
-      value: 'Sliding door that can be opened and closed using an on/off signal.',
+  const definition: ComponentDefinition = {
+    name: `(M) Train Door Collision ${fingerprint}`,
+    category: 2,
+    type: 13,
+    mass: 0.5 * volume,
+    value: 4 * volume,
+    flags: 1,
+    tags: 'mod,train,door',
+    door_lower_limit: -(width - 1) / 2,
+    door_upper_limit: (width + 1) / 2,
+    door_flipped: false,
+    door_side_dist: width,
+    door_up_dist: height - 1,
+    door_size: { x: 0.5, y: height, z: width },
+    door_normal: { x: -1, y: 0, z: 0 },
+    door_side: { x: 0, y: 0, z: 1 },
+    door_up: { x: 0, y: 1, z: 0 },
+    door_base_pos: { x: 0, y: voxelRange.min.y, z: 0 },
+    surfaces: createSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1, 2, 3, 4, 5]),
+    buoyancy_surfaces: createSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1], {
+      shape: 1,
+    }),
+    voxels: createVoxels(voxelRange.min, voxelRange.max, { flags: 4 }),
+    logic_nodes: [
+      {
+        label: 'Open/Close',
+        mode: 1,
+        description:
+          'Opens the door when receiving an on signal, and closes it when receiving an off signal.',
+      },
+      {
+        label: 'Electric',
+        mode: 1,
+        type: 4,
+        description: 'Electrical power connection.',
+      },
+    ],
+    tooltip_properties: {
+      short_description: 'Sliding door that can be opened and closed using an on/off signal.',
     },
-  ]);
+  };
 
-  return builder.toXml();
+  completeDefinition(definition);
+
+  return serializeComponentDefinitionXml(definition, { indent: 2 });
 }
 
 // 静的コンポーネントの Definition XML を生成
@@ -450,29 +452,27 @@ export function createStaticComponent(
   const voxelRange = getVoxelRange(options.doorWidth, options.doorHeight);
   const volume = getVoxelVolume(voxelRange.min, voxelRange.max);
 
-  const builder = new DefinitionBuilder();
-
-  builder.addAttribute('name', `(M) Train Door Static Visual ${fingerprint}`);
-  builder.addAttribute('category', 2);
-  builder.addAttribute('type', 9);
-  builder.addAttribute('mass', 0.5 * volume);
-  builder.addAttribute('value', 2 * volume);
-  builder.addAttribute('flags', 0);
-  builder.addAttribute('tags', 'mod,train,door');
-  builder.addAttribute('mesh_data_name', filenames.mergedMesh);
-
-  builder.addSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1, 2, 3, 4, 5], { shape: 0 });
-  builder.addBuoyancySurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1], { shape: 1 });
-  builder.addVoxels(voxelRange.min, voxelRange.max, { flags: 1 });
-
-  builder.addElement('tooltip_properties', [
-    {
-      name: 'short_description',
-      value: 'A decorative sliding door that cannot be opened or closed.',
+  const definition: ComponentDefinition = {
+    name: `(M) Train Door Static Visual ${fingerprint}`,
+    category: 2,
+    type: 9,
+    mass: 0.5 * volume,
+    value: 2 * volume,
+    tags: 'mod,train,door',
+    mesh_data_name: filenames.mergedMesh,
+    surfaces: createSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1, 2, 3, 4, 5]),
+    buoyancy_surfaces: createSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1], {
+      shape: 1,
+    }),
+    voxels: createVoxels(voxelRange.min, voxelRange.max, { flags: 1 }),
+    tooltip_properties: {
+      short_description: 'A decorative sliding door that cannot be opened or closed.',
     },
-  ]);
+  };
 
-  return builder.toXml();
+  completeDefinition(definition);
+
+  return serializeComponentDefinitionXml(definition, { indent: 2 });
 }
 
 // ドアユニットビークルを生成

@@ -1,3 +1,4 @@
+import type { AddFaceOptions, GeometryBuilder } from '@sw-file-lib/geometry';
 import { transformPolygons, type PolygonEditorPolygon } from '~/features/polygon-editor';
 import { buildWindowGeometry, type WindowRingSet } from '../doorWindow/basic';
 import { createCoordinateConverter } from './coordinateConversion';
@@ -36,7 +37,7 @@ export function buildPolygonGeometry(
     const hexColor = polygons.find((v) => v.id === id)?.color;
     const color = (hexColor !== undefined ? hexToRgb(hexColor) : options?.baseColor) ?? WHITE;
     const transformed = polygon.map(ringConversion);
-    builder.addPolygon(transformed, { z, color, flip });
+    builder.add2dPolygon(transformed, { z, color, flip });
   }
 }
 
