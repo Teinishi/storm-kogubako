@@ -1,7 +1,7 @@
 import { serializeComponentMod } from '@sw-file-lib/core';
 
 export interface ComponentBinAsset {
-  name: string;
+  filename: string;
   data: string | Uint8Array;
 }
 
@@ -16,7 +16,10 @@ export function createComponentBin(
   const data = serializeComponentMod({
     name,
     definition,
-    assets,
+    assets: assets.map((asset) => ({
+      name: asset.filename,
+      data: asset.data,
+    })),
   });
 
   return {
