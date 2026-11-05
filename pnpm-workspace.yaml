@@ -1,6 +1,6 @@
 allowBuilds:
-  esbuild: set this to true or false
-  vue-demi: set this to true or false
+  esbuild: true
+  vue-demi: true
 minimumReleaseAgeExclude:
   - '@sw-file-lib/core@0.2.2'
   - '@sw-file-lib/geometry@0.2.2'
