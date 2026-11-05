@@ -126,7 +126,7 @@ export function generatePaintableSignVehicle(
       }
 
       const pos = { x: blockOffsetX + j, y: 0, z: blockOffsetZ - i };
-      const vp = createXmlVec3({ x: blockOffsetX + j, y: 0, z: blockOffsetZ - i });
+      const vp = compactVec3({ x: blockOffsetX + j, y: 0, z: blockOffsetZ - i });
       if (config?.minimizeSigns && hasNoGlow && isSingleColor) {
         // Block を使用
         const colorStr = vehicleXmlColor(baseColor!, true);
@@ -179,7 +179,7 @@ export function generatePaintableSignVehicle(
         r: R_IDENTITIY,
         sc: '10',
         microprocessor_definition: BUFFER_MICROCONTROLLER,
-        vp: createXmlVec3({
+        vp: compactVec3({
           x: bufferPos.x,
           y: bufferPos.y,
           z: bufferPos.z - 1,
@@ -191,8 +191,8 @@ export function generatePaintableSignVehicle(
     // ロジック配線
     for (const pos of indicatorPositions) {
       logicNodeLinks.push({
-        voxel_pos_0: createXmlVec3(bufferPos),
-        voxel_pos_1: createXmlVec3(pos),
+        voxel_pos_0: compactVec3(bufferPos),
+        voxel_pos_1: compactVec3(pos),
       });
     }
   }
@@ -204,8 +204,8 @@ export function generatePaintableSignVehicle(
       for (const pos of indicatorPositions) {
         logicNodeLinks.push({
           type: 4,
-          voxel_pos_0: createXmlVec3(firstIndicatorPos),
-          voxel_pos_1: createXmlVec3(pos),
+          voxel_pos_0: compactVec3(firstIndicatorPos),
+          voxel_pos_1: compactVec3(pos),
         });
       }
     }

@@ -1,10 +1,8 @@
-import type { XmlVec3 } from '@sw-file-lib/xml';
-
-export function createXmlVec3({ x, y, z }: Readonly<Vec3>): XmlVec3 | undefined {
+export function compactVec3({ x, y, z }: Readonly<Vec3>): Partial<Vec3> | undefined {
   if (x === 0 && y === 0 && z === 0) {
     return;
   }
-  const v: XmlVec3 = {};
+  const v: Partial<Vec3> = {};
   if (x !== 0) {
     v.x = x;
   }

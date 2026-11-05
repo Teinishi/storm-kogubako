@@ -271,7 +271,7 @@ export function createVisualComponent(
     voxels: createVoxels(voxelRange.min, voxelRange.max, { flags: 4 }),
     logic_nodes: [
       {
-        position: createXmlVec3({ x: 0, y: -1, z: 0 }),
+        position: compactVec3({ x: 0, y: -1, z: 0 }),
         label: 'Position',
         mode: 1,
         type: 1,
@@ -405,11 +405,11 @@ export function createCollisionComponent(
     door_flipped: false,
     door_side_dist: width,
     door_up_dist: height - 1,
-    door_size: createXmlVec3({ x: 0.5, y: height, z: width }),
-    door_normal: createXmlVec3({ x: -1, y: 0, z: 0 }),
-    door_side: createXmlVec3({ x: 0, y: 0, z: 1 }),
-    door_up: createXmlVec3({ x: 0, y: 1, z: 0 }),
-    door_base_pos: createXmlVec3({ x: 0, y: voxelRange.min.y, z: 0 }),
+    door_size: { x: 0.5, y: height, z: width },
+    door_normal: { x: -1, y: 0, z: 0 },
+    door_side: { x: 0, y: 0, z: 1 },
+    door_up: { x: 0, y: 1, z: 0 },
+    door_base_pos: { x: 0, y: voxelRange.min.y, z: 0 },
     surfaces: createSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1, 2, 3, 4, 5]),
     buoyancy_surfaces: createSurfacesCuboid(voxelRange.min, voxelRange.max, [0, 1], {
       shape: 1,

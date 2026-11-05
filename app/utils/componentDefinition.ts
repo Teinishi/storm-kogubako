@@ -27,7 +27,7 @@ function createSurfaces(
   const surfaces: SurfaceImmutable[] = [];
   forVoxels(from, to, (position) => {
     surfaces.push({
-      position: createXmlVec3(position),
+      position: compactVec3(position),
       ...options,
     });
   });
@@ -91,7 +91,7 @@ export function createVoxels(
   const voxels: VoxelImmutable[] = [];
   forVoxels(from, to, (position) => {
     voxels.push({
-      position: createXmlVec3(position),
+      position: compactVec3(position),
       ...options,
     });
   });
@@ -102,20 +102,20 @@ export function completeDefinition(definition: ComponentDefinition) {
   const voxelBounds = getVoxelBounds(definition.voxels ?? []);
   if (voxelBounds) {
     if (definition.voxel_min === undefined) {
-      definition.voxel_min = createXmlVec3(voxelBounds.min);
+      definition.voxel_min = compactVec3(voxelBounds.min);
     }
     if (definition.voxel_max === undefined) {
-      definition.voxel_max = createXmlVec3(voxelBounds.max);
+      definition.voxel_max = compactVec3(voxelBounds.max);
     }
   }
 
   const voxelPhysicsBounds = getVoxelBounds((definition.voxels ?? []).filter(hasPhysics));
   if (voxelPhysicsBounds) {
     if (definition.voxel_physics_min === undefined) {
-      definition.voxel_physics_min = createXmlVec3(voxelPhysicsBounds.min);
+      definition.voxel_physics_min = compactVec3(voxelPhysicsBounds.min);
     }
     if (definition.voxel_physics_max === undefined) {
-      definition.voxel_physics_max = createXmlVec3(voxelPhysicsBounds.max);
+      definition.voxel_physics_max = compactVec3(voxelPhysicsBounds.max);
     }
   }
 

@@ -76,7 +76,7 @@ export class VehicleBuilder {
           t: this.toFlipAttrValue(component.flip),
           o: {
             r: this.toRotationAttrValue(component.rotation),
-            vp: createXmlVec3(component.position),
+            vp: compactVec3(component.position),
           },
         })),
       })),
@@ -85,8 +85,8 @@ export class VehicleBuilder {
     if (this.logicLinks.length > 0) {
       vehicle.logic_node_links = this.logicLinks.map((logicLink) => ({
         type: this.toLogicTypeAttrValue(logicLink.type),
-        voxel_pos_0: createXmlVec3(logicLink.from),
-        voxel_pos_1: createXmlVec3(logicLink.to),
+        voxel_pos_0: compactVec3(logicLink.from),
+        voxel_pos_1: compactVec3(logicLink.to),
       }));
     }
 
