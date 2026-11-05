@@ -217,7 +217,7 @@ export function getFilenames(_options: DeepReadonly<TrainDoorOptions>, fingerpri
 
   return {
     doorUnitVehicleName: `m_train_door_${fingerprint}.xml`,
-    staticUnitVehicleName: `m_train_door_${fingerprint}.xml`,
+    staticUnitVehicleName: `m_train_door_static_${fingerprint}.xml`,
     visualDefinition: `${visual}.xml`,
     script: `m_train_door_${fingerprint}.lua`,
     meshes: {
