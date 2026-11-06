@@ -29,6 +29,12 @@ export const WEB_TOOLS: ToolData[] = [
     tags: ['mod', 'vehicle'],
     isBeta: true,
   },
+  {
+    key: 'free_paint',
+    to: '/free-paint',
+    icon: 'i-lucide-paintbrush',
+    tags: ['mod', 'vehicle'],
+  },
 ] as const;
 
 export const OTHER_TOOLS: ToolData[] = [

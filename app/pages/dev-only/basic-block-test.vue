@@ -118,7 +118,7 @@ onBeforeUnmount(() => {
 <template>
   <div class="h-full w-full">
     <ClientOnly>
-      <MeshViewerCanvas :objects="previewObjects" :initial-camera-pos="[3, 0, 0]" />
+      <ThreeCanvas :objects="previewObjects" :initial-camera-pos="[3, 0, 0]" />
     </ClientOnly>
   </div>
 </template>
