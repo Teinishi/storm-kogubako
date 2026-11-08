@@ -3,6 +3,13 @@ import { createSwLightGroup } from '@sw-file-lib/three';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
+export interface ThreeCanvasContext {
+  scene: THREE.Scene;
+  renderer: THREE.WebGLRenderer;
+  camera: THREE.PerspectiveCamera;
+  controls: OrbitControls;
+}
+
 const props = withDefaults(
   defineProps<{
     objects: THREE.Object3D[];
@@ -11,16 +18,17 @@ const props = withDefaults(
   { initialCameraPos: () => [1, 1, -1] },
 );
 
+const emit = defineEmits<{
+  init: [context: ThreeCanvasContext];
+  dispose: [context: ThreeCanvasContext];
+  'pointer-down': [event: PointerEvent];
+  'pointer-move': [event: PointerEvent];
+  'pointer-up': [event: PointerEvent];
+}>();
+
 const container = useTemplateRef<HTMLDivElement>('container');
 const colorMode = useColorMode();
-let context:
-  | {
-      scene: THREE.Scene;
-      renderer: THREE.WebGLRenderer;
-      camera: THREE.PerspectiveCamera;
-      controls: OrbitControls;
-    }
-  | undefined;
+let context: ThreeCanvasContext | undefined;
 let resizeObserver: ResizeObserver | undefined;
 let animationFrame: number | undefined;
 const managedObjects = new Set<THREE.Object3D>();
@@ -63,6 +71,18 @@ function animate() {
   context.renderer.render(context.scene, context.camera);
 }
 
+function pointerDownHandler(event: PointerEvent) {
+  emit('pointer-down', event);
+}
+
+function pointerMoveHandler(event: PointerEvent) {
+  emit('pointer-move', event);
+}
+
+function pointerUpHandler(event: PointerEvent) {
+  emit('pointer-up', event);
+}
+
 function preventDefault(event: Event) {
   event.preventDefault();
 }
@@ -80,7 +100,9 @@ function init(element: HTMLDivElement) {
   canvas.style.display = 'block';
   canvas.style.width = '100%';
   canvas.style.height = '100%';
-  canvas.addEventListener('pointerdown', preventDefault);
+  canvas.addEventListener('pointerdown', pointerDownHandler);
+  canvas.addEventListener('pointermove', pointerMoveHandler);
+  canvas.addEventListener('pointerup', pointerUpHandler);
   canvas.addEventListener('auxclick', preventDefault);
   element.appendChild(canvas);
 
@@ -99,6 +121,8 @@ function init(element: HTMLDivElement) {
   resizeObserver = new ResizeObserver(resize);
   resizeObserver.observe(element);
   animate();
+
+  emit('init', context);
 }
 
 // Nuxt client-only hydration can mount before the actual template is rendered.
@@ -116,11 +140,18 @@ watch(() => colorMode.value, updateBackground);
 onBeforeUnmount(() => {
   if (animationFrame !== undefined) cancelAnimationFrame(animationFrame);
   resizeObserver?.disconnect();
+
   if (!context) return;
+  emit('dispose', context);
+
   const { scene, renderer, controls } = context;
   controls.dispose();
-  renderer.domElement.removeEventListener('pointerdown', preventDefault);
-  renderer.domElement.removeEventListener('auxclick', preventDefault);
+
+  const canvas = renderer.domElement;
+  canvas.removeEventListener('pointerdown', pointerDownHandler);
+  canvas.removeEventListener('pointermove', pointerMoveHandler);
+  canvas.removeEventListener('pointerup', pointerUpHandler);
+  canvas.removeEventListener('auxclick', preventDefault);
   // Geometry and materials belong to the callers; only detach their objects here.
   scene.clear();
   managedObjects.clear();
