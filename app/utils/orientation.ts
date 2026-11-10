@@ -1,3 +1,5 @@
+// TODO: @sw-file-lib/core/math に切り替え
+
 type Axis = 'x' | 'y' | 'z';
 
 interface AxisMapping {

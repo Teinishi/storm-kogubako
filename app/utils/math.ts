@@ -208,3 +208,11 @@ export function forVoxels(
     }
   }
 }
+
+export function scaleSwPosition(v: Readonly<Vec3>): Vec3 {
+  return {
+    x: 0.25 * v.x,
+    y: 0.25 * v.y,
+    z: 0.25 * v.z,
+  };
+}
