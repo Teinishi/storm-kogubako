@@ -2,12 +2,12 @@ import { parseColor } from '@sw-file-lib/core/color';
 import { parseMat3, Orientation, vec3 } from '@sw-file-lib/core/math';
 import { getSurfaceOrientation } from '@sw-file-lib/geometry';
 import { BASIC_BLOCK_SURFACE_DEFINITIONS } from './definitions';
-import type { BasicComponent } from './types';
+import type { BasicComponent, SurfaceEntryWithRef } from './types';
 
-export function getSurfacesFromComponents(components: BasicComponent[]) {
+export function getSurfacesFromComponents(components: BasicComponent[]): SurfaceEntryWithRef[] {
   const surfaces = [];
 
-  for (const [blockIndex, component] of components.entries()) {
+  for (const [componentIndex, component] of components.entries()) {
     const { type, pos: componentPos, r, t } = component;
 
     let componentMatrix: Mat3 = [0, 0, 1, -1, 0, 0, 0, -1, 0];
@@ -41,11 +41,13 @@ export function getSurfacesFromComponents(components: BasicComponent[]) {
         componentPos,
       );
 
-      let matrix = getSurfaceOrientation(orientation, rotation).toMat3();
-      if (componentMatrix) matrix = mulMat3(componentMatrix, matrix);
+      const matrix = mulMat3(
+        componentMatrix,
+        getSurfaceOrientation(orientation, rotation).toMat3(),
+      );
 
       surfaces.push({
-        blockIndex,
+        componentIndex,
         surfaceIndex,
         position,
         matrix,

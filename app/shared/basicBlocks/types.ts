@@ -10,14 +10,14 @@ export interface BasicComponent {
   sc?: string;
 }
 
-export interface SurfaceRef {
-  blockIndex: number;
-  surfaceIndex: number;
-}
-
-export interface SurfaceEntry extends SurfaceRef {
+export interface SurfaceEntry {
   position: Vec3;
   matrix: Mat3;
   shape: SurfaceShape;
   color: Color;
+}
+
+export interface SurfaceEntryWithRef extends SurfaceEntry {
+  componentIndex: number;
+  surfaceIndex: number;
 }

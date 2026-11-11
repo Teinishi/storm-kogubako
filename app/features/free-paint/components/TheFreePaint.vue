@@ -7,24 +7,66 @@ import {
 } from '@sw-file-lib/three';
 import * as THREE from 'three';
 import type { ThreeCanvasContext } from '~/components/ThreeCanvas.client.vue';
+import { getSurfacesFromComponents, type SurfaceEntryWithRef } from '~/shared/basicBlocks';
 import {
-  getSurfacesFromComponents,
-  type BasicComponent,
-  type SurfaceEntry,
+  buildSurfacePaintGeometry,
+  createRaycasterMesh,
+  raycasterIntersections,
+  type FreePaintComponent,
+  type SurfacePaint,
   type SurfaceRef,
-} from '~/shared/basicBlocks';
-import { createRaycasterMesh, raycasterIntersections } from '../raycaster';
+} from '../surfacePaint';
 
-const components = ref<BasicComponent[]>([
+function createCheckerPattern(uSize: number, vSize: number): Color[][] {
+  const colors: Color[][] = [];
+  for (let v = 0; v < vSize; v++) {
+    const row: Color[] = [];
+    for (let u = 0; u < uSize; u++) {
+      const isBlack = (u + v) % 2 === 0;
+      row.push(isBlack ? { r: 0, g: 0, b: 0 } : { r: 255, g: 255, b: 255 });
+    }
+    colors.push(row);
+  }
+  return colors;
+}
+
+function createSurfacePaint(uSize: number, vSize: number, color: Readonly<Color>): SurfacePaint {
+  return {
+    uSize,
+    vSize,
+    colors: Array.from({ length: vSize }, () =>
+      Array.from({ length: uSize }, () => ({ ...color })),
+    ),
+  };
+}
+
+const components = ref<FreePaintComponent[]>([
   {
     type: '01_block',
     pos: { x: 0, y: 0, z: 0 },
+    r: '1,0,0,0,1,0,0,0,1',
+    surfacePaints: {
+      2: {
+        uSize: 9,
+        vSize: 9,
+        colors: createCheckerPattern(9, 9),
+      },
+    },
   },
 ]);
 
-const surfaces = computed<SurfaceEntry[]>(() => getSurfacesFromComponents(components.value));
+const surfaces = computed<SurfaceEntryWithRef[]>(() => getSurfacesFromComponents(components.value));
 
-const mainObject = shallowRef<THREE.Object3D | null>(null);
+const mainObject = shallowRef(
+  new THREE.Mesh(
+    new THREE.BufferGeometry(),
+    createOpaqueMaterial(
+      createOpaqueUniforms({
+        overrideColorEnabled: false,
+      }),
+    ),
+  ),
+);
 const triangleToSurfaceRef = shallowRef<SurfaceRef[]>([]);
 
 const raycasterMesh = shallowRef(
@@ -40,29 +82,37 @@ const raycasterMesh = shallowRef(
 watchEffect((onCleanup) => {
   // 事前にカリング
   const culledSurfaceIndices = cullSurfaces(surfaces.value);
-  const culledSurfaces = surfaces.value.filter((_, index) => !culledSurfaceIndices.has(index));
+  const visibleSurfaces = surfaces.value.filter((_, index) => !culledSurfaceIndices.has(index));
+  const standardSurfaces: SurfaceEntryWithRef[] = [];
+  const paintedSurfaces: { surface: SurfaceEntryWithRef; surfacePaint: SurfacePaint }[] = [];
+  for (const surface of visibleSurfaces) {
+    const surfacePaint =
+      components.value[surface.componentIndex]?.surfacePaints?.[surface.surfaceIndex];
+    if (surfacePaint) {
+      paintedSurfaces.push({ surface, surfacePaint });
+    } else {
+      standardSurfaces.push(surface);
+    }
+  }
 
   // 表示用 Mesh を作成
-  const geometry = bufferGeometryFromBuilder(
-    buildSurfacesGeometry(culledSurfaces, { cull: false, edge: true }),
-  );
-  const material = createOpaqueMaterial(
-    createOpaqueUniforms({
-      overrideColorEnabled: false,
-    }),
-  );
-  const mesh = new THREE.Mesh(geometry, material);
-  mainObject.value = mesh;
+  const builder = buildSurfacesGeometry(standardSurfaces, { cull: false, edge: true });
+  for (const { surface, surfacePaint } of paintedSurfaces) {
+    const s = buildSurfacePaintGeometry(surface, surfacePaint);
+    if (s) {
+      builder.merge(s);
+    }
+  }
+  const geometry = bufferGeometryFromBuilder(builder);
+  mainObject.value.geometry = geometry;
 
   // Raycaster 用の Mesh を作成
-  const raycasterMeshData = createRaycasterMesh(culledSurfaces);
-  console.log(raycasterMeshData);
+  const raycasterMeshData = createRaycasterMesh(visibleSurfaces);
   raycasterMesh.value.geometry = raycasterMeshData.geometry;
   triangleToSurfaceRef.value = raycasterMeshData.triangleToSurfaceRef;
 
   onCleanup(() => {
     geometry.dispose();
-    material.dispose();
   });
 });
 
@@ -112,15 +162,26 @@ onBeforeUnmount(() => {
   raycasterMesh.value.material.dispose();
 });
 
-function drag(hit: { surfaceRef: SurfaceRef; uv: THREE.Vector2 }) {
-  console.log(hit.surfaceRef, hit.uv);
+function dragPaint(hit: { surfaceRef: SurfaceRef; uv: THREE.Vector2 }) {
+  const { componentIndex, surfaceIndex } = hit.surfaceRef;
+
+  const component = components.value[componentIndex];
+  if (!component) return;
+  component.surfacePaints ??= {};
+  component.surfacePaints[surfaceIndex] ??= createSurfacePaint(9, 9, { r: 255, g: 255, b: 255 });
+
+  const surfacePaint = component.surfacePaints[surfaceIndex];
+  const u = Math.floor(hit.uv.x * surfacePaint.uSize);
+  const v = Math.floor(hit.uv.y * surfacePaint.vSize);
+  if (u < 0 || u >= surfacePaint.uSize || v < 0 || v >= surfacePaint.vSize) return;
+  surfacePaint.colors[v]![u]! = { r: 0, g: 0, b: 0 };
 }
 
 function pointerDownHandler(event: PointerEvent) {
   if ((event.buttons & 1) !== 0) {
     const hit = testRaycast(event);
     if (hit) {
-      drag(hit);
+      dragPaint(hit);
     }
   }
 }
@@ -129,12 +190,14 @@ function pointerMoveHandler(event: PointerEvent) {
   if ((event.buttons & 1) !== 0) {
     const hit = testRaycast(event);
     if (hit) {
-      drag(hit);
+      dragPaint(hit);
     }
   }
 }
 
 function pointerUpHandler(_event: PointerEvent) {}
+
+const axesHelper = new THREE.AxesHelper(5);
 </script>
 
 <template>
@@ -150,8 +213,8 @@ function pointerUpHandler(_event: PointerEvent) {}
     <ResponsivePanel icon="i-lucide-box" label="a">
       <ClientOnly>
         <ThreeCanvas
-          :objects="[mainObject, raycasterMesh].filter((o) => o !== null)"
-          :initial-camera-pos="[0, 0, -1]"
+          :objects="[mainObject, raycasterMesh, axesHelper].filter((o) => o !== null)"
+          :initial-camera-pos="[0, 0, 1]"
           @init="init"
           @dispose="dispose"
           @pointer-down="pointerDownHandler"
