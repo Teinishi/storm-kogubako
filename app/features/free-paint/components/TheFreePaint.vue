@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { buildSurfacesGeometry, cullSurfaces } from '@sw-file-lib/geometry';
+import { cullSurfaces } from '@sw-file-lib/geometry';
 import {
   bufferGeometryFromBuilder,
   createOpaqueMaterial,
@@ -9,11 +9,12 @@ import * as THREE from 'three';
 import type { ThreeCanvasContext } from '~/components/ThreeCanvas.client.vue';
 import { getSurfacesFromComponents, type SurfaceEntryWithRef } from '~/shared/basicBlocks';
 import {
-  buildSurfacePaintGeometry,
+  buildFreePaintGeometry,
   createRaycasterMesh,
+  freePaintToBasicComponent,
   raycasterIntersections,
   type FreePaintComponent,
-  type SurfacePaint,
+  type SurfacePaintGrid,
   type SurfaceRef,
 } from '../surfacePaint';
 import ThePaintTool from './ThePaintTool.vue';
@@ -31,7 +32,11 @@ function createCheckerPattern(uSize: number, vSize: number): Color[][] {
   return colors;
 }
 
-function createSurfacePaint(uSize: number, vSize: number, color: Readonly<Color>): SurfacePaint {
+function createSurfacePaint(
+  uSize: number,
+  vSize: number,
+  color: Readonly<Color>,
+): SurfacePaintGrid {
   return {
     uSize,
     vSize,
@@ -49,18 +54,19 @@ const components = ref<FreePaintComponent[]>([
   {
     type: '01_block',
     pos: { x: 0, y: 0, z: 0 },
-    r: '1,0,0,0,1,0,0,0,1',
+    r: [1, 0, 0, 0, 1, 0, 0, 0, 1],
     surfacePaints: {
       2: {
-        uSize: 9,
-        vSize: 9,
-        colors: createCheckerPattern(9, 9),
+        kind: 'paint',
+        paint: { uSize: 9, vSize: 9, colors: createCheckerPattern(9, 9) },
       },
     },
   },
 ]);
 
-const surfaces = computed<SurfaceEntryWithRef[]>(() => getSurfacesFromComponents(components.value));
+const surfaces = computed<SurfaceEntryWithRef[]>(() =>
+  getSurfacesFromComponents(components.value.map(freePaintToBasicComponent)),
+);
 
 const mainObject = shallowRef(
   new THREE.Mesh(
@@ -88,26 +94,12 @@ watchEffect((onCleanup) => {
   // 事前にカリング
   const culledSurfaceIndices = cullSurfaces(surfaces.value);
   const visibleSurfaces = surfaces.value.filter((_, index) => !culledSurfaceIndices.has(index));
-  const standardSurfaces: SurfaceEntryWithRef[] = [];
-  const paintedSurfaces: { surface: SurfaceEntryWithRef; surfacePaint: SurfacePaint }[] = [];
-  for (const surface of visibleSurfaces) {
-    const surfacePaint =
-      components.value[surface.componentIndex]?.surfacePaints?.[surface.surfaceIndex];
-    if (surfacePaint) {
-      paintedSurfaces.push({ surface, surfacePaint });
-    } else {
-      standardSurfaces.push(surface);
-    }
-  }
 
   // 表示用 Mesh を作成
-  const builder = buildSurfacesGeometry(standardSurfaces, { cull: false, edge: true });
-  for (const { surface, surfacePaint } of paintedSurfaces) {
-    const s = buildSurfacePaintGeometry(surface, surfacePaint);
-    if (s) {
-      builder.merge(s);
-    }
-  }
+  const builder = buildFreePaintGeometry(visibleSurfaces, components.value, {
+    cull: false,
+    edge: true,
+  });
   const geometry = bufferGeometryFromBuilder(builder);
   mainObject.value.geometry = geometry;
 
@@ -173,15 +165,31 @@ function dragPaint(hit: { surfaceRef: SurfaceRef; uv: THREE.Vector2 }) {
   const component = components.value[componentIndex];
   if (!component) return;
   component.surfacePaints ??= {};
-  component.surfacePaints[surfaceIndex] ??= createSurfacePaint(9, 9, { r: 255, g: 255, b: 255 });
 
-  const surfacePaint = component.surfacePaints[surfaceIndex];
-  const u = Math.floor(hit.uv.x * surfacePaint.uSize);
-  const v = Math.floor(hit.uv.y * surfacePaint.vSize);
-  if (u < 0 || u >= surfacePaint.uSize || v < 0 || v >= surfacePaint.vSize) return;
-  surfacePaint.colors[v]![u]! = { ...currentColorRgb.value };
-  if (isSingleColor(surfacePaint.colors)) {
-    // todo
+  if (toolMode.value === 'pixel') {
+    if (component.surfacePaints[surfaceIndex]?.kind !== 'paint') {
+      const color = component.surfacePaints[surfaceIndex]?.color ?? { r: 255, g: 255, b: 255 };
+      component.surfacePaints[surfaceIndex] = {
+        kind: 'paint',
+        paint: createSurfacePaint(9, 9, color),
+      };
+    }
+    const paint = component.surfacePaints[surfaceIndex].paint;
+    const u = Math.floor(hit.uv.x * paint.uSize);
+    const v = Math.floor(hit.uv.y * paint.vSize);
+    if (u < 0 || u >= paint.uSize || v < 0 || v >= paint.vSize) return;
+    paint.colors[v]![u]! = { ...currentColorRgb.value };
+    if (isSingleColor(paint.colors)) {
+      component.surfacePaints[surfaceIndex] = {
+        kind: 'singleColor',
+        color: { ...currentColorRgb.value },
+      };
+    }
+  } else if (toolMode.value === 'surface') {
+    component.surfacePaints[surfaceIndex] = {
+      kind: 'singleColor',
+      color: { ...currentColorRgb.value },
+    };
   }
 }
 
