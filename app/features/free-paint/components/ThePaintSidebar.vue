@@ -1,14 +1,12 @@
 <script setup lang="ts">
-const TOOLS = [
-  {
-    icon: 'i-lucide-paintbrush',
-    mode: 'pixel',
-  },
-  {
-    icon: 'i-lucide-paint-roller',
-    mode: 'surface',
-  },
-];
+import UnderlineButtons from './UnderlineButtons.vue';
+
+const MODES = [{ value: 'pixel' }, { value: 'surface' }] as const;
+
+const MODE_ICONS = {
+  pixel: 'i-lucide-pencil',
+  surface: 'i-lucide-paintbrush',
+} as const;
 
 const COLORS = [
   { r: 255, g: 255, b: 255 },
@@ -39,28 +37,39 @@ const COLORS = [
   { r: 36, g: 60, b: 85 },
 ].map(rgbToHex);
 
-const modeModel = defineModel<'pixel' | 'surface' | string>('mode', { required: true });
+export type PaintMode = (typeof MODES)[number]['value'];
+
+defineProps<{
+  disabled?: boolean;
+}>();
+
+const modelMode = defineModel<PaintMode>('mode', { required: true });
 const modelColor = defineModel<string>('color', { required: true });
+
+const currentTool = computed(() => {
+  return MODES.find((tool) => tool.value === modelMode.value);
+});
+
+const currentToolIcon = computed(() => {
+  return currentTool.value ? MODE_ICONS[currentTool.value.value] : '';
+});
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-3 p-4">
+  <div class="flex flex-col items-center gap-3 rounded-r-2xl bg-black/80 p-4">
     <UPopover :ui="{ content: 'bg-black/80 ring-none overflow-hidden' }">
-      <UButton class="h-14 w-14 justify-center rounded-full">
-        <UIcon name="i-lucide-paintbrush" class="size-8" />
+      <UButton class="h-14 w-14 justify-center rounded-full" :disabled="disabled">
+        <UIcon :name="currentToolIcon" class="size-8" />
       </UButton>
       <template #content>
-        <div class="flex">
-          <div v-for="tool in TOOLS" :key="tool.mode" class="relative p-2">
-            <UButton class="h-14 w-14 justify-center rounded-full" @click="modeModel = tool.mode">
-              <UIcon :name="tool.icon" class="size-8" />
-            </UButton>
-            <div
-              v-show="modeModel === tool.mode"
-              class="bg-secondary absolute right-0 bottom-0 left-0 h-1 w-full"
-            />
-          </div>
-        </div>
+        <UnderlineButtons
+          v-slot="item"
+          v-model="modelMode"
+          :items="MODES"
+          :button-props="{ class: 'h-14 w-14 justify-center rounded-full', disabled: disabled }"
+        >
+          <UIcon :name="MODE_ICONS[item.value]" class="size-8" />
+        </UnderlineButtons>
       </template>
     </UPopover>
     <div class="grid grid-cols-2 gap-2">

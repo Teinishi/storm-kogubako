@@ -17,7 +17,8 @@ import {
   type SurfacePaintGrid,
   type SurfaceRef,
 } from '../surfacePaint';
-import ThePaintTool from './ThePaintTool.vue';
+import TheBottomBar, { type FreePaintTool } from './TheBottomBar.vue';
+import ThePaintSidebar, { type PaintMode } from './ThePaintSidebar.vue';
 
 function createCheckerPattern(uSize: number, vSize: number): Color[][] {
   const colors: Color[][] = [];
@@ -46,7 +47,8 @@ function createSurfacePaint(
   };
 }
 
-const toolMode = ref<'pixel' | 'surface'>('pixel');
+const tool = ref<FreePaintTool>('paint');
+const paintMode = ref<PaintMode>('pixel');
 const currentColor = ref<string>('#FFFFFF');
 const currentColorRgb = computed(() => hexToRgb(currentColor.value) ?? { r: 255, g: 255, b: 255 });
 
@@ -166,7 +168,7 @@ function dragPaint(hit: { surfaceRef: SurfaceRef; uv: THREE.Vector2 }) {
   if (!component) return;
   component.surfacePaints ??= {};
 
-  if (toolMode.value === 'pixel') {
+  if (paintMode.value === 'pixel') {
     if (component.surfacePaints[surfaceIndex]?.kind !== 'paint') {
       const color = component.surfacePaints[surfaceIndex]?.color ?? { r: 255, g: 255, b: 255 };
       component.surfacePaints[surfaceIndex] = {
@@ -185,7 +187,7 @@ function dragPaint(hit: { surfaceRef: SurfaceRef; uv: THREE.Vector2 }) {
         color: { ...currentColorRgb.value },
       };
     }
-  } else if (toolMode.value === 'surface') {
+  } else if (paintMode.value === 'surface') {
     component.surfacePaints[surfaceIndex] = {
       kind: 'singleColor',
       color: { ...currentColorRgb.value },
@@ -243,10 +245,12 @@ const axesHelper = new THREE.AxesHelper(5);
       />
     </ClientOnly>
     <AppTitle class="absolute top-0 left-0" />
-    <ThePaintTool
-      v-model:mode="toolMode"
+    <ThePaintSidebar
+      v-model:mode="paintMode"
       v-model:color="currentColor"
-      class="absolute top-1/2 left-0 -translate-y-1/2 rounded-r-2xl bg-black/80"
+      class="absolute top-1/2 left-0 -translate-y-1/2"
+      :disabled="tool !== 'paint'"
     />
+    <TheBottomBar v-model:tool="tool" class="absolute bottom-0 left-0 w-full" />
   </div>
 </template>
