@@ -19,6 +19,7 @@ const locales = [
   <USelect
     :model-value="locale"
     :items="locales"
+    icon="i-lucide-languages"
     @update:model-value="setLocale($event as 'en' | 'ja')"
   />
 </template>

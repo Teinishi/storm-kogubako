@@ -6,12 +6,17 @@ const { t } = useI18n();
 
 const open = useNavMenu();
 
+function closeMenu() {
+  open.value = false;
+}
+
 const items = computed<NavigationMenuItem[][]>(() => {
   return [
     [
       {
         icon: 'i-lucide-home',
         label: t('home'),
+        onSelect: closeMenu,
         to: '/',
       },
     ],
@@ -23,6 +28,7 @@ const items = computed<NavigationMenuItem[][]>(() => {
       ...WEB_TOOLS.map(({ key, to, icon }) => ({
         icon,
         label: gt(key),
+        onSelect: closeMenu,
         to,
       })),
     ],
@@ -34,6 +40,7 @@ const items = computed<NavigationMenuItem[][]>(() => {
       ...OTHER_TOOLS.map(({ key, to, icon }) => ({
         icon,
         label: gt(key),
+        onSelect: closeMenu,
         to,
       })),
     ],
@@ -42,20 +49,24 @@ const items = computed<NavigationMenuItem[][]>(() => {
 </script>
 
 <template>
-  <USidebar v-model:open="open" mode="slideover">
-    <UNavigationMenu
-      :items="items"
-      orientation="vertical"
-      :ui="{ link: 'p-1.5 overflow-hidden' }"
-      class="grow"
-    />
+  <USlideover v-model:open="open" side="left" close-icon="i-lucide-x" inset>
+    <template #body>
+      <div class="flex h-full flex-col gap-4">
+        <UNavigationMenu
+          :items="items"
+          orientation="vertical"
+          :ui="{ link: 'p-1.5 overflow-hidden' }"
+          class="grow"
+        />
 
-    <div class="flex items-center justify-between">
-      <LocaleSelect class="shrink" />
-      <UColorModeSwitch />
-    </div>
-    <p class="text-muted text-sm">© 2026 Teinishi</p>
-  </USidebar>
+        <div class="flex items-center justify-between">
+          <LocaleSelect class="shrink" />
+          <UColorModeSwitch />
+        </div>
+        <p class="text-muted text-sm">© 2026 Teinishi</p>
+      </div>
+    </template>
+  </USlideover>
 </template>
 
 <i18n lang="json">
