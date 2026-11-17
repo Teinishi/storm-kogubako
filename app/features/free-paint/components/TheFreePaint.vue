@@ -16,6 +16,7 @@ import {
   type SurfacePaint,
   type SurfaceRef,
 } from '../surfacePaint';
+import ThePaintTool from './ThePaintTool.vue';
 
 function createCheckerPattern(uSize: number, vSize: number): Color[][] {
   const colors: Color[][] = [];
@@ -39,6 +40,10 @@ function createSurfacePaint(uSize: number, vSize: number, color: Readonly<Color>
     ),
   };
 }
+
+const toolMode = ref<'pixel' | 'surface'>('pixel');
+const currentColor = ref<string>('#FFFFFF');
+const currentColorRgb = computed(() => hexToRgb(currentColor.value) ?? { r: 255, g: 255, b: 255 });
 
 const components = ref<FreePaintComponent[]>([
   {
@@ -174,7 +179,23 @@ function dragPaint(hit: { surfaceRef: SurfaceRef; uv: THREE.Vector2 }) {
   const u = Math.floor(hit.uv.x * surfacePaint.uSize);
   const v = Math.floor(hit.uv.y * surfacePaint.vSize);
   if (u < 0 || u >= surfacePaint.uSize || v < 0 || v >= surfacePaint.vSize) return;
-  surfacePaint.colors[v]![u]! = { r: 0, g: 0, b: 0 };
+  surfacePaint.colors[v]![u]! = { ...currentColorRgb.value };
+  if (isSingleColor(surfacePaint.colors)) {
+    // todo
+  }
+}
+
+function isSingleColor(colors: Color[][]): boolean {
+  if (colors.length === 0) return true;
+  const firstColor = colors[0]![0]!;
+  for (const row of colors) {
+    for (const color of row) {
+      if (color.r !== firstColor.r || color.g !== firstColor.g || color.b !== firstColor.b) {
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 function pointerDownHandler(event: PointerEvent) {
@@ -201,27 +222,23 @@ const axesHelper = new THREE.AxesHelper(5);
 </script>
 
 <template>
-  <div class="grid h-full sm:grid-cols-[24rem_1fr]">
-    <div class="flex h-screen flex-col">
-      <AppTitle />
-
-      <div class="overflow-auto">
-        <pre><code>{{ JSON.stringify(surfaces, null, 2) }}</code></pre>
-      </div>
-    </div>
-
-    <ResponsivePanel icon="i-lucide-box" label="a">
-      <ClientOnly>
-        <ThreeCanvas
-          :objects="[mainObject, raycasterMesh, axesHelper].filter((o) => o !== null)"
-          :initial-camera-pos="[0, 0, 1]"
-          @init="init"
-          @dispose="dispose"
-          @pointer-down="pointerDownHandler"
-          @pointer-move="pointerMoveHandler"
-          @pointer-up="pointerUpHandler"
-        />
-      </ClientOnly>
-    </ResponsivePanel>
+  <div class="relative h-full w-full">
+    <ClientOnly>
+      <ThreeCanvas
+        :objects="[mainObject, raycasterMesh, axesHelper].filter((o) => o !== null)"
+        :initial-camera-pos="[-1, 1, -1]"
+        @init="init"
+        @dispose="dispose"
+        @pointer-down="pointerDownHandler"
+        @pointer-move="pointerMoveHandler"
+        @pointer-up="pointerUpHandler"
+      />
+    </ClientOnly>
+    <AppTitle class="absolute top-0 left-0" />
+    <ThePaintTool
+      v-model:mode="toolMode"
+      v-model:color="currentColor"
+      class="absolute top-1/2 left-0 -translate-y-1/2 rounded-r-2xl bg-black/80"
+    />
   </div>
 </template>

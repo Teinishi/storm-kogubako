@@ -39,21 +39,26 @@ const updateRgb = (value: number | null, channel: 'r' | 'g' | 'b') => {
   emit('update:model-value', hex);
 };
 
-onBeforeMount(() => {
-  updateHex(props.modelValue);
-});
+watch(
+  () => props.modelValue,
+  (modelValue) => {
+    updateHex(modelValue);
+  },
+);
 </script>
 
 <template>
   <UPopover class="grow">
-    <UButton :label="label ?? t('pick_color')" color="neutral" variant="outline">
-      <template #leading>
-        <span
-          :style="{ backgroundColor: modelValue }"
-          class="ring-accented size-3 rounded-full ring"
-        />
-      </template>
-    </UButton>
+    <slot>
+      <UButton :label="label ?? t('pick_color')" color="neutral" variant="outline">
+        <template #leading>
+          <span
+            :style="{ backgroundColor: modelValue }"
+            class="ring-accented size-3 rounded-full ring"
+          />
+        </template>
+      </UButton>
+    </slot>
 
     <template #content>
       <div class="flex flex-col gap-2 p-4">
