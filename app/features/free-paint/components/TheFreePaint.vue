@@ -81,6 +81,8 @@ function createPointerEventHandler(kind: PointerEventKind) {
         addBlockTool.onPointerEvent(ctx);
         break;
     }
+
+    event.preventDefault();
   };
 }
 

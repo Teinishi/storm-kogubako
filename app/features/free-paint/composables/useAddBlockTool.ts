@@ -3,24 +3,36 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { ThreeCanvasContext } from '~/components/ThreeCanvas.client.vue';
 import { getSurfaceGlobalTransform } from '~/shared/basicBlocks';
 import {
+  getVoxelComponentMap,
   updateRaycaster,
   type FreePaintComponent,
   type PointerEventContext,
-  type PointerEventKind,
 } from '../surfacePaint';
 
 interface Placement {
-  pos: Vec3;
+  targetVoxel: Vec3;
   baseVoxel: Vec3;
   surfaceMatrix: Mat3;
 }
 
-function _createGhostBlocks(startPos: Readonly<Vec3>, endPos: Readonly<Vec3>) {
+function createGhostBlocks(
+  p0: Readonly<Vec3>,
+  p1: Readonly<Vec3>,
+  filterFn?: (pos: Readonly<Vec3>) => boolean,
+) {
+  const minX = Math.min(p0.x, p1.x);
+  const maxX = Math.max(p0.x, p1.x);
+  const minY = Math.min(p0.y, p1.y);
+  const maxY = Math.max(p0.y, p1.y);
+  const minZ = Math.min(p0.z, p1.z);
+  const maxZ = Math.max(p0.z, p1.z);
+
   const blocks: FreePaintComponent[] = [];
 
-  for (let z = startPos.z; z <= endPos.z; z++) {
-    for (let y = startPos.y; y <= endPos.y; y++) {
-      for (let x = startPos.x; x <= endPos.x; x++) {
+  for (let z = minZ; z <= maxZ; z++) {
+    for (let y = minY; y <= maxY; y++) {
+      for (let x = minX; x <= maxX; x++) {
+        if (filterFn && !filterFn({ x, y, z })) continue;
         blocks.push({
           type: '01_block',
           pos: { x, y, z },
@@ -29,6 +41,8 @@ function _createGhostBlocks(startPos: Readonly<Vec3>, endPos: Readonly<Vec3>) {
       }
     }
   }
+
+  return blocks;
 }
 
 export function useAddBlockTool() {
@@ -86,7 +100,7 @@ export function useAddBlockTool() {
 
     const normal = mulMat3Vec3(transform.matrix, { x: 1, y: 0, z: 0 });
     return {
-      pos: addVec3(transform.position, normal),
+      targetVoxel: addVec3(transform.position, normal),
       baseVoxel: transform.position,
       surfaceMatrix: transform.matrix,
     };
@@ -95,7 +109,7 @@ export function useAddBlockTool() {
   function getAddBlockDragPos(
     context: ThreeCanvasContext,
     event: MouseEvent,
-    startPos: Readonly<Vec3>,
+    startPos: THREE.Vector3,
   ): Vec3 | undefined {
     const forward = new THREE.Vector3();
     context.camera.getWorldDirection(forward);
@@ -115,19 +129,15 @@ export function useAddBlockTool() {
     const point = new THREE.Vector3();
     updateRaycaster(event, raycaster, context.renderer.domElement, context.camera);
     raycaster.ray.intersectPlane(plane, point);
+    point.addScaledVector(forward, -0.125);
 
     return unscaleVoxelPos(threeToSwVec3(point));
   }
 
   let dragStart: Placement | null = null;
 
-  function handlePointerEvent(
-    kind: PointerEventKind,
-    event: PointerEvent,
-    placement: Placement,
-    components: Ref<FreePaintComponent[]>,
-  ) {
-    if (kind === 'down' && event.button === 0) {
+  function handlePointerEvent(context: PointerEventContext, placement: Placement) {
+    if (context.kind === 'down' && context.event.button === 0) {
       dragStart = placement;
     }
 
@@ -137,49 +147,64 @@ export function useAddBlockTool() {
       placement.surfaceMatrix,
     );
 
-    // ゴーストブロックを表示
-    ghostComponents.value = [
-      {
-        type: '01_block',
-        pos: placement.pos,
-        r: [1, 0, 0, 0, 1, 0, 0, 0, 1],
-      },
-    ];
+    ghostComponents.value = createGhostBlocks(placement.targetVoxel, placement.targetVoxel);
 
-    if (kind === 'up' && event.button === 0) {
+    if (context.kind === 'up' && context.event.button === 0) {
       // 左クリックでブロック追加
-      components.value.push({
-        type: '01_block',
-        pos: placement.pos,
-        r: [1, 0, 0, 0, 1, 0, 0, 0, 1],
-      });
+      context.components.value.push(...ghostComponents.value);
     }
   }
 
-  function _drag(context: ThreeCanvasContext, event: MouseEvent, dragStartPos: Readonly<Vec3>) {
-    const _pos = getAddBlockDragPos(context, event, dragStartPos);
+  function drag(context: PointerEventContext, dragStart: Placement): boolean {
+    const dragStartSurfacePos = addVec3(
+      scaleVoxelPos(dragStart.baseVoxel),
+      mulMat3Vec3(dragStart.surfaceMatrix, { x: 0.125, y: 0, z: 0 }),
+    );
+
+    const endPos = getAddBlockDragPos(
+      context.threeContext,
+      context.event,
+      swToThreeVec3(dragStartSurfacePos),
+    );
+    if (!endPos) return false;
+
+    const voxelMap = getVoxelComponentMap(context.components.value);
+    ghostComponents.value = createGhostBlocks(
+      dragStart.targetVoxel,
+      endPos,
+      (pos) => !voxelMap.has(`${pos.x},${pos.y},${pos.z}`),
+    );
+
+    if ((context.event.buttons & 1) === 0) {
+      context.components.value.push(...ghostComponents.value);
+      reset();
+    }
+
+    return true;
   }
 
   function onPointerEvent(context: PointerEventContext) {
-    /*if (dragStart) {
-      drag(context.threeContext, context.event, dragStart.pos);
-      return;
-    }*/
-
-    const hit = context.testRaycast();
-    if (hit) {
-      const placement = getAddBlockPlacement(
-        hit.surfaceRef.componentIndex,
-        hit.surfaceRef.surfaceIndex,
-        context.components.value,
-      );
-      if (placement) {
-        handlePointerEvent(context.kind, context.event, placement, context.components);
-        return;
+    let success = false;
+    if (dragStart) {
+      success = drag(context, dragStart);
+    } else {
+      const hit = context.testRaycast();
+      if (hit) {
+        const placement = getAddBlockPlacement(
+          hit.surfaceRef.componentIndex,
+          hit.surfaceRef.surfaceIndex,
+          context.components.value,
+        );
+        if (placement) {
+          handlePointerEvent(context, placement);
+          success = true;
+        }
       }
     }
 
-    reset();
+    if (!success) {
+      reset();
+    }
   }
 
   function reset() {

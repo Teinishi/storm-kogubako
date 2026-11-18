@@ -219,8 +219,8 @@ export function scaleVoxelPos(v: Readonly<Vec3>): Vec3 {
 
 export function unscaleVoxelPos(v: Readonly<Vec3>): Vec3 {
   return {
-    x: 4 * v.x,
-    y: 4 * v.y,
-    z: 4 * v.z,
+    x: Math.round(4 * v.x),
+    y: Math.round(4 * v.y),
+    z: Math.round(4 * v.z),
   };
 }
