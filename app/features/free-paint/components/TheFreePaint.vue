@@ -6,8 +6,13 @@ import {
   createOpaqueUniforms,
 } from '@sw-file-lib/three';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { ThreeCanvasContext } from '~/components/ThreeCanvas.client.vue';
-import { getSurfacesFromComponents, type SurfaceEntryWithRef } from '~/shared/basicBlocks';
+import {
+  getSurfaceGlobalTransform,
+  getSurfacesFromComponents,
+  type SurfaceEntryWithRef,
+} from '~/shared/basicBlocks';
 import {
   buildFreePaintGeometry,
   createRaycasterMesh,
@@ -65,9 +70,17 @@ const components = ref<FreePaintComponent[]>([
     },
   },
 ]);
+const ghostComponents = ref<FreePaintComponent[]>([]);
+const componentsWithGhost = computed<FreePaintComponent[]>(() => [
+  ...components.value,
+  ...ghostComponents.value,
+]);
 
 const surfaces = computed<SurfaceEntryWithRef[]>(() =>
   getSurfacesFromComponents(components.value.map(freePaintToBasicComponent)),
+);
+const surfacesWithGhost = computed<SurfaceEntryWithRef[]>(() =>
+  getSurfacesFromComponents(componentsWithGhost.value.map(freePaintToBasicComponent)),
 );
 
 const mainObject = shallowRef(
@@ -93,11 +106,12 @@ const raycasterMesh = shallowRef(
 );
 
 watchEffect((onCleanup) => {
-  // 事前にカリング
-  const culledSurfaceIndices = cullSurfaces(surfaces.value);
-  const visibleSurfaces = surfaces.value.filter((_, index) => !culledSurfaceIndices.has(index));
-
   // 表示用 Mesh を作成
+  const culledSurfaceIndices = cullSurfaces(surfacesWithGhost.value);
+  const visibleSurfaces = surfacesWithGhost.value.filter(
+    (_, index) => !culledSurfaceIndices.has(index),
+  );
+
   const builder = buildFreePaintGeometry(visibleSurfaces, components.value, {
     cull: false,
     edge: true,
@@ -105,14 +119,18 @@ watchEffect((onCleanup) => {
   const geometry = bufferGeometryFromBuilder(builder);
   mainObject.value.geometry = geometry;
 
-  // Raycaster 用の Mesh を作成
-  const raycasterMeshData = createRaycasterMesh(visibleSurfaces);
-  raycasterMesh.value.geometry = raycasterMeshData.geometry;
-  triangleToSurfaceRef.value = raycasterMeshData.triangleToSurfaceRef;
-
   onCleanup(() => {
     geometry.dispose();
   });
+});
+
+watchEffect(() => {
+  // Raycaster 用の Mesh を作成
+  const culledSurfaceIndices = cullSurfaces(surfaces.value);
+  const visibleSurfaces = surfaces.value.filter((_, index) => !culledSurfaceIndices.has(index));
+  const raycasterMeshData = createRaycasterMesh(visibleSurfaces);
+  raycasterMesh.value.geometry = raycasterMeshData.geometry;
+  triangleToSurfaceRef.value = raycasterMeshData.triangleToSurfaceRef;
 });
 
 let context: ThreeCanvasContext | null = null;
@@ -161,6 +179,7 @@ onBeforeUnmount(() => {
   raycasterMesh.value.material.dispose();
 });
 
+// ペイントツール
 function dragPaint(hit: { surfaceRef: SurfaceRef; uv: THREE.Vector2 }) {
   const { componentIndex, surfaceIndex } = hit.surfaceRef;
 
@@ -208,25 +227,144 @@ function isSingleColor(colors: Color[][]): boolean {
   return true;
 }
 
-function pointerDownHandler(event: PointerEvent) {
+function paintTool(kind: PointerEventKind, event: PointerEvent) {
+  if (kind === 'up') return;
+
   if ((event.buttons & 1) !== 0) {
     const hit = testRaycast(event);
     if (hit) {
       dragPaint(hit);
     }
+  }
+}
+
+// ブロック追加ツール
+const surfaceHighlightTemplate = shallowRef<THREE.Object3D | null>(null);
+
+onMounted(async () => {
+  const loader = new GLTFLoader();
+  const gltf = await loader.loadAsync('/meshes/surface_highlight.glb');
+  surfaceHighlightTemplate.value = gltf.scene;
+});
+
+const surfaceHighlightMaterial = new THREE.MeshBasicMaterial({
+  color: 0x5bc6ce,
+  transparent: true,
+  opacity: 0.75,
+  premultipliedAlpha: true,
+  depthTest: false,
+  depthWrite: false,
+});
+
+const surfaceHighlight = shallowRef<THREE.Matrix4 | null>(null);
+
+const surfaceHighlightObject = useObject3DInstances(
+  () => {
+    const template = surfaceHighlightTemplate.value?.clone(true);
+    if (!template) return null;
+    template.traverse((object) => {
+      if (object instanceof THREE.Mesh) {
+        object.material = surfaceHighlightMaterial;
+        object.renderOrder = 100;
+      }
+    });
+    return template;
+  },
+  () => (surfaceHighlight.value ? [surfaceHighlight.value] : []),
+);
+
+function addBlockTool(kind: PointerEventKind, event: PointerEvent) {
+  const hit = testRaycast(event);
+  if (hit) {
+    // 面をハイライト
+    const { componentIndex, surfaceIndex } = hit.surfaceRef;
+    const component = components.value[componentIndex];
+    if (component) {
+      const transform = getSurfaceGlobalTransform(
+        component.type,
+        surfaceIndex,
+        component.pos,
+        component.r,
+        component.t,
+      );
+
+      if (transform) {
+        surfaceHighlight.value = swTransformToThreeMat4(
+          scaleSwPosition(transform.position),
+          transform.matrix,
+        );
+
+        const normal = mulMat3Vec3(transform.matrix, { x: 1, y: 0, z: 0 });
+        const pos = addVec3(transform.position, normal);
+        if (pos) {
+          // ゴーストブロックを表示
+          ghostComponents.value = [
+            {
+              type: '01_block',
+              pos,
+              r: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+            },
+          ];
+
+          if (kind === 'up' && event.button === 0) {
+            // 左クリックでブロック追加
+            components.value.push({
+              type: '01_block',
+              pos,
+              r: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+            });
+          }
+        }
+      }
+    }
+  } else {
+    surfaceHighlight.value = null;
+    ghostComponents.value = [];
+  }
+}
+
+watch(tool, (_newValue, oldValue) => {
+  if (oldValue === 'addBlocks') {
+    surfaceHighlight.value = null;
+    ghostComponents.value = [];
+  }
+});
+
+// ポインターイベント
+type PointerEventKind = 'down' | 'move' | 'up';
+
+function pointerDownHandler(event: PointerEvent) {
+  switch (tool.value) {
+    case 'paint':
+      paintTool('down', event);
+      break;
+    case 'addBlocks':
+      addBlockTool('down', event);
+      break;
   }
 }
 
 function pointerMoveHandler(event: PointerEvent) {
-  if ((event.buttons & 1) !== 0) {
-    const hit = testRaycast(event);
-    if (hit) {
-      dragPaint(hit);
-    }
+  switch (tool.value) {
+    case 'paint':
+      paintTool('move', event);
+      break;
+    case 'addBlocks':
+      addBlockTool('move', event);
+      break;
   }
 }
 
-function pointerUpHandler(_event: PointerEvent) {}
+function pointerUpHandler(event: PointerEvent) {
+  switch (tool.value) {
+    case 'paint':
+      paintTool('up', event);
+      break;
+    case 'addBlocks':
+      addBlockTool('up', event);
+      break;
+  }
+}
 
 const axesHelper = new THREE.AxesHelper(5);
 </script>
@@ -235,7 +373,11 @@ const axesHelper = new THREE.AxesHelper(5);
   <div class="relative h-full w-full">
     <ClientOnly>
       <ThreeCanvas
-        :objects="[mainObject, raycasterMesh, axesHelper].filter((o) => o !== null)"
+        :objects="
+          [mainObject, raycasterMesh, axesHelper, ...surfaceHighlightObject].filter(
+            (o) => o !== null,
+          )
+        "
         :initial-camera-pos="[-1, 1, -1]"
         @init="init"
         @dispose="dispose"
