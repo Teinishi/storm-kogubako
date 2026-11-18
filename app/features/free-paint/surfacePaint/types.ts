@@ -1,4 +1,6 @@
+import type { ThreeCanvasContext } from '~/components/ThreeCanvas.client.vue';
 import type { BasicBlockType, BasicComponent } from '~/shared/basicBlocks';
+import type { TestRaycastResult } from '../composables/useFreePaintMeshes';
 
 export interface SurfaceRef {
   componentIndex: number;
@@ -38,4 +40,14 @@ export function freePaintToBasicComponent(component: FreePaintComponent): BasicC
     t,
     r: r?.join(','),
   };
+}
+
+export type PointerEventKind = 'down' | 'move' | 'up';
+
+export interface PointerEventContext {
+  kind: PointerEventKind;
+  event: PointerEvent;
+  threeContext: ThreeCanvasContext;
+  components: Ref<FreePaintComponent[]>;
+  testRaycast: () => TestRaycastResult | null;
 }

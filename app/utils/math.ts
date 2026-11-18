@@ -209,10 +209,18 @@ export function forVoxels(
   }
 }
 
-export function scaleSwPosition(v: Readonly<Vec3>): Vec3 {
+export function scaleVoxelPos(v: Readonly<Vec3>): Vec3 {
   return {
     x: 0.25 * v.x,
     y: 0.25 * v.y,
     z: 0.25 * v.z,
+  };
+}
+
+export function unscaleVoxelPos(v: Readonly<Vec3>): Vec3 {
+  return {
+    x: 4 * v.x,
+    y: 4 * v.y,
+    z: 4 * v.z,
   };
 }

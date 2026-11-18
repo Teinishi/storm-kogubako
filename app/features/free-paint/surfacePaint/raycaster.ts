@@ -12,7 +12,7 @@ export function createRaycasterMesh(surfaces: readonly Readonly<SurfaceEntry & S
 
   for (const surface of surfaces) {
     const matrix = swToThreeMat3(surface.matrix);
-    const position = swToThreeVec3(scaleSwPosition(surface.position));
+    const position = swToThreeVec3(scaleVoxelPos(surface.position));
 
     const surfaceData = getSurfaceData(surface.shape);
 
@@ -45,10 +45,9 @@ export function createRaycasterMesh(surfaces: readonly Readonly<SurfaceEntry & S
   return { geometry, triangleToSurfaceRef };
 }
 
-export function raycasterIntersections(
+export function updateRaycaster(
   event: MouseEvent,
   raycaster: THREE.Raycaster,
-  object: THREE.Object3D,
   canvas: HTMLElement,
   camera: THREE.Camera,
 ) {
@@ -59,6 +58,4 @@ export function raycasterIntersections(
     -((event.clientY - rect.top) / rect.height) * 2 + 1,
   );
   raycaster.setFromCamera(pointer, camera);
-
-  return raycaster.intersectObject(object);
 }

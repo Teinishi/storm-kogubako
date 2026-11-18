@@ -1,7 +1,6 @@
 <script setup lang="ts">
+import { PAINT_MODES, type PaintMode } from '../composables/usePaintTool.ts';
 import UnderlineButtons from './UnderlineButtons.vue';
-
-const MODES = [{ value: 'pixel' }, { value: 'surface' }] as const;
 
 const MODE_ICONS = {
   pixel: 'i-lucide-pencil',
@@ -37,8 +36,6 @@ const COLORS = [
   { r: 36, g: 60, b: 85 },
 ].map(rgbToHex);
 
-export type PaintMode = (typeof MODES)[number]['value'];
-
 defineProps<{
   disabled?: boolean;
 }>();
@@ -47,11 +44,11 @@ const modelMode = defineModel<PaintMode>('mode', { required: true });
 const modelColor = defineModel<string>('color', { required: true });
 
 const currentTool = computed(() => {
-  return MODES.find((tool) => tool.value === modelMode.value);
+  return PAINT_MODES.find((tool) => tool === modelMode.value);
 });
 
 const currentToolIcon = computed(() => {
-  return currentTool.value ? MODE_ICONS[currentTool.value.value] : '';
+  return currentTool.value ? MODE_ICONS[currentTool.value] : '';
 });
 </script>
 
@@ -65,7 +62,7 @@ const currentToolIcon = computed(() => {
         <UnderlineButtons
           v-slot="item"
           v-model="modelMode"
-          :items="MODES"
+          :items="PAINT_MODES.map((mode) => ({ value: mode }))"
           :button-props="{ class: 'h-14 w-14 justify-center rounded-full', disabled: disabled }"
         >
           <UIcon :name="MODE_ICONS[item.value]" class="size-8" />
