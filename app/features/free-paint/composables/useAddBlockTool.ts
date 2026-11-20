@@ -81,6 +81,15 @@ export function useAddBlockTool() {
     () => (surfaceHighlight.value ? [surfaceHighlight.value] : []),
   );
 
+  function updateGhostComponents(newValue: FreePaintComponent[]) {
+    if (
+      newValue.length !== ghostComponents.value.length ||
+      JSON.stringify(newValue) !== JSON.stringify(ghostComponents.value)
+    ) {
+      ghostComponents.value = newValue;
+    }
+  }
+
   function getAddBlockPlacement(
     componentIndex: number,
     surfaceIndex: number,
@@ -147,7 +156,7 @@ export function useAddBlockTool() {
       placement.surfaceMatrix,
     );
 
-    ghostComponents.value = createGhostBlocks(placement.targetVoxel, placement.targetVoxel);
+    updateGhostComponents(createGhostBlocks(placement.targetVoxel, placement.targetVoxel));
 
     if (context.kind === 'up' && context.event.button === 0) {
       // 左クリックでブロック追加
@@ -169,10 +178,12 @@ export function useAddBlockTool() {
     if (!endPos) return false;
 
     const voxelMap = getVoxelComponentMap(context.components.value);
-    ghostComponents.value = createGhostBlocks(
-      dragStart.targetVoxel,
-      endPos,
-      (pos) => !voxelMap.has(`${pos.x},${pos.y},${pos.z}`),
+    updateGhostComponents(
+      createGhostBlocks(
+        dragStart.targetVoxel,
+        endPos,
+        (pos) => !voxelMap.has(`${pos.x},${pos.y},${pos.z}`),
+      ),
     );
 
     if ((context.event.buttons & 1) === 0) {
@@ -208,7 +219,7 @@ export function useAddBlockTool() {
   }
 
   function reset() {
-    ghostComponents.value = [];
+    updateGhostComponents([]);
     surfaceHighlight.value = null;
     dragStart = null;
   }

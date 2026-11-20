@@ -42,13 +42,40 @@ export function useFreePaintMeshes(
     const components = getViewComponents();
     const surfaces = getSurfacesFromComponents(components.map((c) => freePaintToBasicComponent(c)));
 
+    const cullingStartTime = performance.now();
+
     const culledSurfaceIndices = cullSurfaces(surfaces);
+
+    const cullingTime = performance.now() - cullingStartTime;
+    if (cullingTime > 10) {
+      console.warn(
+        'FreePaint culling took',
+        cullingTime.toFixed(2),
+        'ms for',
+        surfaces.length,
+        'surfaces.',
+      );
+    }
+
     const visibleSurfaces = surfaces.filter((_, index) => !culledSurfaceIndices.has(index));
+
+    const buildStartTime = performance.now();
 
     const builder = buildFreePaintGeometry(visibleSurfaces, components, {
       cull: false,
       edge: true,
     });
+
+    const buildTime = performance.now() - buildStartTime;
+    if (buildTime > 10) {
+      console.warn(
+        'FreePaint geometry build took',
+        buildTime.toFixed(2),
+        'ms for',
+        visibleSurfaces.length,
+        'surfaces.',
+      );
+    }
     const geometry = bufferGeometryFromBuilder(builder);
     mainObject.value.geometry = geometry;
 
